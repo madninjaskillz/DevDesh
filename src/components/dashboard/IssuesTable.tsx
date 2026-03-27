@@ -1,0 +1,167 @@
+import { useState, useMemo } from 'react';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import TableSortLabel from '@mui/material/TableSortLabel';
+import Paper from '@mui/material/Paper';
+import Chip from '@mui/material/Chip';
+import Link from '@mui/material/Link';
+import Tooltip from '@mui/material/Tooltip';
+import IconButton from '@mui/material/IconButton';
+import Skeleton from '@mui/material/Skeleton';
+import Typography from '@mui/material/Typography';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import type { DashboardIssue } from '../../types/github';
+import { formatAge, formatDate, getAgeColor } from '../../utils/dates';
+
+type SortField = 'title' | 'repoName' | 'ageDays';
+type SortDir = 'asc' | 'desc';
+
+interface IssuesTableProps {
+  issues: DashboardIssue[];
+  isLoading: boolean;
+}
+
+export function IssuesTable({ issues, isLoading }: IssuesTableProps) {
+  const [sortField, setSortField] = useState<SortField>('ageDays');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  const handleSort = (field: SortField) => {
+    if (field === sortField) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDir('desc');
+    }
+  };
+
+  const sorted = useMemo(() => {
+    return [...issues].sort((a, b) => {
+      const mul = sortDir === 'asc' ? 1 : -1;
+      if (sortField === 'ageDays') return (a.ageDays - b.ageDays) * mul;
+      return a[sortField].localeCompare(b[sortField]) * mul;
+    });
+  }, [issues, sortField, sortDir]);
+
+  if (isLoading) {
+    return (
+      <Paper sx={{ p: 2 }}>
+        {[...Array(5)].map((_, i) => (
+          <Skeleton key={i} height={40} sx={{ my: 0.5 }} />
+        ))}
+      </Paper>
+    );
+  }
+
+  if (issues.length === 0) {
+    return (
+      <Paper sx={{ p: 3, textAlign: 'center' }}>
+        <Typography color="text.secondary">No issues assigned to you. Nice work!</Typography>
+      </Paper>
+    );
+  }
+
+  return (
+    <TableContainer component={Paper}>
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>
+              <TableSortLabel
+                active={sortField === 'title'}
+                direction={sortField === 'title' ? sortDir : 'asc'}
+                onClick={() => handleSort('title')}
+              >
+                Title
+              </TableSortLabel>
+            </TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={sortField === 'repoName'}
+                direction={sortField === 'repoName' ? sortDir : 'asc'}
+                onClick={() => handleSort('repoName')}
+              >
+                Repo
+              </TableSortLabel>
+            </TableCell>
+            <TableCell>Labels</TableCell>
+            <TableCell>Assigned</TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={sortField === 'ageDays'}
+                direction={sortField === 'ageDays' ? sortDir : 'desc'}
+                onClick={() => handleSort('ageDays')}
+              >
+                Age
+              </TableSortLabel>
+            </TableCell>
+            <TableCell width={48} />
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {sorted.map((issue) => (
+            <TableRow key={`${issue.repoFullName}-${issue.number}`} hover>
+              <TableCell sx={{ maxWidth: 400 }}>
+                <Tooltip title={issue.title} enterDelay={500}>
+                  <Link
+                    href={issue.htmlUrl}
+                    target="_blank"
+                    rel="noopener"
+                    underline="hover"
+                    sx={{
+                      display: 'block',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    #{issue.number} {issue.title}
+                  </Link>
+                </Tooltip>
+              </TableCell>
+              <TableCell>
+                <Chip label={issue.repoName} variant="outlined" />
+              </TableCell>
+              <TableCell>
+                {issue.labels.map((label) => (
+                  <Chip
+                    key={label.id}
+                    label={label.name}
+                    size="small"
+                    sx={{
+                      mr: 0.5,
+                      mb: 0.5,
+                      bgcolor: `#${label.color}`,
+                      color: isLightColor(label.color) ? '#000' : '#fff',
+                    }}
+                  />
+                ))}
+              </TableCell>
+              <TableCell>
+                <Typography variant="body2">{formatDate(issue.assignedDate)}</Typography>
+              </TableCell>
+              <TableCell>
+                <Chip label={formatAge(issue.ageDays)} color={getAgeColor(issue.ageDays)} size="small" />
+              </TableCell>
+              <TableCell>
+                <IconButton href={issue.htmlUrl} target="_blank" rel="noopener" size="small">
+                  <OpenInNewIcon />
+                </IconButton>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+}
+
+function isLightColor(hex: string): boolean {
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 128;
+}
