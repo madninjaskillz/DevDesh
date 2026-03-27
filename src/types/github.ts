@@ -22,6 +22,7 @@ export interface GitHubIssue {
   assignees: { login: string }[];
   created_at: string;
   updated_at: string;
+  closed_at: string | null;
   pull_request?: { url: string };
   repository_url: string;
 }
@@ -35,6 +36,8 @@ export interface GitHubPR {
   user: { login: string; avatar_url: string };
   created_at: string;
   updated_at: string;
+  closed_at: string | null;
+  merged_at: string | null;
   head: { ref: string };
   base: { ref: string };
   requested_reviewers: { login: string; avatar_url: string }[];

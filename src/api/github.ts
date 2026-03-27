@@ -102,6 +102,40 @@ export async function getOpenPRs(
   );
 }
 
+export async function getRecentlyClosedIssues(
+  owner: string,
+  repo: string,
+  username: string,
+  since: string,
+  token: string,
+): Promise<GitHubIssue[]> {
+  const issues = await fetchAllPages<GitHubIssue>(
+    `${API_BASE}/repos/${owner}/${repo}/issues?assignee=${username}&state=closed&since=${since}&sort=updated&direction=desc`,
+    token,
+  );
+  return issues.filter((i) => !i.pull_request);
+}
+
+export async function getRecentlyClosedPRs(
+  owner: string,
+  repo: string,
+  since: string,
+  token: string,
+): Promise<GitHubPR[]> {
+  // The pulls endpoint doesn't support `since`, so we fetch sorted by updated desc
+  // and stop paginating once we pass the cutoff date. We use a single page of 100
+  // which should be sufficient for 30 days of closed PRs.
+  const prs = await fetchJSON<GitHubPR[]>(
+    `${API_BASE}/repos/${owner}/${repo}/pulls?state=closed&sort=updated&direction=desc&per_page=100`,
+    token,
+  );
+  const cutoff = new Date(since);
+  return prs.filter((pr) => {
+    const closed = pr.closed_at ?? pr.merged_at;
+    return closed && new Date(closed) >= cutoff;
+  });
+}
+
 export async function getPRReviews(
   owner: string,
   repo: string,

@@ -1,6 +1,7 @@
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
+import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@mui/material/styles';
 import {
   LineChart,
@@ -17,23 +18,38 @@ import { colors } from '../../theme/colors';
 
 interface TrendChartProps {
   data: TrendDataPoint[];
+  isLoading?: boolean;
 }
 
-export function TrendChart({ data }: TrendChartProps) {
+export function TrendChart({ data, isLoading }: TrendChartProps) {
   const theme = useTheme();
   const textColor = theme.palette.text.secondary;
   const gridColor = theme.palette.divider;
 
-  if (data.length < 2) {
+  if (isLoading) {
+    return (
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Paper sx={{ p: 2 }}>
+            <Skeleton variant="text" width={200} />
+            <Skeleton variant="rectangular" height={280} />
+          </Paper>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Paper sx={{ p: 2 }}>
+            <Skeleton variant="text" width={200} />
+            <Skeleton variant="rectangular" height={280} />
+          </Paper>
+        </Grid>
+      </Grid>
+    );
+  }
+
+  if (data.length === 0) {
     return (
       <Paper sx={{ p: 4, textAlign: 'center' }}>
         <Typography color="text.secondary">
-          Trend data will appear after the dashboard has been visited on multiple days.
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          {data.length === 0
-            ? 'No data points recorded yet.'
-            : `1 data point recorded (${data[0].date}). Come back tomorrow!`}
+          No trend data available.
         </Typography>
       </Paper>
     );

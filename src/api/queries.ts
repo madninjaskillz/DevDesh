@@ -3,13 +3,16 @@ import { useAuth } from '../hooks/useAuth';
 import {
   getAssignedIssues,
   getOpenPRs,
+  getRecentlyClosedIssues,
+  getRecentlyClosedPRs,
   getPRReviews,
   getPRReviewThreads,
 } from './github';
 import { daysAgo } from '../utils/dates';
-import { saveDailySnapshot, loadTrendHistory } from '../utils/trends';
-import { REPOS, type DashboardIssue, type DashboardPR, type PRStatus } from '../types/github';
-import { useEffect, useMemo } from 'react';
+import { computeTrendData } from '../utils/trends';
+import { REPOS, type DashboardIssue, type DashboardPR, type PRStatus, type TrendDataPoint } from '../types/github';
+import { useMemo } from 'react';
+import { subDays, formatISO } from 'date-fns';
 
 const STALE_TIME = 5 * 60 * 1000;
 const REFETCH_INTERVAL = 5 * 60 * 1000;
@@ -161,19 +164,99 @@ export function useDashboardSummary(issues: DashboardIssue[], prs: DashboardPR[]
   };
 }
 
-export function useTrendData(issues: DashboardIssue[], prs: DashboardPR[], isLoading: boolean) {
-  const summary = useDashboardSummary(issues, prs);
+export function useTrendData() {
+  const { token, user } = useAuth();
+  const since = formatISO(subDays(new Date(), 30), { representation: 'date' });
 
-  useEffect(() => {
-    if (!isLoading && (issues.length > 0 || prs.length > 0)) {
-      saveDailySnapshot({
-        openIssues: summary.totalIssues,
-        openPRs: summary.totalPRs,
-        avgIssueAgeDays: summary.avgIssueAge,
-        avgPRAgeDays: summary.avgPRAge,
-      });
-    }
-  }, [isLoading, summary.totalIssues, summary.totalPRs, summary.avgIssueAge, summary.avgPRAge]);
+  // Fetch open issues (already have these, but we need the raw GitHubIssue for created_at/closed_at)
+  const openIssueQueries = useQueries({
+    queries: REPOS.map(({ owner, repo }) => ({
+      queryKey: ['trend-open-issues', owner, repo, user?.login],
+      queryFn: () => getAssignedIssues(owner, repo, user!.login, token!),
+      enabled: !!token && !!user,
+      staleTime: STALE_TIME,
+    })),
+  });
 
-  return loadTrendHistory();
+  // Fetch recently closed issues
+  const closedIssueQueries = useQueries({
+    queries: REPOS.map(({ owner, repo }) => ({
+      queryKey: ['trend-closed-issues', owner, repo, user?.login, since],
+      queryFn: () => getRecentlyClosedIssues(owner, repo, user!.login, since, token!),
+      enabled: !!token && !!user,
+      staleTime: STALE_TIME,
+    })),
+  });
+
+  // Fetch open PRs
+  const openPRQueries = useQueries({
+    queries: REPOS.map(({ owner, repo }) => ({
+      queryKey: ['trend-open-prs', owner, repo],
+      queryFn: () => getOpenPRs(owner, repo, token!),
+      enabled: !!token && !!user,
+      staleTime: STALE_TIME,
+    })),
+  });
+
+  // Fetch recently closed PRs
+  const closedPRQueries = useQueries({
+    queries: REPOS.map(({ owner, repo }) => ({
+      queryKey: ['trend-closed-prs', owner, repo, since],
+      queryFn: () => getRecentlyClosedPRs(owner, repo, since, token!),
+      enabled: !!token && !!user,
+      staleTime: STALE_TIME,
+    })),
+  });
+
+  const isLoading = [
+    ...openIssueQueries,
+    ...closedIssueQueries,
+    ...openPRQueries,
+    ...closedPRQueries,
+  ].some((q) => q.isLoading);
+
+  const trendData: TrendDataPoint[] = useMemo(() => {
+    if (isLoading) return [];
+
+    // Combine open + recently closed issues
+    const allIssues = [
+      ...openIssueQueries.flatMap((q) => q.data ?? []),
+      ...closedIssueQueries.flatMap((q) => q.data ?? []),
+    ];
+
+    // Combine open + recently closed PRs, filtered to user's PRs
+    const allPRs = [
+      ...openPRQueries.flatMap((q) => q.data ?? []),
+      ...closedPRQueries.flatMap((q) => q.data ?? []),
+    ].filter((pr) => pr.user.login === user?.login);
+
+    // Deduplicate by number+repo (an item could appear in both open and closed if state changed)
+    const uniqueIssues = dedup(allIssues, (i) => `${i.repository_url}-${i.number}`);
+    const uniquePRs = dedup(allPRs, (p) => `${p.html_url}`);
+
+    return computeTrendData(
+      uniqueIssues.map((i) => ({ created_at: i.created_at, closed_at: i.closed_at })),
+      uniquePRs.map((p) => ({ created_at: p.created_at, closed_at: p.closed_at ?? p.merged_at })),
+      30,
+    );
+  }, [
+    isLoading,
+    openIssueQueries.map((q) => q.dataUpdatedAt).join(','),
+    closedIssueQueries.map((q) => q.dataUpdatedAt).join(','),
+    openPRQueries.map((q) => q.dataUpdatedAt).join(','),
+    closedPRQueries.map((q) => q.dataUpdatedAt).join(','),
+    user?.login,
+  ]);
+
+  return { trendData, isLoading };
+}
+
+function dedup<T>(items: T[], key: (item: T) => string): T[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const k = key(item);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
 }

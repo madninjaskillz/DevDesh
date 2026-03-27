@@ -17,9 +17,10 @@ export function DashboardPage() {
   const { issues, isLoading: issuesLoading, isError: issuesError, error: issuesErr } = useAssignedIssues();
   const { prs, isLoading: prsLoading, isError: prsError, error: prsErr } = useOpenPRs();
 
+  const { trendData, isLoading: trendLoading } = useTrendData();
+
   const isLoading = issuesLoading || prsLoading;
   const summary = useDashboardSummary(issues, prs);
-  const trendData = useTrendData(issues, prs, isLoading);
 
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
@@ -76,7 +77,7 @@ export function DashboardPage() {
       <Typography variant="h6" sx={{ mb: 1.5, mt: 4 }}>
         Trends
       </Typography>
-      <TrendChart data={trendData} />
+      <TrendChart data={trendData} isLoading={trendLoading} />
     </Box>
   );
 }
