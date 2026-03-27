@@ -14,12 +14,18 @@ import IconButton from '@mui/material/IconButton';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import CommentIcon from '@mui/icons-material/Comment';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import { useQueryClient } from '@tanstack/react-query';
 import type { DashboardPR, PRStatus } from '../../types/github';
 import { formatAge, formatDate, getAgeColor } from '../../utils/dates';
 import { colors } from '../../theme/colors';
+import { getPRBody, updatePRBody } from '../../api/github';
+import { useAuth } from '../../hooks/useAuth';
 
 type SortField = 'title' | 'repoName' | 'ageDays' | 'status' | 'unresolvedThreadCount';
 type SortDir = 'asc' | 'desc';
@@ -37,8 +43,11 @@ interface PRsTableProps {
 }
 
 export function PRsTable({ prs, isLoading }: PRsTableProps) {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
   const [sortField, setSortField] = useState<SortField>('ageDays');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [fixingPRs, setFixingPRs] = useState<Set<string>>(new Set());
 
   const handleSort = (field: SortField) => {
     if (field === sortField) {
@@ -46,6 +55,44 @@ export function PRsTable({ prs, isLoading }: PRsTableProps) {
     } else {
       setSortField(field);
       setSortDir('desc');
+    }
+  };
+
+  const handleFixLinks = async (pr: DashboardPR) => {
+    if (!token || pr.missingIssueLinks.length === 0) return;
+
+    const prKey = `${pr.repoFullName}-${pr.number}`;
+    setFixingPRs((prev) => new Set(prev).add(prKey));
+
+    try {
+      const [owner, repo] = pr.repoFullName.split('/');
+      const currentBody = await getPRBody(owner, repo, pr.number, token);
+
+      // Build "Closes" references for each missing issue
+      const closeLines = pr.missingIssueLinks.map((missing) => {
+        // If issue is in the same repo, use short form; otherwise use full form
+        if (missing.issueRepoFullName === pr.repoFullName) {
+          return `Closes #${missing.issueNumber}`;
+        }
+        return `Closes ${missing.issueRepoFullName}#${missing.issueNumber}`;
+      });
+
+      const separator = currentBody.trim() ? '\n\n' : '';
+      const newBody = currentBody.trim() + separator + closeLines.join('\n');
+
+      await updatePRBody(owner, repo, pr.number, newBody, token);
+
+      // Invalidate queries so the linked issues refresh
+      queryClient.invalidateQueries({ queryKey: ['pr-graphql', owner, repo, pr.number] });
+      queryClient.invalidateQueries({ queryKey: ['issue-linked-prs'] });
+    } catch (err) {
+      console.error('Failed to fix PR links:', err);
+    } finally {
+      setFixingPRs((prev) => {
+        const next = new Set(prev);
+        next.delete(prKey);
+        return next;
+      });
     }
   };
 
@@ -136,10 +183,14 @@ export function PRsTable({ prs, isLoading }: PRsTableProps) {
         <TableBody>
           {sorted.map((pr) => {
             const statusConf = STATUS_CONFIG[pr.status];
-            const hasNoLinkedIssues = pr.linkedIssues.length === 0;
+            const hasNoLinkedIssues = pr.linkedIssues.length === 0 && pr.missingIssueLinks.length === 0;
+            const hasMissingLinks = pr.missingIssueLinks.length > 0;
+            const prKey = `${pr.repoFullName}-${pr.number}`;
+            const isFixing = fixingPRs.has(prKey);
+
             return (
               <TableRow
-                key={`${pr.repoFullName}-${pr.number}`}
+                key={prKey}
                 hover
                 sx={hasNoLinkedIssues ? {
                   bgcolor: (theme) => theme.palette.mode === 'light' ? '#FDE8E8' : 'rgba(245, 204, 204, 0.08)',
@@ -187,28 +238,69 @@ export function PRsTable({ prs, isLoading }: PRsTableProps) {
                   )}
                 </TableCell>
                 <TableCell>
-                  {pr.linkedIssues.length > 0 ? (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {pr.linkedIssues.map((issue) => (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center' }}>
+                    {/* Properly linked issues */}
+                    {pr.linkedIssues.map((issue) => (
+                      <Chip
+                        key={issue.url}
+                        label={`#${issue.number}`}
+                        size="small"
+                        component="a"
+                        href={issue.url}
+                        target="_blank"
+                        rel="noopener"
+                        clickable
+                        variant="outlined"
+                        title={issue.title}
+                      />
+                    ))}
+                    {/* Issues that reference this PR but PR doesn't link back */}
+                    {pr.missingIssueLinks.map((missing) => (
+                      <Tooltip
+                        key={missing.issueUrl}
+                        title={`Issue #${missing.issueNumber} references this PR, but PR doesn't link back`}
+                      >
                         <Chip
-                          key={issue.url}
-                          label={`#${issue.number}`}
+                          icon={<WarningAmberIcon sx={{ fontSize: 14 }} />}
+                          label={`#${missing.issueNumber}`}
                           size="small"
                           component="a"
-                          href={issue.url}
+                          href={missing.issueUrl}
                           target="_blank"
                           rel="noopener"
                           clickable
+                          sx={{
+                            bgcolor: `${colors.orange[5]}20`,
+                            borderColor: colors.orange[4],
+                            color: colors.orange[5],
+                          }}
                           variant="outlined"
-                          title={issue.title}
                         />
-                      ))}
-                    </Box>
-                  ) : (
-                    <Tooltip title="No linked issues">
-                      <LinkOffIcon sx={{ color: colors.red[3], fontSize: 18 }} />
-                    </Tooltip>
-                  )}
+                      </Tooltip>
+                    ))}
+                    {/* Fix button when there are missing links */}
+                    {hasMissingLinks && (
+                      <Tooltip title={`Add "Closes" reference${pr.missingIssueLinks.length > 1 ? 's' : ''} to PR body`}>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleFixLinks(pr)}
+                          disabled={isFixing}
+                          sx={{
+                            color: colors.orange[5],
+                            '&:hover': { bgcolor: `${colors.orange[5]}15` },
+                          }}
+                        >
+                          {isFixing ? <CircularProgress size={16} /> : <AutoFixHighIcon sx={{ fontSize: 16 }} />}
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    {/* No links at all */}
+                    {hasNoLinkedIssues && (
+                      <Tooltip title="No linked issues">
+                        <LinkOffIcon sx={{ color: colors.red[3], fontSize: 18 }} />
+                      </Tooltip>
+                    )}
+                  </Box>
                 </TableCell>
                 <TableCell>
                   <Typography variant="body2">{formatDate(pr.createdAt)}</Typography>

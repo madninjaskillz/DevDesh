@@ -86,6 +86,13 @@ export interface DashboardIssue {
 
 export type PRStatus = 'draft' | 'approved' | 'changes_requested' | 'review_pending';
 
+export interface MissingIssueLink {
+  issueNumber: number;
+  issueTitle: string;
+  issueUrl: string;
+  issueRepoFullName: string;
+}
+
 export interface DashboardPR {
   number: number;
   title: string;
@@ -102,6 +109,7 @@ export interface DashboardPR {
   unresolvedThreadCount: number;
   totalThreadCount: number;
   linkedIssues: LinkedIssue[];
+  missingIssueLinks: MissingIssueLink[];
   headRef: string;
   baseRef: string;
 }

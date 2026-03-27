@@ -161,6 +161,7 @@ export function useOpenPRs() {
         unresolvedThreadCount: gqlData?.unresolvedCount ?? 0,
         totalThreadCount: gqlData?.totalCount ?? 0,
         linkedIssues: gqlData?.linkedIssues ?? [],
+        missingIssueLinks: [],
         headRef: pr.head.ref,
         baseRef: pr.base.ref,
       };

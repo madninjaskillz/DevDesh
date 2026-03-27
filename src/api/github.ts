@@ -325,3 +325,34 @@ export async function getIssueLinkedPRs(
 
   return result;
 }
+
+export async function getPRBody(
+  owner: string,
+  repo: string,
+  prNumber: number,
+  token: string,
+): Promise<string> {
+  const pr = await fetchJSON<{ body: string | null }>(
+    `${API_BASE}/repos/${owner}/${repo}/pulls/${prNumber}`,
+    token,
+  );
+  return pr.body ?? '';
+}
+
+export async function updatePRBody(
+  owner: string,
+  repo: string,
+  prNumber: number,
+  body: string,
+  token: string,
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/repos/${owner}/${repo}/pulls/${prNumber}`, {
+    method: 'PATCH',
+    headers: { ...headers(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ body }),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new GitHubApiError(res.status, text, res.headers);
+  }
+}

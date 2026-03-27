@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -11,6 +11,7 @@ import { IssuesTable } from './IssuesTable';
 import { PRsTable } from './PRsTable';
 import { TrendChart } from './TrendChart';
 import { GitHubApiError } from '../../api/github';
+import type { DashboardPR, MissingIssueLink } from '../../types/github';
 
 export function DashboardPage() {
   const queryClient = useQueryClient();
@@ -21,6 +22,38 @@ export function DashboardPage() {
 
   const isLoading = issuesLoading || prsLoading;
   const summary = useDashboardSummary(issues, prs);
+
+  // Compute missing issue links: issues that reference a PR but the PR doesn't link back
+  const prsWithMissingLinks: DashboardPR[] = useMemo(() => {
+    if (isLoading) return prs;
+
+    return prs.map((pr) => {
+      const missingIssueLinks: MissingIssueLink[] = [];
+
+      for (const issue of issues) {
+        // Does this issue's linkedPRs reference this PR?
+        const issueRefersToThisPR = issue.linkedPRs.some(
+          (linkedPR) => linkedPR.number === pr.number && linkedPR.repoName === pr.repoName,
+        );
+        if (!issueRefersToThisPR) continue;
+
+        // Does this PR's linkedIssues already include this issue?
+        const prLinksBackToIssue = pr.linkedIssues.some(
+          (linkedIssue) => linkedIssue.number === issue.number && linkedIssue.repoName === issue.repoName,
+        );
+        if (prLinksBackToIssue) continue;
+
+        missingIssueLinks.push({
+          issueNumber: issue.number,
+          issueTitle: issue.title,
+          issueUrl: issue.htmlUrl,
+          issueRepoFullName: issue.repoFullName,
+        });
+      }
+
+      return { ...pr, missingIssueLinks };
+    });
+  }, [prs, issues, isLoading]);
 
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
@@ -72,7 +105,7 @@ export function DashboardPage() {
       <Typography variant="h6" sx={{ mb: 1.5, mt: 4 }}>
         My Pull Requests
       </Typography>
-      <PRsTable prs={prs} isLoading={prsLoading} />
+      <PRsTable prs={prsWithMissingLinks} isLoading={prsLoading} />
 
       <Typography variant="h6" sx={{ mb: 1.5, mt: 4 }}>
         Trends
