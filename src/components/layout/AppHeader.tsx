@@ -18,7 +18,7 @@ export function AppHeader() {
   const { user, isAuthenticated, logout } = useAuth();
 
   return (
-    <AppBar position="sticky" sx={{ backgroundColor: colors.gray[7] }}>
+    <AppBar position="static" elevation={2} sx={{ backgroundColor: colors.gray[7], zIndex: 1100 }}>
       <Toolbar>
         <DashboardIcon sx={{ mr: 1, color: colors.red.brand }} />
         <Typography
@@ -27,7 +27,7 @@ export function AppHeader() {
         >
           Dev
           <Box component="span" sx={{ color: colors.red.brand }}>
-            Desh
+            Dash
           </Box>
         </Typography>
 

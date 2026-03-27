@@ -41,7 +41,7 @@ export function LoginPage() {
           <Box sx={{ textAlign: 'center', mb: 3 }}>
             <DashboardIcon sx={{ fontSize: 48, color: colors.red.brand, mb: 1 }} />
             <Typography variant="h5" gutterBottom>
-              Dev<Box component="span" sx={{ color: colors.red.brand }}>Desh</Box>
+              Dev<Box component="span" sx={{ color: colors.red.brand }}>Dash</Box>
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Connect your GitHub account to get started
@@ -80,7 +80,7 @@ export function LoginPage() {
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             Create a{' '}
             <Link
-              href="https://github.com/settings/tokens/new?scopes=repo&description=DevDesh"
+              href="https://github.com/settings/tokens/new?scopes=repo&description=DevDash"
               target="_blank"
               rel="noopener"
             >

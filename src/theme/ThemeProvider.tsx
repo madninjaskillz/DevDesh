@@ -20,13 +20,13 @@ export const useThemeMode = () => useContext(ThemeContext);
 
 export function AppThemeProvider({ children }: { children: ReactNode }) {
   const prefersDark = useMediaQuery('(prefers-color-scheme: dark)');
-  const stored = localStorage.getItem('devdesh-theme') as ThemeMode | null;
+  const stored = localStorage.getItem('devdash-theme') as ThemeMode | null;
   const [mode, setMode] = useState<ThemeMode>(stored ?? (prefersDark ? 'dark' : 'light'));
 
   const toggleTheme = () => {
     setMode((prev) => {
       const next = prev === 'light' ? 'dark' : 'light';
-      localStorage.setItem('devdesh-theme', next);
+      localStorage.setItem('devdash-theme', next);
       return next;
     });
   };

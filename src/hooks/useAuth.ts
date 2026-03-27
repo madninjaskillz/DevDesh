@@ -2,8 +2,8 @@ import { createContext, useContext, useCallback, useState, useEffect } from 'rea
 import type { GitHubUser } from '../types/github';
 import { getUser, GitHubApiError } from '../api/github';
 
-const PAT_KEY = 'devdesh-github-pat';
-const USER_KEY = 'devdesh-github-user';
+const PAT_KEY = 'devdash-github-pat';
+const USER_KEY = 'devdash-github-user';
 
 interface AuthState {
   token: string | null;
