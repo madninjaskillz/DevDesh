@@ -6,7 +6,9 @@ import {
   getRecentlyClosedIssues,
   getRecentlyClosedPRs,
   getPRReviews,
-  getPRReviewThreads,
+  getPRGraphQLData,
+  getIssueLinkedPRs,
+  type PRGraphQLData,
 } from './github';
 import { daysAgo } from '../utils/dates';
 import { computeTrendData } from '../utils/trends';
@@ -30,14 +32,33 @@ export function useAssignedIssues() {
     })),
   });
 
-  const isLoading = queries.some((q) => q.isLoading);
+  // Collect issue numbers per repo for linked PR lookup
+  const issuesByRepo = useMemo(() => {
+    return queries.map((q, idx) => ({
+      ...REPOS[idx],
+      issues: (q.data ?? []).map((i) => i.number),
+    }));
+  }, [queries.map((q) => q.data).join(',')]);
+
+  // Fetch linked PRs for all issues per repo
+  const linkedPRQueries = useQueries({
+    queries: issuesByRepo.map(({ owner, repo, issues: issueNums }) => ({
+      queryKey: ['issue-linked-prs', owner, repo, issueNums.join(',')],
+      queryFn: () => getIssueLinkedPRs(owner, repo, issueNums, token!),
+      enabled: !!token && issueNums.length > 0,
+      staleTime: STALE_TIME,
+    })),
+  });
+
+  const isLoading = queries.some((q) => q.isLoading) || linkedPRQueries.some((q) => q.isLoading);
   const isError = queries.some((q) => q.isError);
   const error = queries.find((q) => q.error)?.error ?? null;
 
   const issues: DashboardIssue[] = useMemo(() => {
     return queries
-      .flatMap((q, idx) =>
-        (q.data ?? []).map((issue) => ({
+      .flatMap((q, idx) => {
+        const linkedPRMap = linkedPRQueries[idx]?.data as Map<number, import('../types/github').LinkedPR[]> | undefined;
+        return (q.data ?? []).map((issue) => ({
           number: issue.number,
           title: issue.title,
           htmlUrl: issue.html_url,
@@ -47,10 +68,11 @@ export function useAssignedIssues() {
           repoName: REPOS[idx].repo,
           repoFullName: `${REPOS[idx].owner}/${REPOS[idx].repo}`,
           updatedAt: issue.updated_at,
-        })),
-      )
+          linkedPRs: linkedPRMap?.get(issue.number) ?? [],
+        }));
+      })
       .sort((a, b) => b.ageDays - a.ageDays);
-  }, [queries.map((q) => q.data).join(',')]);
+  }, [queries.map((q) => q.data).join(','), linkedPRQueries.map((q) => q.dataUpdatedAt).join(',')]);
 
   return { issues, isLoading, isError, error };
 }
@@ -76,7 +98,7 @@ export function useOpenPRs() {
     );
   }, [prQueries.map((q) => q.data).join(','), user?.login]);
 
-  // Fetch reviews and thread info for each PR
+  // Fetch reviews and GraphQL data (threads + linked issues) for each PR
   const enrichmentQueries = useQueries({
     queries: allPRs.flatMap((pr) => {
       const { owner, repo } = REPOS[pr.repoIdx];
@@ -88,8 +110,8 @@ export function useOpenPRs() {
           staleTime: STALE_TIME,
         },
         {
-          queryKey: ['pr-threads', owner, repo, pr.number],
-          queryFn: () => getPRReviewThreads(owner, repo, pr.number, token!),
+          queryKey: ['pr-graphql', owner, repo, pr.number],
+          queryFn: () => getPRGraphQLData(owner, repo, pr.number, token!),
           enabled: !!token,
           staleTime: STALE_TIME,
         },
@@ -104,7 +126,7 @@ export function useOpenPRs() {
   const dashboardPRs: DashboardPR[] = useMemo(() => {
     return allPRs.map((pr, i) => {
       const reviews = (enrichmentQueries[i * 2]?.data as Awaited<ReturnType<typeof getPRReviews>> | undefined) ?? [];
-      const threadData = (enrichmentQueries[i * 2 + 1]?.data as Awaited<ReturnType<typeof getPRReviewThreads>> | undefined);
+      const gqlData = enrichmentQueries[i * 2 + 1]?.data as PRGraphQLData | undefined;
 
       // Determine status from latest review per reviewer
       const latestByReviewer = new Map<string, string>();
@@ -136,8 +158,9 @@ export function useOpenPRs() {
         ageDays: daysAgo(pr.created_at),
         status,
         reviews,
-        unresolvedThreadCount: threadData?.unresolvedCount ?? 0,
-        totalThreadCount: threadData?.totalCount ?? 0,
+        unresolvedThreadCount: gqlData?.unresolvedCount ?? 0,
+        totalThreadCount: gqlData?.totalCount ?? 0,
+        linkedIssues: gqlData?.linkedIssues ?? [],
         headRef: pr.head.ref,
         baseRef: pr.base.ref,
       };

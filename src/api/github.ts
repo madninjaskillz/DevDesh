@@ -1,4 +1,4 @@
-import type { GitHubUser, GitHubIssue, GitHubPR, GitHubReview, ReviewThread } from '../types/github';
+import type { GitHubUser, GitHubIssue, GitHubPR, GitHubReview, ReviewThread, LinkedIssue, LinkedPR } from '../types/github';
 
 const API_BASE = 'https://api.github.com';
 const GRAPHQL_URL = 'https://api.github.com/graphql';
@@ -148,12 +148,19 @@ export async function getPRReviews(
   );
 }
 
-export async function getPRReviewThreads(
+export interface PRGraphQLData {
+  threads: ReviewThread[];
+  totalCount: number;
+  unresolvedCount: number;
+  linkedIssues: LinkedIssue[];
+}
+
+export async function getPRGraphQLData(
   owner: string,
   repo: string,
   prNumber: number,
   token: string,
-): Promise<{ threads: ReviewThread[]; totalCount: number; unresolvedCount: number }> {
+): Promise<PRGraphQLData> {
   const query = `
     query($owner: String!, $repo: String!, $number: Int!) {
       repository(owner: $owner, name: $repo) {
@@ -166,6 +173,16 @@ export async function getPRReviewThreads(
               }
             }
             totalCount
+          }
+          closingIssuesReferences(first: 10) {
+            nodes {
+              number
+              title
+              url
+              repository {
+                name
+              }
+            }
           }
         }
       }
@@ -191,10 +208,120 @@ export async function getPRReviewThreads(
     throw new Error(`GraphQL error: ${JSON.stringify(json.errors)}`);
   }
 
-  const reviewThreads = json.data.repository.pullRequest.reviewThreads;
+  const pr = json.data.repository.pullRequest;
+  const reviewThreads = pr.reviewThreads;
   const threads: ReviewThread[] = reviewThreads.nodes;
   const totalCount = reviewThreads.totalCount;
   const unresolvedCount = threads.filter((t: ReviewThread) => !t.isResolved).length;
 
-  return { threads, totalCount, unresolvedCount };
+  const linkedIssues: LinkedIssue[] = (pr.closingIssuesReferences.nodes ?? []).map(
+    (node: { number: number; title: string; url: string; repository: { name: string } }) => ({
+      number: node.number,
+      title: node.title,
+      url: node.url,
+      repoName: node.repository.name,
+    }),
+  );
+
+  return { threads, totalCount, unresolvedCount, linkedIssues };
+}
+
+export async function getIssueLinkedPRs(
+  owner: string,
+  repo: string,
+  issueNumbers: number[],
+  token: string,
+): Promise<Map<number, LinkedPR[]>> {
+  if (issueNumbers.length === 0) return new Map();
+
+  // Build a batched GraphQL query for all issues at once
+  const issueFragments = issueNumbers.map(
+    (num, i) => `issue${i}: issue(number: ${num}) {
+      number
+      timelineItems(itemTypes: [CROSS_REFERENCED_EVENT, CONNECTED_EVENT], first: 20) {
+        nodes {
+          ... on CrossReferencedEvent {
+            source {
+              ... on PullRequest {
+                number
+                title
+                url
+                state
+                repository {
+                  name
+                }
+              }
+            }
+          }
+          ... on ConnectedEvent {
+            subject {
+              ... on PullRequest {
+                number
+                title
+                url
+                state
+                repository {
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+    }`,
+  );
+
+  const query = `query($owner: String!, $repo: String!) {
+    repository(owner: $owner, name: $repo) {
+      ${issueFragments.join('\n')}
+    }
+  }`;
+
+  const res = await fetch(GRAPHQL_URL, {
+    method: 'POST',
+    headers: headers(token),
+    body: JSON.stringify({ query, variables: { owner, repo } }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new GitHubApiError(res.status, body, res.headers);
+  }
+
+  const json = await res.json();
+  if (json.errors) {
+    throw new Error(`GraphQL error: ${JSON.stringify(json.errors)}`);
+  }
+
+  const result = new Map<number, LinkedPR[]>();
+  const repoData = json.data.repository;
+
+  issueNumbers.forEach((num, i) => {
+    const issueData = repoData[`issue${i}`];
+    if (!issueData) {
+      result.set(num, []);
+      return;
+    }
+
+    const prs: LinkedPR[] = [];
+    const seen = new Set<number>();
+
+    for (const node of issueData.timelineItems.nodes) {
+      const prData = node.source ?? node.subject;
+      if (prData?.number && !seen.has(prData.number)) {
+        seen.add(prData.number);
+        prs.push({
+          number: prData.number,
+          title: prData.title,
+          url: prData.url,
+          state: prData.state,
+          repoName: prData.repository?.name ?? repo,
+        });
+      }
+    }
+
+    result.set(num, prs);
+  });
+
+  return result;
 }

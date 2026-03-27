@@ -13,8 +13,10 @@ import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import CommentIcon from '@mui/icons-material/Comment';
+import LinkOffIcon from '@mui/icons-material/LinkOff';
 import type { DashboardPR, PRStatus } from '../../types/github';
 import { formatAge, formatDate, getAgeColor } from '../../utils/dates';
 import { colors } from '../../theme/colors';
@@ -117,6 +119,7 @@ export function PRsTable({ prs, isLoading }: PRsTableProps) {
                 Unresolved
               </TableSortLabel>
             </TableCell>
+            <TableCell>Linked Issues</TableCell>
             <TableCell>Created</TableCell>
             <TableCell>
               <TableSortLabel
@@ -133,8 +136,15 @@ export function PRsTable({ prs, isLoading }: PRsTableProps) {
         <TableBody>
           {sorted.map((pr) => {
             const statusConf = STATUS_CONFIG[pr.status];
+            const hasNoLinkedIssues = pr.linkedIssues.length === 0;
             return (
-              <TableRow key={`${pr.repoFullName}-${pr.number}`} hover>
+              <TableRow
+                key={`${pr.repoFullName}-${pr.number}`}
+                hover
+                sx={hasNoLinkedIssues ? {
+                  bgcolor: (theme) => theme.palette.mode === 'light' ? '#FDE8E8' : 'rgba(245, 204, 204, 0.08)',
+                } : undefined}
+              >
                 <TableCell sx={{ maxWidth: 400 }}>
                   <Tooltip title={`${pr.headRef} → ${pr.baseRef}`} enterDelay={500}>
                     <Link
@@ -174,6 +184,30 @@ export function PRsTable({ prs, isLoading }: PRsTableProps) {
                     <Typography variant="body2" color="text.secondary">
                       --
                     </Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {pr.linkedIssues.length > 0 ? (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {pr.linkedIssues.map((issue) => (
+                        <Chip
+                          key={issue.url}
+                          label={`#${issue.number}`}
+                          size="small"
+                          component="a"
+                          href={issue.url}
+                          target="_blank"
+                          rel="noopener"
+                          clickable
+                          variant="outlined"
+                          title={issue.title}
+                        />
+                      ))}
+                    </Box>
+                  ) : (
+                    <Tooltip title="No linked issues">
+                      <LinkOffIcon sx={{ color: colors.red[3], fontSize: 18 }} />
+                    </Tooltip>
                   )}
                 </TableCell>
                 <TableCell>

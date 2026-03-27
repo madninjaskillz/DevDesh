@@ -56,6 +56,21 @@ export interface ReviewThread {
   };
 }
 
+export interface LinkedIssue {
+  number: number;
+  title: string;
+  url: string;
+  repoName: string;
+}
+
+export interface LinkedPR {
+  number: number;
+  title: string;
+  url: string;
+  state: string;
+  repoName: string;
+}
+
 export interface DashboardIssue {
   number: number;
   title: string;
@@ -66,6 +81,7 @@ export interface DashboardIssue {
   repoName: string;
   repoFullName: string;
   updatedAt: string;
+  linkedPRs: LinkedPR[];
 }
 
 export type PRStatus = 'draft' | 'approved' | 'changes_requested' | 'review_pending';
@@ -85,6 +101,7 @@ export interface DashboardPR {
   reviews: GitHubReview[];
   unresolvedThreadCount: number;
   totalThreadCount: number;
+  linkedIssues: LinkedIssue[];
   headRef: string;
   baseRef: string;
 }

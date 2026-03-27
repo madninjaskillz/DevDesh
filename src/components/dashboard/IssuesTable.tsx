@@ -11,6 +11,7 @@ import Chip from '@mui/material/Chip';
 import Link from '@mui/material/Link';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
+import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
@@ -88,6 +89,7 @@ export function IssuesTable({ issues, isLoading }: IssuesTableProps) {
               </TableSortLabel>
             </TableCell>
             <TableCell>Labels</TableCell>
+            <TableCell>Linked PRs</TableCell>
             <TableCell>Assigned</TableCell>
             <TableCell>
               <TableSortLabel
@@ -139,6 +141,29 @@ export function IssuesTable({ issues, isLoading }: IssuesTableProps) {
                     }}
                   />
                 ))}
+              </TableCell>
+              <TableCell>
+                {issue.linkedPRs.length > 0 ? (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {issue.linkedPRs.map((pr) => (
+                      <Chip
+                        key={pr.url}
+                        label={`#${pr.number}`}
+                        size="small"
+                        component="a"
+                        href={pr.url}
+                        target="_blank"
+                        rel="noopener"
+                        clickable
+                        variant="outlined"
+                        color={pr.state === 'MERGED' ? 'success' : pr.state === 'OPEN' ? 'primary' : 'default'}
+                        title={pr.title}
+                      />
+                    ))}
+                  </Box>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">--</Typography>
+                )}
               </TableCell>
               <TableCell>
                 <Typography variant="body2">{formatDate(issue.assignedDate)}</Typography>
