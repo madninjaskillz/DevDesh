@@ -18,11 +18,17 @@ export function AppHeader() {
   const { user, isAuthenticated, logout } = useAuth();
 
   return (
-    <AppBar position="static" elevation={2} sx={{ backgroundColor: colors.gray[7], zIndex: 1100 }}>
-      <Toolbar>
-        <DashboardIcon sx={{ mr: 1, color: colors.red.brand }} />
+    <AppBar
+      position="static"
+      elevation={2}
+      color="inherit"
+      sx={{ backgroundColor: colors.gray[7], color: colors.white }}
+    >
+      <Toolbar variant="dense" sx={{ minHeight: 48 }}>
+        <DashboardIcon sx={{ mr: 1, color: colors.red.brand, fontSize: 24 }} />
         <Typography
           variant="h6"
+          noWrap
           sx={{ flexGrow: 1, fontWeight: 700, color: colors.white, fontSize: '1.1rem' }}
         >
           Dev
@@ -33,7 +39,7 @@ export function AppHeader() {
 
         <Tooltip title={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}>
           <IconButton onClick={toggleTheme} sx={{ color: colors.white }}>
-            {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
+            {mode === 'light' ? <DarkModeIcon fontSize="small" /> : <LightModeIcon fontSize="small" />}
           </IconButton>
         </Tooltip>
 
@@ -48,7 +54,7 @@ export function AppHeader() {
             </Tooltip>
             <Tooltip title="Sign out">
               <IconButton onClick={logout} sx={{ color: colors.white, ml: 0.5 }}>
-                <LogoutIcon />
+                <LogoutIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           </>

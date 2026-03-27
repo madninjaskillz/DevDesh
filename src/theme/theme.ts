@@ -9,11 +9,6 @@ const commonComponents: ThemeOptions['components'] = {
       },
     },
   },
-  MuiToolbar: {
-    defaultProps: {
-      variant: 'dense',
-    },
-  },
   MuiCard: {
     styleOverrides: {
       root: ({ theme }) => ({
@@ -39,11 +34,6 @@ const commonComponents: ThemeOptions['components'] = {
       root: {
         padding: '8px 12px',
       },
-    },
-  },
-  MuiSvgIcon: {
-    defaultProps: {
-      fontSize: 'small',
     },
   },
   MuiTooltip: {
