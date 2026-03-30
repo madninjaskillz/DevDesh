@@ -1,3 +1,4 @@
+import { useState, useEffect, type ImgHTMLAttributes } from 'react';
 import Drawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -7,15 +8,89 @@ import Avatar from '@mui/material/Avatar';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import Skeleton from '@mui/material/Skeleton';
+import BrokenImageIcon from '@mui/icons-material/BrokenImage';
 import CloseIcon from '@mui/icons-material/Close';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { useQuery } from '@tanstack/react-query';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { useAuth } from '../../hooks/useAuth';
 import { getIssueDetail, getItemComments } from '../../api/github';
 import { formatDate } from '../../utils/dates';
+
+/**
+ * GitHub private image URLs need auth headers.
+ * This component fetches images with the token and displays them as blob URLs.
+ */
+function AuthImage({ src, alt, token, ...props }: ImgHTMLAttributes<HTMLImageElement> & { token: string | null }) {
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!src) { setLoading(false); return; }
+
+    let cancelled = false;
+    const needsAuth = src.includes('github.com') || src.includes('githubusercontent.com');
+
+    if (!needsAuth || !token) {
+      // Regular image, let browser handle it
+      setBlobUrl(src);
+      setLoading(false);
+      return;
+    }
+
+    (async () => {
+      try {
+        const res = await fetch(src, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'image/*,*/*',
+          },
+        });
+        if (!res.ok) throw new Error(`${res.status}`);
+        const blob = await res.blob();
+        if (cancelled) return;
+        setBlobUrl(URL.createObjectURL(blob));
+        setLoading(false);
+      } catch {
+        if (cancelled) return;
+        // Fallback: try without auth (some githubusercontent URLs are public)
+        setBlobUrl(src);
+        setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      if (blobUrl && blobUrl.startsWith('blob:')) URL.revokeObjectURL(blobUrl);
+    };
+  }, [src, token]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (error) {
+    return (
+      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, color: 'text.secondary', fontSize: '0.8rem' }}>
+        <BrokenImageIcon sx={{ fontSize: 16 }} />
+        <span>{alt || 'Image'}</span>
+      </Box>
+    );
+  }
+
+  if (loading) {
+    return <Skeleton variant="rectangular" width="100%" height={100} sx={{ borderRadius: 1, my: 1 }} />;
+  }
+
+  return (
+    <img
+      {...props}
+      src={blobUrl ?? undefined}
+      alt={alt}
+      onError={() => setError(true)}
+      style={{ maxWidth: '100%', height: 'auto', borderRadius: 4, display: 'block', margin: '8px 0' }}
+    />
+  );
+}
 
 export interface DrawerItem {
   type: 'issue' | 'pr';
@@ -57,6 +132,11 @@ const markdownSx = {
 
 export function DetailDrawer({ open, onClose, item }: DetailDrawerProps) {
   const { token } = useAuth();
+
+  // Custom markdown components with authenticated image rendering
+  const mdComponents: Components = {
+    img: ({ src, alt, ...props }) => <AuthImage src={src} alt={alt} token={token} {...props} />,
+  };
 
   const { data: detail, isLoading: detailLoading } = useQuery({
     queryKey: ['detail', item?.owner, item?.repo, item?.number],
@@ -129,7 +209,7 @@ export function DetailDrawer({ open, onClose, item }: DetailDrawerProps) {
             {/* Body */}
             {detail.body && (
               <Box sx={{ mt: 2, p: 2, bgcolor: 'background.default', borderRadius: 1, ...markdownSx }}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={mdComponents}>
                   {detail.body}
                 </ReactMarkdown>
               </Box>
@@ -168,7 +248,7 @@ export function DetailDrawer({ open, onClose, item }: DetailDrawerProps) {
                     </Typography>
                   </Box>
                   <Box sx={{ pl: 3.5, ...markdownSx }}>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={mdComponents}>
                       {comment.body}
                     </ReactMarkdown>
                   </Box>
