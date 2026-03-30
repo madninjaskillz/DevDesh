@@ -1,4 +1,5 @@
 import { createContext, useContext, useCallback, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
 
 export interface RepoConfig {
@@ -48,16 +49,21 @@ function saveRepos(repos: RepoConfig[]) {
 
 export function useRepoConfigProvider(): RepoConfigContextValue {
   const { token } = useAuth();
+  const queryClient = useQueryClient();
   const [repos, setRepos] = useState<RepoConfig[]>(loadRepos);
   const [isValidating, setIsValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const addRepo = useCallback(
     async (owner: string, repo: string) => {
-      if (!token) throw new Error('Not authenticated');
+      if (!token) {
+        setError('Not authenticated');
+        return;
+      }
 
-      // Check if already exists
-      if (repos.some((r) => r.owner === owner && r.repo === repo)) {
+      // Check duplicate against current state
+      const current = loadRepos();
+      if (current.some((r) => r.owner === owner && r.repo === repo)) {
         setError('Repository already added');
         return;
       }
@@ -78,27 +84,33 @@ export function useRepoConfigProvider(): RepoConfigContextValue {
           return;
         }
         if (!res.ok) {
-          setError(`Failed to validate repository: ${res.status}`);
+          setError(`Failed to validate repository: HTTP ${res.status}`);
           return;
         }
 
-        const updated = [...repos, { owner, repo }];
-        setRepos(updated);
+        const updated = [...loadRepos(), { owner, repo }];
         saveRepos(updated);
+        setRepos(updated);
+        // Invalidate all queries so they refetch with the new repo list
+        queryClient.invalidateQueries();
+      } catch (err) {
+        setError(`Network error: ${err instanceof Error ? err.message : 'Unknown'}`);
       } finally {
         setIsValidating(false);
       }
     },
-    [token, repos],
+    [token, queryClient],
   );
 
   const removeRepo = useCallback(
     (owner: string, repo: string) => {
-      const updated = repos.filter((r) => !(r.owner === owner && r.repo === repo));
-      setRepos(updated);
+      const current = loadRepos();
+      const updated = current.filter((r) => !(r.owner === owner && r.repo === repo));
       saveRepos(updated);
+      setRepos(updated);
+      queryClient.invalidateQueries();
     },
-    [repos],
+    [queryClient],
   );
 
   return { repos, addRepo, removeRepo, isValidating, error };
