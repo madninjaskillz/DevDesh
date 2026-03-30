@@ -165,9 +165,9 @@ export function DashboardPage() {
 
       {/* Action List */}
       <SectionErrorBoundary section="Action List">
-        <Box id="section-actions">
+        <CollapsibleSection id="section-actions" title="What should I do next?" badge={actionItems.length}>
           <ActionList items={actionItems} isLoading={isLoading || reviewsLoading} />
-        </Box>
+        </CollapsibleSection>
       </SectionErrorBoundary>
 
       {/* Focus mode: hide everything below actions */}
