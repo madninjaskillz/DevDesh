@@ -41,6 +41,7 @@ export interface GitHubPR {
   head: { ref: string };
   base: { ref: string };
   requested_reviewers: { login: string; avatar_url: string }[];
+  requested_teams: { name: string; slug: string }[];
 }
 
 export interface GitHubReview {
@@ -145,6 +146,24 @@ export interface DashboardCommit {
   url: string;
   repoName: string;
   date: string;
+}
+
+export type ReviewPriority = 'requested_me' | 'requested_team' | 'other';
+
+export interface AwaitingReviewPR {
+  number: number;
+  title: string;
+  htmlUrl: string;
+  repoName: string;
+  repoFullName: string;
+  author: string;
+  authorAvatar: string;
+  createdAt: string;
+  ageDays: number;
+  draft: boolean;
+  priority: ReviewPriority;
+  requestedReviewers: string[];
+  requestedTeams: string[];
 }
 
 export interface DashboardReviewRequest {

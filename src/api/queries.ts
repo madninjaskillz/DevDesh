@@ -10,13 +10,14 @@ import {
   getPRGraphQLData,
   getIssueLinkedPRs,
   getIssueProjectStatuses,
+  getUserTeamSlugs,
   getRepoEvents,
   getRecentCommits,
   type PRGraphQLData,
 } from './github';
 import { daysAgo } from '../utils/dates';
 import { computeTrendData } from '../utils/trends';
-import type { DashboardIssue, DashboardPR, DashboardReviewRequest, DashboardCommit, ActivityEvent, PRStatus, TrendDataPoint } from '../types/github';
+import type { DashboardIssue, DashboardPR, DashboardReviewRequest, DashboardCommit, ActivityEvent, AwaitingReviewPR, ReviewPriority, PRStatus, TrendDataPoint } from '../types/github';
 import { useMemo } from 'react';
 import { subDays, formatISO } from 'date-fns';
 
@@ -322,6 +323,79 @@ export function useTrendData() {
   ]);
 
   return { trendData, isLoading };
+}
+
+export function useAwaitingReview() {
+  const { token, user } = useAuth();
+  const { repos } = useRepoConfig();
+
+  const prQueries = useQueries({
+    queries: repos.map(({ owner, repo }) => ({
+      queryKey: ['prs', owner, repo],
+      queryFn: () => getOpenPRs(owner, repo, token!),
+      enabled: !!token && !!user,
+      staleTime: STALE_TIME,
+      refetchInterval: REFETCH_INTERVAL,
+    })),
+  });
+
+  const teamQuery = useQueries({
+    queries: [{
+      queryKey: ['user-teams'],
+      queryFn: () => getUserTeamSlugs(token!),
+      enabled: !!token,
+      staleTime: 30 * 60 * 1000, // 30 min — teams don't change often
+    }],
+  });
+
+  const isLoading = prQueries.some((q) => q.isLoading) || teamQuery.some((q) => q.isLoading);
+
+  const awaitingReview: AwaitingReviewPR[] = useMemo(() => {
+    const myTeams = new Set(teamQuery[0]?.data ?? []);
+    const login = user?.login;
+    if (!login) return [];
+
+    return prQueries
+      .flatMap((q, idx) =>
+        (q.data ?? [])
+          .filter((pr) => pr.user.login !== login && !pr.draft) // Not my PRs, not drafts
+          .map((pr) => {
+            const requestedMe = pr.requested_reviewers.some((r) => r.login === login);
+            const requestedMyTeam = (pr.requested_teams ?? []).some((t) => myTeams.has(t.slug));
+
+            let priority: ReviewPriority;
+            if (requestedMe) priority = 'requested_me';
+            else if (requestedMyTeam) priority = 'requested_team';
+            else priority = 'other';
+
+            return {
+              number: pr.number,
+              title: pr.title,
+              htmlUrl: pr.html_url,
+              repoName: repos[idx].repo,
+              repoFullName: `${repos[idx].owner}/${repos[idx].repo}`,
+              author: pr.user.login,
+              authorAvatar: pr.user.avatar_url,
+              createdAt: pr.created_at,
+              ageDays: daysAgo(pr.created_at),
+              draft: pr.draft,
+              priority,
+              requestedReviewers: pr.requested_reviewers.map((r) => r.login),
+              requestedTeams: (pr.requested_teams ?? []).map((t) => t.name),
+            };
+          })
+          // Only include PRs that are waiting for review (have requested reviewers/teams, or no reviews yet)
+          .filter((pr) => pr.priority === 'requested_me' || pr.priority === 'requested_team' || pr.requestedReviewers.length > 0 || pr.requestedTeams.length > 0),
+      )
+      .sort((a, b) => {
+        const priorityOrder: Record<ReviewPriority, number> = { requested_me: 0, requested_team: 1, other: 2 };
+        const pDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+        if (pDiff !== 0) return pDiff;
+        return b.ageDays - a.ageDays;
+      });
+  }, [prQueries.map((q) => q.dataUpdatedAt).join(','), teamQuery[0]?.data, user?.login, repos]);
+
+  return { awaitingReview, isLoading };
 }
 
 export function useActivityFeed() {

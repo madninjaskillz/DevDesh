@@ -4,13 +4,14 @@ import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
 import Chip from '@mui/material/Chip';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAssignedIssues, useOpenPRs, useReviewRequests, useDashboardSummary, useTrendData, useActivityFeed, useRecentCommits } from '../../api/queries';
+import { useAssignedIssues, useOpenPRs, useReviewRequests, useAwaitingReview, useDashboardSummary, useTrendData, useActivityFeed, useRecentCommits } from '../../api/queries';
 import { SummaryCards } from './SummaryCards';
 import { StaleAlerts } from './StaleAlerts';
 import { ActionList } from './ActionList';
 import { IssuesTable } from './IssuesTable';
 import { PRsTable } from './PRsTable';
 import { ReviewRequestsTable } from './ReviewRequestsTable';
+import { AwaitingReviewTable } from './AwaitingReviewTable';
 import { TrendChart } from './TrendChart';
 import { ActivityTimeline } from './ActivityTimeline';
 import { CommitsSection } from './CommitsSection';
@@ -29,6 +30,7 @@ import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import MergeIcon from '@mui/icons-material/CallMerge';
 import ReviewsIcon from '@mui/icons-material/Reviews';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import CommitIcon from '@mui/icons-material/Commit';
@@ -51,6 +53,7 @@ export function DashboardPage() {
   const { issues, isLoading: issuesLoading, isError: issuesError, error: issuesErr } = useAssignedIssues();
   const { prs, isLoading: prsLoading, isError: prsError, error: prsErr } = useOpenPRs();
   const { requests: reviewRequests, isLoading: reviewsLoading } = useReviewRequests();
+  const { awaitingReview, isLoading: awaitingLoading } = useAwaitingReview();
   const { trendData, isLoading: trendLoading } = useTrendData();
   const { events, isLoading: eventsLoading } = useActivityFeed();
   const { commits, isLoading: commitsLoading } = useRecentCommits();
@@ -124,9 +127,10 @@ export function DashboardPage() {
     { key: '2', description: 'Jump to Issues', handler: () => scrollTo('section-issues') },
     { key: '3', description: 'Jump to PRs', handler: () => scrollTo('section-prs') },
     { key: '4', description: 'Jump to Reviews', handler: () => scrollTo('section-reviews') },
-    { key: '5', description: 'Jump to Activity', handler: () => scrollTo('section-activity') },
-    { key: '6', description: 'Jump to Trends', handler: () => scrollTo('section-trends') },
-    { key: '7', description: 'Jump to Commits', handler: () => scrollTo('section-commits') },
+    { key: '5', description: 'Jump to Awaiting Review', handler: () => scrollTo('section-awaiting') },
+    { key: '6', description: 'Jump to Activity', handler: () => scrollTo('section-activity') },
+    { key: '7', description: 'Jump to Trends', handler: () => scrollTo('section-trends') },
+    { key: '8', description: 'Jump to Commits', handler: () => scrollTo('section-commits') },
     { key: 'd', description: 'Toggle dark mode', handler: () => toggleTheme() },
     { key: 'f', description: 'Toggle focus mode', handler: () => toggleFocusMode() },
     { key: 'q', description: 'Toggle quiet mode', handler: () => toggleQuietMode() },
@@ -145,6 +149,7 @@ export function DashboardPage() {
     issues: issues.length,
     prs: prs.length,
     reviews: reviewRequests.length,
+    awaiting: awaitingReview.length,
     activity: events.length,
     commits: commits.length,
   };
@@ -236,6 +241,13 @@ export function DashboardPage() {
           <SectionErrorBoundary section="Reviews">
             <CollapsibleSection id="section-reviews" title="Reviews Requested" badge={reviewRequests.length} icon={<ReviewsIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
               <ReviewRequestsTable requests={reviewRequests} isLoading={reviewsLoading} />
+            </CollapsibleSection>
+          </SectionErrorBoundary>
+
+          {/* Awaiting Review — all PRs needing review */}
+          <SectionErrorBoundary section="Awaiting Review">
+            <CollapsibleSection id="section-awaiting" title="PRs Awaiting Review" badge={awaitingReview.length} icon={<VisibilityIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
+              <AwaitingReviewTable prs={awaitingReview} isLoading={awaitingLoading} />
             </CollapsibleSection>
           </SectionErrorBoundary>
 

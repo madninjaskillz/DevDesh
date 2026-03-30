@@ -77,6 +77,18 @@ export async function getUser(token: string): Promise<GitHubUser> {
   return fetchJSON<GitHubUser>(`${API_BASE}/user`, token);
 }
 
+export async function getUserTeamSlugs(token: string): Promise<string[]> {
+  try {
+    const teams = await fetchAllPages<{ slug: string; organization: { login: string } }>(
+      `${API_BASE}/user/teams`,
+      token,
+    );
+    return teams.map((t) => t.slug);
+  } catch {
+    return [];
+  }
+}
+
 export async function getAssignedIssues(
   owner: string,
   repo: string,
