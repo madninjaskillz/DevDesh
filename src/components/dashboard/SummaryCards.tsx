@@ -30,33 +30,32 @@ function StatCard({ title, value, icon, color, isLoading }: StatCardProps) {
   return (
     <Card elevation={1}>
       <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              {title}
-            </Typography>
-            {isLoading ? (
-              <Skeleton width={60} height={40} />
-            ) : (
-              <Typography variant="h4" sx={{ fontWeight: 700, color }}>
-                {value}
-              </Typography>
-            )}
-          </Box>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <Typography variant="body2" color="text.secondary">
+            {title}
+          </Typography>
           <Box
             sx={{
-              width: 48,
-              height: 48,
-              borderRadius: 2,
+              width: 36,
+              height: 36,
+              borderRadius: 1.5,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               bgcolor: `${color}18`,
+              flexShrink: 0,
             }}
           >
             {icon}
           </Box>
         </Box>
+        {isLoading ? (
+          <Skeleton width={60} height={36} />
+        ) : (
+          <Typography variant="h4" sx={{ fontWeight: 700, color, mt: 0.5 }}>
+            {value}
+          </Typography>
+        )}
       </CardContent>
     </Card>
   );
@@ -69,7 +68,7 @@ export function SummaryCards({ totalIssues, totalPRs, avgIssueAge, avgPRAge, isL
         <StatCard
           title="Open Issues"
           value={String(totalIssues)}
-          icon={<BugReportIcon sx={{ color: colors.red.brand, fontSize: 28 }} />}
+          icon={<BugReportIcon sx={{ color: colors.red.brand, fontSize: 22 }} />}
           color={colors.red.brand}
           isLoading={isLoading}
         />
@@ -78,7 +77,7 @@ export function SummaryCards({ totalIssues, totalPRs, avgIssueAge, avgPRAge, isL
         <StatCard
           title="Open PRs"
           value={String(totalPRs)}
-          icon={<MergeIcon sx={{ color: colors.blue[6], fontSize: 28 }} />}
+          icon={<MergeIcon sx={{ color: colors.blue[6], fontSize: 22 }} />}
           color={colors.blue[6]}
           isLoading={isLoading}
         />
@@ -87,7 +86,7 @@ export function SummaryCards({ totalIssues, totalPRs, avgIssueAge, avgPRAge, isL
         <StatCard
           title="Avg Issue Age"
           value={formatAge(avgIssueAge)}
-          icon={<ScheduleIcon sx={{ color: colors.orange[5], fontSize: 28 }} />}
+          icon={<ScheduleIcon sx={{ color: colors.orange[5], fontSize: 22 }} />}
           color={colors.orange[5]}
           isLoading={isLoading}
         />
@@ -96,7 +95,7 @@ export function SummaryCards({ totalIssues, totalPRs, avgIssueAge, avgPRAge, isL
         <StatCard
           title="Avg PR Age"
           value={formatAge(avgPRAge)}
-          icon={<ScheduleIcon sx={{ color: colors.green[5], fontSize: 28 }} />}
+          icon={<ScheduleIcon sx={{ color: colors.green[5], fontSize: 22 }} />}
           color={colors.green[5]}
           isLoading={isLoading}
         />
