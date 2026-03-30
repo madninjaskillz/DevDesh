@@ -13,9 +13,11 @@ import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
+import Slider from '@mui/material/Slider';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { useRepoConfig } from '../../hooks/useRepoConfig';
+import { useSettings } from '../../hooks/useSettings';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -24,6 +26,7 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   const { repos, addRepo, removeRepo, isValidating, error } = useRepoConfig();
+  const { settings, updateSettings } = useSettings();
   const [owner, setOwner] = useState('');
   const [repo, setRepo] = useState('');
 
@@ -66,8 +69,6 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
           ))}
         </List>
 
-        <Divider sx={{ my: 2 }} />
-
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
@@ -104,7 +105,79 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
             Add
           </Button>
         </Box>
+
+        <Divider sx={{ my: 2 }} />
+
+        <Typography variant="subtitle2" sx={{ mb: 2 }}>
+          Stale Thresholds
+        </Typography>
+
+        <ThresholdSlider
+          label="Issue idle (days)"
+          value={settings.staleIssueDays}
+          onChange={(v) => updateSettings({ staleIssueDays: v })}
+          min={1}
+          max={30}
+        />
+        <ThresholdSlider
+          label="Unresolved comments (days)"
+          value={settings.staleCommentDays}
+          onChange={(v) => updateSettings({ staleCommentDays: v })}
+          min={1}
+          max={14}
+        />
+        <ThresholdSlider
+          label="Approved PR not merged (days)"
+          value={settings.stalePRApprovedDays}
+          onChange={(v) => updateSettings({ stalePRApprovedDays: v })}
+          min={1}
+          max={7}
+        />
+        <ThresholdSlider
+          label="Review request pending (days)"
+          value={settings.staleReviewRequestDays}
+          onChange={(v) => updateSettings({ staleReviewRequestDays: v })}
+          min={1}
+          max={14}
+        />
+
+        <Divider sx={{ my: 2 }} />
+
+        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+          Daily Digest (Slack)
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Set up <code>DIGEST_GITHUB_TOKEN</code>, <code>SLACK_WEBHOOK_URL</code> as repo secrets and{' '}
+          <code>GITHUB_USERNAME</code>, <code>DIGEST_REPOS</code> as repo variables in your GitHub repo settings.
+          The digest runs at 8 AM UTC on weekdays.
+        </Typography>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ThresholdSlider({ label, value, onChange, min, max }: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  min: number;
+  max: number;
+}) {
+  return (
+    <Box sx={{ mb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Typography variant="body2">{label}</Typography>
+        <Typography variant="body2" sx={{ fontWeight: 600 }}>{value}d</Typography>
+      </Box>
+      <Slider
+        value={value}
+        onChange={(_, v) => onChange(v as number)}
+        min={min}
+        max={max}
+        step={1}
+        size="small"
+        valueLabelDisplay="auto"
+      />
+    </Box>
   );
 }

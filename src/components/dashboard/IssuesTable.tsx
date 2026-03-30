@@ -14,8 +14,13 @@ import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import type { DashboardIssue } from '../../types/github';
+import type { GroupBy } from './LabelFilter';
 import { formatAge, formatDate, getAgeColor } from '../../utils/dates';
 
 type SortField = 'title' | 'repoName' | 'ageDays';
@@ -25,9 +30,10 @@ interface IssuesTableProps {
   issues: DashboardIssue[];
   isLoading: boolean;
   onItemClick?: (owner: string, repo: string, number: number) => void;
+  groupBy?: GroupBy;
 }
 
-export function IssuesTable({ issues, isLoading, onItemClick }: IssuesTableProps) {
+export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none' }: IssuesTableProps) {
   const [sortField, setSortField] = useState<SortField>('ageDays');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
@@ -63,6 +69,45 @@ export function IssuesTable({ issues, isLoading, onItemClick }: IssuesTableProps
       <Paper sx={{ p: 3, textAlign: 'center' }}>
         <Typography color="text.secondary">No issues assigned to you. Nice work!</Typography>
       </Paper>
+    );
+  }
+
+  // Grouped rendering
+  if (groupBy !== 'none') {
+    const groups = new Map<string, DashboardIssue[]>();
+    for (const issue of sorted) {
+      if (groupBy === 'repo') {
+        const key = issue.repoName;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key)!.push(issue);
+      } else {
+        // Group by label — issue appears in each matching label group
+        const labels = issue.labels.length > 0 ? issue.labels.map((l) => l.name) : ['Unlabeled'];
+        for (const label of labels) {
+          if (!groups.has(label)) groups.set(label, []);
+          groups.get(label)!.push(issue);
+        }
+      }
+    }
+
+    return (
+      <Box>
+        {[...groups.entries()].map(([groupName, groupIssues]) => (
+          <Accordion key={groupName} defaultExpanded disableGutters>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="subtitle2">
+                {groupName}
+                <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                  ({groupIssues.length})
+                </Typography>
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ p: 0 }}>
+              <IssuesTable issues={groupIssues} isLoading={false} onItemClick={onItemClick} />
+            </AccordionDetails>
+          </Accordion>
+        ))}
+      </Box>
     );
   }
 

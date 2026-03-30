@@ -3,7 +3,10 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
+import Chip from '@mui/material/Chip';
+import Tooltip from '@mui/material/Tooltip';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAssignedIssues, useOpenPRs, useReviewRequests, useDashboardSummary, useTrendData, useActivityFeed, useRecentCommits } from '../../api/queries';
 import { SummaryCards } from './SummaryCards';
@@ -17,11 +20,16 @@ import { ActivityTimeline } from './ActivityTimeline';
 import { CommitsSection } from './CommitsSection';
 import { DetailDrawer, type DrawerItem } from './DetailDrawer';
 import { ShortcutsDialog } from './ShortcutsDialog';
+import { CollapsibleSection } from './CollapsibleSection';
+import { SectionErrorBoundary } from './ErrorBoundary';
+import { LabelFilter, type GroupBy } from './LabelFilter';
+import { RefreshIndicator } from './RefreshIndicator';
 import { GitHubApiError } from '../../api/github';
 import { computeActionItems } from '../../utils/actions';
 import { useNotifications } from '../../hooks/useNotifications';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useThemeMode } from '../../theme/ThemeProvider';
+import { useSettings } from '../../hooks/useSettings';
 import type { DashboardPR, MissingIssueLink } from '../../types/github';
 
 function scrollTo(id: string) {
@@ -36,11 +44,12 @@ export function DashboardPage() {
   const { trendData, isLoading: trendLoading } = useTrendData();
   const { events, isLoading: eventsLoading } = useActivityFeed();
   const { commits, isLoading: commitsLoading } = useRecentCommits();
+  const { settings, updateSettings } = useSettings();
 
   const isLoading = issuesLoading || prsLoading;
   const summary = useDashboardSummary(issues, prs);
 
-  // Compute missing issue links
+  // Missing issue links
   const prsWithMissingLinks: DashboardPR[] = useMemo(() => {
     if (isLoading) return prs;
     return prs.map((pr) => {
@@ -65,15 +74,33 @@ export function DashboardPage() {
     });
   }, [prs, issues, isLoading]);
 
-  // Compute action items
+  // Action items with configurable thresholds
   const actionItems = useMemo(
-    () => computeActionItems(prsWithMissingLinks, issues, reviewRequests),
-    [prsWithMissingLinks, issues, reviewRequests],
+    () => computeActionItems(prsWithMissingLinks, issues, reviewRequests, {
+      staleIssueDays: settings.staleIssueDays,
+      staleCommentDays: settings.staleCommentDays,
+      staleReviewRequestDays: settings.staleReviewRequestDays,
+    }),
+    [prsWithMissingLinks, issues, reviewRequests, settings],
   );
 
+  // Label filtering
+  const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
+  const [groupBy, setGroupBy] = useState<GroupBy>('none');
+  const filteredIssues = useMemo(() => {
+    if (selectedLabels.length === 0) return issues;
+    return issues.filter((issue) => issue.labels.some((l) => selectedLabels.includes(l.name)));
+  }, [issues, selectedLabels]);
+
+  // State
   const [drawerItem, setDrawerItem] = useState<DrawerItem | null>(null);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState(new Date());
   const { toggleTheme } = useThemeMode();
+
+  // Focus mode
+  const focusMode = settings.focusMode;
+  const toggleFocusMode = () => updateSettings({ focusMode: !focusMode });
 
   // Notifications
   useNotifications(prsWithMissingLinks, issues, reviewRequests, isLoading || reviewsLoading);
@@ -87,15 +114,15 @@ export function DashboardPage() {
     { key: '4', description: 'Jump to Reviews', handler: () => scrollTo('section-reviews') },
     { key: '5', description: 'Jump to Activity', handler: () => scrollTo('section-activity') },
     { key: '6', description: 'Jump to Trends', handler: () => scrollTo('section-trends') },
+    { key: '7', description: 'Jump to Commits', handler: () => scrollTo('section-commits') },
     { key: 'd', description: 'Toggle dark mode', handler: () => toggleTheme() },
+    { key: 'f', description: 'Toggle focus mode', handler: () => toggleFocusMode() },
     { key: '?', description: 'Show shortcuts', handler: () => setShortcutsOpen(true) },
   ]);
 
   const handleItemClick = (owner: string, repo: string, number: number, type: 'issue' | 'pr') => {
     setDrawerItem({ type, owner, repo, number });
   };
-
-  const [lastRefresh, setLastRefresh] = useState(new Date());
 
   const handleRefresh = () => {
     queryClient.invalidateQueries();
@@ -107,14 +134,28 @@ export function DashboardPage() {
 
   return (
     <Box>
+      {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Dashboard
-        </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            Last updated: {lastRefresh.toLocaleTimeString()}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Dashboard
           </Typography>
+          {focusMode && (
+            <Chip label="Focus Mode" size="small" color="primary" onDelete={toggleFocusMode} />
+          )}
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <RefreshIndicator lastRefresh={lastRefresh} isLoading={isLoading} />
+          <Tooltip title="Focus mode: hide everything except actions (F)">
+            <Button
+              variant={focusMode ? 'contained' : 'outlined'}
+              size="small"
+              onClick={toggleFocusMode}
+              sx={{ minWidth: 'auto', px: 1 }}
+            >
+              <CenterFocusStrongIcon fontSize="small" />
+            </Button>
+          </Tooltip>
           <Button
             variant="outlined"
             size="small"
@@ -127,6 +168,7 @@ export function DashboardPage() {
         </Box>
       </Box>
 
+      {/* Errors */}
       {(issuesError || prsError) && (
         <Alert severity={isRateLimited ? 'warning' : 'error'} sx={{ mb: 2 }}>
           {isRateLimited
@@ -135,59 +177,84 @@ export function DashboardPage() {
         </Alert>
       )}
 
-      <SummaryCards {...summary} isLoading={isLoading} />
+      {/* Summary */}
+      <SectionErrorBoundary section="Summary Cards">
+        <SummaryCards {...summary} isLoading={isLoading} />
+      </SectionErrorBoundary>
 
+      {/* Stale Alerts */}
       <StaleAlerts items={actionItems} />
 
-      <Box id="section-actions">
-        <ActionList items={actionItems} isLoading={isLoading || reviewsLoading} />
-      </Box>
+      {/* Action List */}
+      <SectionErrorBoundary section="Action List">
+        <Box id="section-actions">
+          <ActionList items={actionItems} isLoading={isLoading || reviewsLoading} />
+        </Box>
+      </SectionErrorBoundary>
 
-      <Typography id="section-issues" variant="h6" sx={{ mb: 1.5 }}>
-        My Issues
-      </Typography>
-      <IssuesTable issues={issues} isLoading={issuesLoading} onItemClick={(o, r, n) => handleItemClick(o, r, n, 'issue')} />
-
-      <Typography id="section-prs" variant="h6" sx={{ mb: 1.5, mt: 4 }}>
-        My Pull Requests
-      </Typography>
-      <PRsTable prs={prsWithMissingLinks} isLoading={prsLoading} onItemClick={(o, r, n) => handleItemClick(o, r, n, 'pr')} />
-
-      {(reviewRequests.length > 0 || reviewsLoading) && (
+      {/* Focus mode: hide everything below actions */}
+      {!focusMode && (
         <>
-          <Typography id="section-reviews" variant="h6" sx={{ mb: 1.5, mt: 4 }}>
-            Reviews Requested
-          </Typography>
-          <ReviewRequestsTable requests={reviewRequests} isLoading={reviewsLoading} />
+          {/* Issues */}
+          <SectionErrorBoundary section="Issues">
+            <CollapsibleSection id="section-issues" title="My Issues" badge={issues.length}>
+              <LabelFilter
+                issues={issues}
+                selectedLabels={selectedLabels}
+                onLabelsChange={setSelectedLabels}
+                groupBy={groupBy}
+                onGroupByChange={setGroupBy}
+              />
+              <IssuesTable
+                issues={filteredIssues}
+                isLoading={issuesLoading}
+                onItemClick={(o, r, n) => handleItemClick(o, r, n, 'issue')}
+                groupBy={groupBy}
+              />
+            </CollapsibleSection>
+          </SectionErrorBoundary>
+
+          {/* PRs */}
+          <SectionErrorBoundary section="Pull Requests">
+            <CollapsibleSection id="section-prs" title="My Pull Requests" badge={prs.length}>
+              <PRsTable prs={prsWithMissingLinks} isLoading={prsLoading} onItemClick={(o, r, n) => handleItemClick(o, r, n, 'pr')} />
+            </CollapsibleSection>
+          </SectionErrorBoundary>
+
+          {/* Reviews */}
+          {(reviewRequests.length > 0 || reviewsLoading) && (
+            <SectionErrorBoundary section="Reviews">
+              <CollapsibleSection id="section-reviews" title="Reviews Requested" badge={reviewRequests.length}>
+                <ReviewRequestsTable requests={reviewRequests} isLoading={reviewsLoading} />
+              </CollapsibleSection>
+            </SectionErrorBoundary>
+          )}
+
+          {/* Activity */}
+          <SectionErrorBoundary section="Activity">
+            <CollapsibleSection id="section-activity" title="Activity (Last 48h)" badge={events.length}>
+              <ActivityTimeline events={events} isLoading={eventsLoading} />
+            </CollapsibleSection>
+          </SectionErrorBoundary>
+
+          {/* Trends */}
+          <SectionErrorBoundary section="Trends">
+            <CollapsibleSection id="section-trends" title="Trends">
+              <TrendChart data={trendData} isLoading={trendLoading} />
+            </CollapsibleSection>
+          </SectionErrorBoundary>
+
+          {/* Commits */}
+          <SectionErrorBoundary section="Commits">
+            <CollapsibleSection id="section-commits" title="My Recent Commits" badge={commits.length}>
+              <CommitsSection commits={commits} isLoading={commitsLoading} />
+            </CollapsibleSection>
+          </SectionErrorBoundary>
         </>
       )}
 
-      <Typography id="section-activity" variant="h6" sx={{ mb: 1.5, mt: 4 }}>
-        Activity (Last 48h)
-      </Typography>
-      <ActivityTimeline events={events} isLoading={eventsLoading} />
-
-      <Typography id="section-trends" variant="h6" sx={{ mb: 1.5, mt: 4 }}>
-        Trends
-      </Typography>
-      <TrendChart data={trendData} isLoading={trendLoading} />
-
-      <Typography variant="h6" sx={{ mb: 1.5, mt: 4 }}>
-        My Recent Commits
-      </Typography>
-      <CommitsSection commits={commits} isLoading={commitsLoading} />
-
-      <DetailDrawer
-        open={!!drawerItem}
-        onClose={() => setDrawerItem(null)}
-        item={drawerItem}
-      />
-
-      <ShortcutsDialog
-        open={shortcutsOpen}
-        onClose={() => setShortcutsOpen(false)}
-        shortcuts={shortcuts}
-      />
+      <DetailDrawer open={!!drawerItem} onClose={() => setDrawerItem(null)} item={drawerItem} />
+      <ShortcutsDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} shortcuts={shortcuts} />
     </Box>
   );
 }

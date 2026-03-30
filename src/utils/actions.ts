@@ -23,10 +23,23 @@ export interface ActionItem {
   severity: ActionSeverity;
 }
 
+export interface StaleThresholds {
+  staleIssueDays: number;
+  staleCommentDays: number;
+  staleReviewRequestDays: number;
+}
+
+const DEFAULT_THRESHOLDS: StaleThresholds = {
+  staleIssueDays: 7,
+  staleCommentDays: 2,
+  staleReviewRequestDays: 3,
+};
+
 export function computeActionItems(
   prs: DashboardPR[],
   issues: DashboardIssue[],
   reviewRequests: DashboardReviewRequest[],
+  thresholds: StaleThresholds = DEFAULT_THRESHOLDS,
 ): ActionItem[] {
   const items: ActionItem[] = [];
 
@@ -62,9 +75,9 @@ export function computeActionItems(
     }
   }
 
-  // 3. Unresolved comments > 2 days
+  // 3. Unresolved comments > threshold days
   for (const pr of prs) {
-    if (pr.unresolvedThreadCount > 0 && pr.ageDays > 2) {
+    if (pr.unresolvedThreadCount > 0 && pr.ageDays > thresholds.staleCommentDays) {
       // Don't duplicate if already flagged as changes_requested
       if (pr.status === 'changes_requested') continue;
       items.push({
@@ -80,9 +93,9 @@ export function computeActionItems(
     }
   }
 
-  // 4. Review requests waiting > 3 days
+  // 4. Review requests waiting > threshold days
   for (const req of reviewRequests) {
-    if (req.waitingDays >= 3) {
+    if (req.waitingDays >= thresholds.staleReviewRequestDays) {
       items.push({
         id: `review-req-${req.repoFullName}-${req.number}`,
         type: 'review_requested',
@@ -91,15 +104,15 @@ export function computeActionItems(
         description: `"${req.title}" waiting ${formatAge(req.waitingDays)}`,
         url: req.htmlUrl,
         ageDays: req.waitingDays,
-        severity: req.waitingDays >= 5 ? 'critical' : 'warning',
+        severity: req.waitingDays >= thresholds.staleReviewRequestDays + 2 ? 'critical' : 'warning',
       });
     }
   }
 
-  // 5. Stale issues (no activity > 7 days)
+  // 5. Stale issues (no activity > threshold days)
   for (const issue of issues) {
     const daysSinceUpdate = daysAgo(issue.updatedAt);
-    if (daysSinceUpdate >= 7) {
+    if (daysSinceUpdate >= thresholds.staleIssueDays) {
       items.push({
         id: `stale-issue-${issue.repoFullName}-${issue.number}`,
         type: 'stale_issue',
@@ -108,7 +121,7 @@ export function computeActionItems(
         description: `"${issue.title}" in ${issue.repoName}`,
         url: issue.htmlUrl,
         ageDays: daysSinceUpdate,
-        severity: daysSinceUpdate >= 14 ? 'critical' : 'warning',
+        severity: daysSinceUpdate >= thresholds.staleIssueDays * 2 ? 'critical' : 'warning',
       });
     }
   }
