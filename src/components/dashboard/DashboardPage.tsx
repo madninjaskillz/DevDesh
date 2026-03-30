@@ -19,6 +19,13 @@ import { ShortcutsDialog } from './ShortcutsDialog';
 import { CollapsibleSection } from './CollapsibleSection';
 import { SectionErrorBoundary } from './ErrorBoundary';
 import { LabelFilter, type GroupBy } from './LabelFilter';
+import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
+import BugReportIcon from '@mui/icons-material/BugReport';
+import MergeIcon from '@mui/icons-material/CallMerge';
+import ReviewsIcon from '@mui/icons-material/Reviews';
+import TimelineIcon from '@mui/icons-material/Timeline';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import CommitIcon from '@mui/icons-material/Commit';
 import { GitHubApiError } from '../../api/github';
 import { computeActionItems } from '../../utils/actions';
 import { useNotifications } from '../../hooks/useNotifications';
@@ -165,7 +172,7 @@ export function DashboardPage() {
 
       {/* Action List */}
       <SectionErrorBoundary section="Action List">
-        <CollapsibleSection id="section-actions" title="What should I do next?" badge={actionItems.length}>
+        <CollapsibleSection id="section-actions" title="What should I do next?" badge={actionItems.length} icon={<PriorityHighIcon fontSize="small" />}>
           <ActionList items={actionItems} isLoading={isLoading || reviewsLoading} />
         </CollapsibleSection>
       </SectionErrorBoundary>
@@ -175,7 +182,7 @@ export function DashboardPage() {
         <>
           {/* Issues */}
           <SectionErrorBoundary section="Issues">
-            <CollapsibleSection id="section-issues" title="My Issues" badge={issues.length}>
+            <CollapsibleSection id="section-issues" title="My Issues" badge={issues.length} icon={<BugReportIcon fontSize="small" />}>
               <LabelFilter
                 issues={issues}
                 selectedLabels={selectedLabels}
@@ -194,7 +201,7 @@ export function DashboardPage() {
 
           {/* PRs */}
           <SectionErrorBoundary section="Pull Requests">
-            <CollapsibleSection id="section-prs" title="My Pull Requests" badge={prs.length}>
+            <CollapsibleSection id="section-prs" title="My Pull Requests" badge={prs.length} icon={<MergeIcon fontSize="small" />}>
               <PRsTable prs={prsWithMissingLinks} isLoading={prsLoading} onItemClick={(o, r, n) => handleItemClick(o, r, n, 'pr')} />
             </CollapsibleSection>
           </SectionErrorBoundary>
@@ -202,7 +209,7 @@ export function DashboardPage() {
           {/* Reviews */}
           {(reviewRequests.length > 0 || reviewsLoading) && (
             <SectionErrorBoundary section="Reviews">
-              <CollapsibleSection id="section-reviews" title="Reviews Requested" badge={reviewRequests.length}>
+              <CollapsibleSection id="section-reviews" title="Reviews Requested" badge={reviewRequests.length} icon={<ReviewsIcon fontSize="small" />}>
                 <ReviewRequestsTable requests={reviewRequests} isLoading={reviewsLoading} />
               </CollapsibleSection>
             </SectionErrorBoundary>
@@ -210,21 +217,21 @@ export function DashboardPage() {
 
           {/* Activity */}
           <SectionErrorBoundary section="Activity">
-            <CollapsibleSection id="section-activity" title="Activity (Last 48h)" badge={events.length}>
+            <CollapsibleSection id="section-activity" title="Activity (Last 48h)" badge={events.length} icon={<TimelineIcon fontSize="small" />}>
               <ActivityTimeline events={events} isLoading={eventsLoading} />
             </CollapsibleSection>
           </SectionErrorBoundary>
 
           {/* Trends */}
           <SectionErrorBoundary section="Trends">
-            <CollapsibleSection id="section-trends" title="Trends">
+            <CollapsibleSection id="section-trends" title="Trends" icon={<TrendingUpIcon fontSize="small" />}>
               <TrendChart data={trendData} isLoading={trendLoading} />
             </CollapsibleSection>
           </SectionErrorBoundary>
 
           {/* Commits */}
           <SectionErrorBoundary section="Commits">
-            <CollapsibleSection id="section-commits" title="My Recent Commits" badge={commits.length}>
+            <CollapsibleSection id="section-commits" title="My Recent Commits" badge={commits.length} icon={<CommitIcon fontSize="small" />}>
               <CommitsSection commits={commits} isLoading={commitsLoading} />
             </CollapsibleSection>
           </SectionErrorBoundary>

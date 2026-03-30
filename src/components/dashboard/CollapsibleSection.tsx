@@ -26,9 +26,10 @@ interface CollapsibleSectionProps {
   title: string;
   children: ReactNode;
   badge?: number;
+  icon?: ReactNode;
 }
 
-export function CollapsibleSection({ id, title, children, badge }: CollapsibleSectionProps) {
+export function CollapsibleSection({ id, title, children, badge, icon }: CollapsibleSectionProps) {
   const [collapsed, setCollapsed] = useState(() => loadCollapsed().has(id));
 
   const toggle = useCallback(() => {
@@ -59,6 +60,7 @@ export function CollapsibleSection({ id, title, children, badge }: CollapsibleSe
         <IconButton size="small" sx={{ mr: 0.5 }}>
           {collapsed ? <ExpandMoreIcon fontSize="small" /> : <ExpandLessIcon fontSize="small" />}
         </IconButton>
+        {icon && <Box sx={{ display: 'flex', mr: 0.75, color: 'text.secondary' }}>{icon}</Box>}
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
           {title}
         </Typography>
