@@ -16,8 +16,11 @@ import Divider from '@mui/material/Divider';
 import Slider from '@mui/material/Slider';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import Link from '@mui/material/Link';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useRepoConfig } from '../../hooks/useRepoConfig';
 import { useSettings } from '../../hooks/useSettings';
+import { useAuth } from '../../hooks/useAuth';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -27,8 +30,11 @@ interface SettingsDialogProps {
 export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   const { repos, addRepo, removeRepo, isValidating, error } = useRepoConfig();
   const { settings, updateSettings } = useSettings();
+  const { token, login, isLoading: authLoading, error: authError } = useAuth();
   const [owner, setOwner] = useState('');
   const [repo, setRepo] = useState('');
+  const [newToken, setNewToken] = useState('');
+  const [tokenSaved, setTokenSaved] = useState(false);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,6 +111,56 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
             Add
           </Button>
         </Box>
+
+        <Divider sx={{ my: 2 }} />
+
+        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+          GitHub Token
+        </Typography>
+
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          Current token: <code>{'•'.repeat(8)}{token?.slice(-4) ?? '????'}</code>
+        </Typography>
+
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mb: 1 }}>
+          <TextField
+            size="small"
+            fullWidth
+            type="password"
+            placeholder="ghp_xxxxxxxxxxxx"
+            value={newToken}
+            onChange={(e) => { setNewToken(e.target.value); setTokenSaved(false); }}
+            disabled={authLoading}
+          />
+          <Button
+            variant="contained"
+            size="small"
+            disabled={authLoading || !newToken.trim() || tokenSaved}
+            startIcon={tokenSaved ? <CheckCircleIcon /> : authLoading ? <CircularProgress size={16} /> : undefined}
+            onClick={async () => {
+              try {
+                await login(newToken.trim());
+                setNewToken('');
+                setTokenSaved(true);
+              } catch { /* error shown below */ }
+            }}
+            sx={{ minWidth: 90, mt: 0.5 }}
+          >
+            {tokenSaved ? 'Saved' : 'Update'}
+          </Button>
+        </Box>
+
+        {authError && (
+          <Alert severity="error" sx={{ mb: 1 }}>{authError}</Alert>
+        )}
+
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          Create a{' '}
+          <Link href="https://github.com/settings/tokens/new?scopes=repo,read:project&description=DevDash" target="_blank" rel="noopener">
+            new token
+          </Link>
+          {' '}with <strong>repo</strong> and <strong>read:project</strong> scopes.
+        </Typography>
 
         <Divider sx={{ my: 2 }} />
 
