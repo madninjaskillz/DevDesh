@@ -84,6 +84,7 @@ export function useAssignedIssues() {
           updatedAt: issue.updated_at,
           linkedPRs: linkedPRMap?.get(issue.number) ?? [],
           projectStatus: statusMap?.get(issue.number) ?? null,
+          assigneeCount: issue.assignees?.length ?? 1,
         }));
       })
       .sort((a, b) => b.ageDays - a.ageDays);
@@ -176,6 +177,7 @@ export function useOpenPRs() {
         totalThreadCount: gqlData?.totalCount ?? 0,
         linkedIssues: gqlData?.linkedIssues ?? [],
         missingIssueLinks: [],
+        ciStatus: gqlData?.ciStatus ?? null,
         headRef: pr.head.ref,
         baseRef: pr.base.ref,
       };

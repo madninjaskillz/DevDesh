@@ -84,6 +84,7 @@ export interface DashboardIssue {
   updatedAt: string;
   linkedPRs: LinkedPR[];
   projectStatus: { name: string; color: string } | null;
+  assigneeCount: number;
 }
 
 export type PRStatus = 'draft' | 'approved' | 'changes_requested' | 'review_pending';
@@ -112,6 +113,7 @@ export interface DashboardPR {
   totalThreadCount: number;
   linkedIssues: LinkedIssue[];
   missingIssueLinks: MissingIssueLink[];
+  ciStatus: 'success' | 'failure' | 'pending' | 'neutral' | null;
   headRef: string;
   baseRef: string;
 }

@@ -15,11 +15,15 @@ import NotificationsOffIcon from '@mui/icons-material/NotificationsOff';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import DensitySmallIcon from '@mui/icons-material/DensitySmall';
+import DensityMediumIcon from '@mui/icons-material/DensityMedium';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import Chip from '@mui/material/Chip';
 import { useQueryClient } from '@tanstack/react-query';
 import { useThemeMode } from '../../theme/ThemeProvider';
 import { useAuth } from '../../hooks/useAuth';
 import { useSettings } from '../../hooks/useSettings';
+import { getRateLimit } from '../../api/github';
 import { colors } from '../../theme/colors';
 import { SettingsDialog } from '../settings/SettingsDialog';
 
@@ -51,6 +55,12 @@ export function AppHeader() {
   const toggleQuietMode = () => {
     updateSettings({ quietMode: !settings.quietMode });
   };
+
+  const toggleCompactMode = () => {
+    updateSettings({ compactMode: !settings.compactMode });
+  };
+
+  const rateLimit = getRateLimit();
 
   return (
     <>
@@ -103,6 +113,25 @@ export function AppHeader() {
                 >
                   <VisibilityOffIcon fontSize="small" />
                 </IconButton>
+              </Tooltip>
+              <Tooltip title={settings.compactMode ? 'Normal density' : 'Compact density'}>
+                <IconButton onClick={toggleCompactMode} sx={{ color: colors.white }}>
+                  {settings.compactMode ? <DensitySmallIcon fontSize="small" /> : <DensityMediumIcon fontSize="small" />}
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={`API: ${rateLimit.remaining}/${rateLimit.limit} remaining`}>
+                <Chip
+                  label={rateLimit.remaining}
+                  size="small"
+                  sx={{
+                    height: 20,
+                    fontSize: '0.65rem',
+                    fontWeight: 600,
+                    bgcolor: rateLimit.remaining < 100 ? colors.red.brand : rateLimit.remaining < 500 ? colors.orange[5] : 'transparent',
+                    color: rateLimit.remaining < 500 ? colors.white : colors.gray[4],
+                    border: rateLimit.remaining >= 500 ? `1px solid ${colors.gray[6]}` : 'none',
+                  }}
+                />
               </Tooltip>
               <Tooltip title={notifEnabled ? 'Disable notifications' : 'Enable notifications'}>
                 <IconButton onClick={toggleNotifications} sx={{ color: colors.white }}>

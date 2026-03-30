@@ -19,6 +19,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import GroupIcon from '@mui/icons-material/Group';
 import type { DashboardIssue } from '../../types/github';
 import type { GroupBy } from './LabelFilter';
 import { NoteChip } from './NoteChip';
@@ -185,6 +186,11 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
                     #{issue.number} {issue.title}
                   </Link>
                 </Tooltip>
+                {issue.assigneeCount > 1 && (
+                  <Tooltip title={`${issue.assigneeCount} assignees — shared ownership`}>
+                    <GroupIcon sx={{ fontSize: 14, color: 'warning.main', ml: 0.5, verticalAlign: 'middle' }} />
+                  </Tooltip>
+                )}
               </TableCell>
               <TableCell>
                 <Chip label={issue.repoName} variant="outlined" />

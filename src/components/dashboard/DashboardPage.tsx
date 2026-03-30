@@ -20,6 +20,8 @@ import { ShortcutsDialog } from './ShortcutsDialog';
 import { CollapsibleSection } from './CollapsibleSection';
 import { SectionErrorBoundary } from './ErrorBoundary';
 import { LabelFilter, type GroupBy } from './LabelFilter';
+import { SearchBar } from './SearchBar';
+import { ExportButton } from './ExportButton';
 import { StatusSummary } from './StatusSummary';
 import { HealthBar } from './HealthBar';
 import { LastVisitBanner } from './LastVisitBanner';
@@ -155,12 +157,12 @@ export function DashboardPage() {
   };
 
   return (
-    <Box sx={{ display: 'flex', gap: 3 }}>
+    <Box sx={{ display: 'flex', gap: 3, fontSize: settings.compactMode ? '0.85rem' : undefined }}>
       <Sidebar badges={sidebarBadges} />
-      <Box sx={{ flex: 1, minWidth: 0 }}>
+      <Box sx={{ flex: 1, minWidth: 0, '& .MuiTableCell-root': settings.compactMode ? { py: 0.25, px: 0.75, fontSize: '0.8rem' } : undefined }}>
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, flex: 1 }}>
           Dashboard
         </Typography>
         {focusMode && (
@@ -169,7 +171,11 @@ export function DashboardPage() {
         {quietMode && !focusMode && (
           <Chip label="Quiet" size="small" color="secondary" onDelete={toggleQuietMode} />
         )}
+        <ExportButton issues={issues} prs={prsWithMissingLinks} reviewRequests={reviewRequests} actionItems={actionItems} />
       </Box>
+
+      {/* Search */}
+      <SearchBar issues={issues} prs={prsWithMissingLinks} onItemClick={handleItemClick} />
 
       {/* Health bar */}
       <HealthBar actionItems={actionItems} isLoading={isLoading} />
@@ -183,12 +189,12 @@ export function DashboardPage() {
       {/* Last worked on */}
       <LastWorkedOn commits={commits} prs={prsWithMissingLinks} isLoading={isLoading || commitsLoading} />
 
-      {/* Errors */}
+      {/* Errors — show per-error but don't block the whole dashboard */}
       {(issuesError || prsError) && (
-        <Alert severity={isRateLimited ? 'warning' : 'error'} sx={{ mb: 2 }}>
+        <Alert severity={isRateLimited ? 'warning' : 'error'} sx={{ mb: 2 }} onClose={() => {}}>
           {isRateLimited
-            ? `GitHub API rate limit reached. Resets at ${(apiError as GitHubApiError).rateLimitReset?.toLocaleTimeString() ?? 'unknown'}.`
-            : `Failed to fetch data: ${apiError?.message ?? 'Unknown error'}`}
+            ? `GitHub API rate limit reached. Resets at ${(apiError as GitHubApiError).rateLimitReset?.toLocaleTimeString() ?? 'unknown'}. Showing cached data.`
+            : `Some data failed to load: ${apiError?.message ?? 'Unknown error'}. Other sections may still work.`}
         </Alert>
       )}
 

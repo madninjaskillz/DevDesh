@@ -3,6 +3,28 @@ import type { GitHubUser, GitHubIssue, GitHubPR, GitHubReview, ReviewThread, Lin
 const API_BASE = 'https://api.github.com';
 const GRAPHQL_URL = 'https://api.github.com/graphql';
 
+// Rate limit tracking
+export interface RateLimitInfo {
+  remaining: number;
+  limit: number;
+  resetAt: Date;
+}
+
+let _rateLimit: RateLimitInfo = { remaining: 5000, limit: 5000, resetAt: new Date() };
+
+function trackRateLimit(res: Response) {
+  const remaining = res.headers.get('X-RateLimit-Remaining');
+  const limit = res.headers.get('X-RateLimit-Limit');
+  const reset = res.headers.get('X-RateLimit-Reset');
+  if (remaining) _rateLimit.remaining = Number(remaining);
+  if (limit) _rateLimit.limit = Number(limit);
+  if (reset) _rateLimit.resetAt = new Date(Number(reset) * 1000);
+}
+
+export function getRateLimit(): RateLimitInfo {
+  return { ..._rateLimit };
+}
+
 function headers(token: string) {
   return {
     Authorization: `Bearer ${token}`,
@@ -13,6 +35,7 @@ function headers(token: string) {
 
 async function fetchJSON<T>(url: string, token: string): Promise<T> {
   const res = await fetch(url, { headers: headers(token) });
+  trackRateLimit(res);
   if (!res.ok) {
     const body = await res.text().catch(() => '');
     throw new GitHubApiError(res.status, body, res.headers);
@@ -26,6 +49,7 @@ async function fetchAllPages<T>(url: string, token: string): Promise<T[]> {
 
   while (nextUrl) {
     const res = await fetch(nextUrl, { headers: headers(token) });
+    trackRateLimit(res);
     if (!res.ok) {
       const body = await res.text().catch(() => '');
       throw new GitHubApiError(res.status, body, res.headers);
@@ -160,11 +184,14 @@ export async function getPRReviews(
   );
 }
 
+export type CIStatus = 'success' | 'failure' | 'pending' | 'neutral' | null;
+
 export interface PRGraphQLData {
   threads: ReviewThread[];
   totalCount: number;
   unresolvedCount: number;
   linkedIssues: LinkedIssue[];
+  ciStatus: CIStatus;
 }
 
 export async function getPRGraphQLData(
@@ -185,6 +212,15 @@ export async function getPRGraphQLData(
               }
             }
             totalCount
+          }
+          commits(last: 1) {
+            nodes {
+              commit {
+                statusCheckRollup {
+                  state
+                }
+              }
+            }
           }
           closingIssuesReferences(first: 10) {
             nodes {
@@ -235,7 +271,15 @@ export async function getPRGraphQLData(
     }),
   );
 
-  return { threads, totalCount, unresolvedCount, linkedIssues };
+  // CI status from the latest commit's status check rollup
+  const rollupState = pr.commits?.nodes?.[0]?.commit?.statusCheckRollup?.state;
+  let ciStatus: CIStatus = null;
+  if (rollupState === 'SUCCESS') ciStatus = 'success';
+  else if (rollupState === 'FAILURE' || rollupState === 'ERROR') ciStatus = 'failure';
+  else if (rollupState === 'PENDING' || rollupState === 'EXPECTED') ciStatus = 'pending';
+  else if (rollupState) ciStatus = 'neutral';
+
+  return { threads, totalCount, unresolvedCount, linkedIssues, ciStatus };
 }
 
 export async function getIssueLinkedPRs(

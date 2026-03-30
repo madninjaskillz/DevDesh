@@ -10,6 +10,7 @@ export interface AppSettings {
   focusMode: boolean;
   quietMode: boolean;
   autoCollapseEmpty: boolean;
+  compactMode: boolean;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -20,6 +21,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   focusMode: false,
   quietMode: false,
   autoCollapseEmpty: true,
+  compactMode: false,
 };
 
 interface SettingsContextValue {

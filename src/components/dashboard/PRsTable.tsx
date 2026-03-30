@@ -21,6 +21,10 @@ import LinkOffIcon from '@mui/icons-material/LinkOff';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import MergeTypeIcon from '@mui/icons-material/MergeType';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import { useQueryClient } from '@tanstack/react-query';
 import type { DashboardPR, PRStatus } from '../../types/github';
 import { formatAge, formatDate, getAgeColor } from '../../utils/dates';
@@ -194,6 +198,7 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
               </TableSortLabel>
             </TableCell>
             <TableCell>Linked Issues</TableCell>
+            <TableCell>CI</TableCell>
             {notes && <TableCell>Notes</TableCell>}
             <TableCell>Created</TableCell>
             <TableCell>
@@ -336,6 +341,23 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
                       </Tooltip>
                     )}
                   </Box>
+                </TableCell>
+                <TableCell>
+                  {pr.ciStatus === 'success' && (
+                    <Tooltip title="CI passed"><CheckCircleIcon sx={{ color: colors.green[5], fontSize: 18 }} /></Tooltip>
+                  )}
+                  {pr.ciStatus === 'failure' && (
+                    <Tooltip title="CI failed"><CancelIcon sx={{ color: colors.red.brand, fontSize: 18 }} /></Tooltip>
+                  )}
+                  {pr.ciStatus === 'pending' && (
+                    <Tooltip title="CI running"><HourglassEmptyIcon sx={{ color: colors.orange[5], fontSize: 18 }} /></Tooltip>
+                  )}
+                  {pr.ciStatus === 'neutral' && (
+                    <Tooltip title="CI neutral"><RemoveCircleOutlineIcon sx={{ color: colors.gray[5], fontSize: 18 }} /></Tooltip>
+                  )}
+                  {!pr.ciStatus && (
+                    <Typography variant="body2" color="text.secondary">--</Typography>
+                  )}
                 </TableCell>
                 {notes && (
                   <TableCell>
