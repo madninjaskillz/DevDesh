@@ -21,25 +21,32 @@ const queryClient = new QueryClient({
   },
 });
 
-function App() {
-  const auth = useAuthProvider();
+function AppInner() {
   const repoConfig = useRepoConfigProvider();
   const appSettings = useSettingsProvider();
 
   return (
+    <RepoConfigContext.Provider value={repoConfig}>
+      <SettingsContext.Provider value={appSettings}>
+        <AppThemeProvider>
+          <AuthGuard>
+            <AppLayout>
+              <DashboardPage />
+            </AppLayout>
+          </AuthGuard>
+        </AppThemeProvider>
+      </SettingsContext.Provider>
+    </RepoConfigContext.Provider>
+  );
+}
+
+function App() {
+  const auth = useAuthProvider();
+
+  return (
     <QueryClientProvider client={queryClient}>
       <AuthContext.Provider value={auth}>
-        <RepoConfigContext.Provider value={repoConfig}>
-          <SettingsContext.Provider value={appSettings}>
-          <AppThemeProvider>
-            <AuthGuard>
-              <AppLayout>
-                <DashboardPage />
-              </AppLayout>
-            </AuthGuard>
-          </AppThemeProvider>
-          </SettingsContext.Provider>
-        </RepoConfigContext.Provider>
+        <AppInner />
       </AuthContext.Provider>
     </QueryClientProvider>
   );
