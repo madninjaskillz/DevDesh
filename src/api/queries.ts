@@ -8,8 +8,8 @@ import {
   getRecentlyClosedPRs,
   getPRReviews,
   getPRGraphQLData,
-  getIssueGraphQLData,
-  type IssueGraphQLData,
+  getIssueLinkedPRs,
+  getIssueProjectStatuses,
   getRepoEvents,
   getRecentCommits,
   type PRGraphQLData,
@@ -44,42 +44,49 @@ export function useAssignedIssues() {
     }));
   }, [queries.map((q) => q.data).join(','), repos]);
 
-  const issueGqlQueries = useQueries({
+  const linkedPRQueries = useQueries({
     queries: issuesByRepo.map(({ owner, repo, issues: issueNums }) => ({
-      queryKey: ['issue-graphql', owner, repo, issueNums.join(',')],
-      queryFn: () => getIssueGraphQLData(owner, repo, issueNums, token!),
+      queryKey: ['issue-linked-prs', owner, repo, issueNums.join(',')],
+      queryFn: () => getIssueLinkedPRs(owner, repo, issueNums, token!),
       enabled: !!token && issueNums.length > 0,
       staleTime: STALE_TIME,
     })),
   });
 
-  const isLoading = queries.some((q) => q.isLoading) || issueGqlQueries.some((q) => q.isLoading);
+  const projectStatusQueries = useQueries({
+    queries: issuesByRepo.map(({ owner, repo, issues: issueNums }) => ({
+      queryKey: ['issue-project-status', owner, repo, issueNums.join(',')],
+      queryFn: () => getIssueProjectStatuses(owner, repo, issueNums, token!),
+      enabled: !!token && issueNums.length > 0,
+      staleTime: STALE_TIME,
+    })),
+  });
+
+  const isLoading = queries.some((q) => q.isLoading) || linkedPRQueries.some((q) => q.isLoading);
   const isError = queries.some((q) => q.isError);
   const error = queries.find((q) => q.error)?.error ?? null;
 
   const issues: DashboardIssue[] = useMemo(() => {
     return queries
       .flatMap((q, idx) => {
-        const gqlMap = issueGqlQueries[idx]?.data as Map<number, IssueGraphQLData> | undefined;
-        return (q.data ?? []).map((issue) => {
-          const gqlData = gqlMap?.get(issue.number);
-          return {
-            number: issue.number,
-            title: issue.title,
-            htmlUrl: issue.html_url,
-            labels: issue.labels,
-            assignedDate: issue.created_at,
-            ageDays: daysAgo(issue.created_at),
-            repoName: repos[idx].repo,
-            repoFullName: `${repos[idx].owner}/${repos[idx].repo}`,
-            updatedAt: issue.updated_at,
-            linkedPRs: gqlData?.linkedPRs ?? [],
-            projectStatus: gqlData?.projectStatus ?? null,
-          };
-        });
+        const linkedPRMap = linkedPRQueries[idx]?.data as Map<number, import('../types/github').LinkedPR[]> | undefined;
+        const statusMap = projectStatusQueries[idx]?.data as Map<number, string | null> | undefined;
+        return (q.data ?? []).map((issue) => ({
+          number: issue.number,
+          title: issue.title,
+          htmlUrl: issue.html_url,
+          labels: issue.labels,
+          assignedDate: issue.created_at,
+          ageDays: daysAgo(issue.created_at),
+          repoName: repos[idx].repo,
+          repoFullName: `${repos[idx].owner}/${repos[idx].repo}`,
+          updatedAt: issue.updated_at,
+          linkedPRs: linkedPRMap?.get(issue.number) ?? [],
+          projectStatus: statusMap?.get(issue.number) ?? null,
+        }));
       })
       .sort((a, b) => b.ageDays - a.ageDays);
-  }, [queries.map((q) => q.data).join(','), issueGqlQueries.map((q) => q.dataUpdatedAt).join(','), repos]);
+  }, [queries.map((q) => q.data).join(','), linkedPRQueries.map((q) => q.dataUpdatedAt).join(','), projectStatusQueries.map((q) => q.dataUpdatedAt).join(','), repos]);
 
   return { issues, isLoading, isError, error };
 }

@@ -226,31 +226,17 @@ export async function getPRGraphQLData(
   return { threads, totalCount, unresolvedCount, linkedIssues };
 }
 
-export interface IssueGraphQLData {
-  linkedPRs: LinkedPR[];
-  projectStatus: string | null;
-}
-
-export async function getIssueGraphQLData(
+export async function getIssueLinkedPRs(
   owner: string,
   repo: string,
   issueNumbers: number[],
   token: string,
-): Promise<Map<number, IssueGraphQLData>> {
+): Promise<Map<number, LinkedPR[]>> {
   if (issueNumbers.length === 0) return new Map();
 
   const issueFragments = issueNumbers.map(
     (num, i) => `issue${i}: issue(number: ${num}) {
       number
-      projectItems(first: 5) {
-        nodes {
-          fieldValueByName(name: "Status") {
-            ... on ProjectV2ItemFieldSingleSelectValue {
-              name
-            }
-          }
-        }
-      }
       timelineItems(itemTypes: [CROSS_REFERENCED_EVENT, CONNECTED_EVENT], first: 20) {
         nodes {
           ... on CrossReferencedEvent {
@@ -302,24 +288,22 @@ export async function getIssueGraphQLData(
   }
 
   const json = await res.json();
-  if (json.errors) {
-    throw new Error(`GraphQL error: ${JSON.stringify(json.errors)}`);
-  }
+  // Don't throw on partial errors — extract what we can
+  const repoData = json.data?.repository;
+  if (!repoData) return new Map();
 
-  const result = new Map<number, IssueGraphQLData>();
-  const repoData = json.data.repository;
+  const result = new Map<number, LinkedPR[]>();
 
   issueNumbers.forEach((num, i) => {
     const issueData = repoData[`issue${i}`];
     if (!issueData) {
-      result.set(num, { linkedPRs: [], projectStatus: null });
+      result.set(num, []);
       return;
     }
 
-    // Extract linked PRs
     const prs: LinkedPR[] = [];
     const seen = new Set<number>();
-    for (const node of issueData.timelineItems.nodes) {
+    for (const node of issueData.timelineItems?.nodes ?? []) {
       const prData = node.source ?? node.subject;
       if (prData?.number && !seen.has(prData.number)) {
         seen.add(prData.number);
@@ -333,20 +317,79 @@ export async function getIssueGraphQLData(
       }
     }
 
-    // Extract project status (take first project item that has a status)
-    let projectStatus: string | null = null;
-    for (const item of issueData.projectItems?.nodes ?? []) {
-      const statusName = item.fieldValueByName?.name;
-      if (statusName) {
-        projectStatus = statusName;
-        break;
-      }
-    }
-
-    result.set(num, { linkedPRs: prs, projectStatus });
+    result.set(num, prs);
   });
 
   return result;
+}
+
+export async function getIssueProjectStatuses(
+  owner: string,
+  repo: string,
+  issueNumbers: number[],
+  token: string,
+): Promise<Map<number, string | null>> {
+  if (issueNumbers.length === 0) return new Map();
+
+  const issueFragments = issueNumbers.map(
+    (num, i) => `issue${i}: issue(number: ${num}) {
+      number
+      projectItems(first: 5) {
+        nodes {
+          fieldValueByName(name: "Status") {
+            ... on ProjectV2ItemFieldSingleSelectValue {
+              name
+            }
+          }
+        }
+      }
+    }`,
+  );
+
+  const query = `query($owner: String!, $repo: String!) {
+    repository(owner: $owner, name: $repo) {
+      ${issueFragments.join('\n')}
+    }
+  }`;
+
+  try {
+    const res = await fetch(GRAPHQL_URL, {
+      method: 'POST',
+      headers: headers(token),
+      body: JSON.stringify({ query, variables: { owner, repo } }),
+    });
+
+    if (!res.ok) return new Map();
+
+    const json = await res.json();
+    const repoData = json.data?.repository;
+    if (!repoData) return new Map();
+
+    const result = new Map<number, string | null>();
+
+    issueNumbers.forEach((num, i) => {
+      const issueData = repoData[`issue${i}`];
+      if (!issueData?.projectItems?.nodes) {
+        result.set(num, null);
+        return;
+      }
+
+      let status: string | null = null;
+      for (const item of issueData.projectItems.nodes) {
+        const statusName = item.fieldValueByName?.name;
+        if (statusName) {
+          status = statusName;
+          break;
+        }
+      }
+      result.set(num, status);
+    });
+
+    return result;
+  } catch {
+    // Project status is non-critical — fail silently
+    return new Map();
+  }
 }
 
 export interface ItemDetail {
