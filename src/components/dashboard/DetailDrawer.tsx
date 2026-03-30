@@ -12,6 +12,7 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { useQuery } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 import { useAuth } from '../../hooks/useAuth';
 import { getIssueDetail, getItemComments } from '../../api/github';
 import { formatDate } from '../../utils/dates';
@@ -28,6 +29,31 @@ interface DetailDrawerProps {
   onClose: () => void;
   item: DrawerItem | null;
 }
+
+/** Shared sx for markdown rendered content */
+const markdownSx = {
+  '& img': { maxWidth: '100%', height: 'auto', borderRadius: 1, my: 1, display: 'block' },
+  '& video': { maxWidth: '100%' },
+  '& pre': { overflow: 'auto', p: 1.5, bgcolor: 'action.hover', borderRadius: 1, fontSize: '0.8rem', my: 1 },
+  '& code': { fontFamily: '"Roboto Mono", monospace', fontSize: '0.85em' },
+  '& :not(pre) > code': { bgcolor: 'action.hover', px: 0.5, py: 0.25, borderRadius: 0.5 },
+  '& a': { color: 'primary.main', wordBreak: 'break-word' },
+  '& table': { borderCollapse: 'collapse', width: '100%', my: 1, fontSize: '0.85rem' },
+  '& th, & td': { border: '1px solid', borderColor: 'divider', p: 0.75, textAlign: 'left' },
+  '& th': { bgcolor: 'action.hover', fontWeight: 600 },
+  '& blockquote': { borderLeft: '3px solid', borderColor: 'divider', pl: 2, ml: 0, my: 1, color: 'text.secondary' },
+  '& ul, & ol': { pl: 3 },
+  '& li': { mb: 0.5 },
+  '& p': { mt: 0, mb: 1, lineHeight: 1.6 },
+  '& h1, & h2, & h3, & h4, & h5, & h6': { mt: 2, mb: 1 },
+  '& h1': { fontSize: '1.3rem' },
+  '& h2': { fontSize: '1.15rem' },
+  '& h3': { fontSize: '1rem' },
+  '& hr': { border: 'none', borderTop: '1px solid', borderColor: 'divider', my: 2 },
+  '& details': { my: 1 },
+  '& summary': { cursor: 'pointer', fontWeight: 600, mb: 0.5 },
+  '& input[type="checkbox"]': { mr: 0.5 },
+} as const;
 
 export function DetailDrawer({ open, onClose, item }: DetailDrawerProps) {
   const { token } = useAuth();
@@ -102,21 +128,10 @@ export function DetailDrawer({ open, onClose, item }: DetailDrawerProps) {
 
             {/* Body */}
             {detail.body && (
-              <Box
-                sx={{
-                  mt: 2,
-                  p: 2,
-                  bgcolor: 'background.default',
-                  borderRadius: 1,
-                  '& img': { maxWidth: '100%' },
-                  '& pre': { overflow: 'auto', p: 1, bgcolor: 'action.hover', borderRadius: 1 },
-                  '& code': { fontFamily: '"Roboto Mono", monospace', fontSize: '0.85em' },
-                  '& a': { color: 'primary.main' },
-                  '& table': { borderCollapse: 'collapse', width: '100%' },
-                  '& th, & td': { border: '1px solid', borderColor: 'divider', p: 0.5 },
-                }}
-              >
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{detail.body}</ReactMarkdown>
+              <Box sx={{ mt: 2, p: 2, bgcolor: 'background.default', borderRadius: 1, ...markdownSx }}>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                  {detail.body}
+                </ReactMarkdown>
               </Box>
             )}
 
@@ -133,8 +148,17 @@ export function DetailDrawer({ open, onClose, item }: DetailDrawerProps) {
               <Typography variant="body2" color="text.secondary">No comments.</Typography>
             ) : (
               comments.slice().reverse().map((comment) => (
-                <Box key={comment.id} sx={{ mb: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                <Box
+                  key={comment.id}
+                  sx={{
+                    mb: 2,
+                    pb: 2,
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                    '&:last-child': { borderBottom: 'none' },
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <Avatar src={comment.user.avatar_url} sx={{ width: 20, height: 20 }} />
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {comment.user.login}
@@ -143,17 +167,10 @@ export function DetailDrawer({ open, onClose, item }: DetailDrawerProps) {
                       {formatDate(comment.created_at)}
                     </Typography>
                   </Box>
-                  <Box
-                    sx={{
-                      pl: 3.5,
-                      '& img': { maxWidth: '100%' },
-                      '& pre': { overflow: 'auto', p: 1, bgcolor: 'action.hover', borderRadius: 1 },
-                      '& code': { fontFamily: '"Roboto Mono", monospace', fontSize: '0.85em' },
-                      '& a': { color: 'primary.main' },
-                      '& p': { mt: 0, mb: 0.5 },
-                    }}
-                  >
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{comment.body}</ReactMarkdown>
+                  <Box sx={{ pl: 3.5, ...markdownSx }}>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                      {comment.body}
+                    </ReactMarkdown>
                   </Box>
                 </Box>
               ))
