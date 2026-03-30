@@ -30,29 +30,16 @@ function StatCard({ title, value, icon, color, isLoading }: StatCardProps) {
   return (
     <Card elevation={1}>
       <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1 }}>
+          {icon}
           <Typography variant="body2" color="text.secondary">
             {title}
           </Typography>
-          <Box
-            sx={{
-              width: 36,
-              height: 36,
-              borderRadius: 1.5,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              bgcolor: `${color}18`,
-              flexShrink: 0,
-            }}
-          >
-            {icon}
-          </Box>
         </Box>
         {isLoading ? (
           <Skeleton width={60} height={36} />
         ) : (
-          <Typography variant="h4" sx={{ fontWeight: 700, color, mt: 0.5 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, color }}>
             {value}
           </Typography>
         )}
