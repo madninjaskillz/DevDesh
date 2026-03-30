@@ -40,9 +40,10 @@ const STATUS_CONFIG: Record<PRStatus, { label: string; color: 'default' | 'succe
 interface PRsTableProps {
   prs: DashboardPR[];
   isLoading: boolean;
+  onItemClick?: (owner: string, repo: string, number: number) => void;
 }
 
-export function PRsTable({ prs, isLoading }: PRsTableProps) {
+export function PRsTable({ prs, isLoading, onItemClick }: PRsTableProps) {
   const { token } = useAuth();
   const queryClient = useQueryClient();
   const [sortField, setSortField] = useState<SortField>('ageDays');
@@ -203,6 +204,13 @@ export function PRsTable({ prs, isLoading }: PRsTableProps) {
                       target="_blank"
                       rel="noopener"
                       underline="hover"
+                      onClick={(e) => {
+                        if (!e.ctrlKey && !e.metaKey && onItemClick) {
+                          e.preventDefault();
+                          const [owner, repo] = pr.repoFullName.split('/');
+                          onItemClick(owner, repo, pr.number);
+                        }
+                      }}
                       sx={{
                         display: 'block',
                         overflow: 'hidden',

@@ -326,6 +326,74 @@ export async function getIssueLinkedPRs(
   return result;
 }
 
+export interface ItemDetail {
+  number: number;
+  title: string;
+  body: string;
+  state: string;
+  html_url: string;
+  user: { login: string; avatar_url: string };
+  created_at: string;
+  updated_at: string;
+  labels: { name: string; color: string }[];
+}
+
+export interface GitHubComment {
+  id: number;
+  body: string;
+  user: { login: string; avatar_url: string };
+  created_at: string;
+  updated_at: string;
+}
+
+export async function getIssueDetail(
+  owner: string,
+  repo: string,
+  number: number,
+  token: string,
+): Promise<ItemDetail> {
+  return fetchJSON<ItemDetail>(
+    `${API_BASE}/repos/${owner}/${repo}/issues/${number}`,
+    token,
+  );
+}
+
+export async function getItemComments(
+  owner: string,
+  repo: string,
+  number: number,
+  token: string,
+): Promise<GitHubComment[]> {
+  return fetchJSON<GitHubComment[]>(
+    `${API_BASE}/repos/${owner}/${repo}/issues/${number}/comments?per_page=15&sort=created&direction=desc`,
+    token,
+  );
+}
+
+export async function getRepoEvents(
+  owner: string,
+  repo: string,
+  token: string,
+): Promise<any[]> {
+  return fetchJSON<any[]>(
+    `${API_BASE}/repos/${owner}/${repo}/events?per_page=100`,
+    token,
+  );
+}
+
+export async function getRecentCommits(
+  owner: string,
+  repo: string,
+  username: string,
+  since: string,
+  token: string,
+): Promise<any[]> {
+  return fetchJSON<any[]>(
+    `${API_BASE}/repos/${owner}/${repo}/commits?author=${username}&since=${since}&per_page=50`,
+    token,
+  );
+}
+
 export async function getPRBody(
   owner: string,
   repo: string,

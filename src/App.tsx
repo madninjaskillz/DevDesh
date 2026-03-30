@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppThemeProvider } from './theme/ThemeProvider';
 import { AuthContext, useAuthProvider } from './hooks/useAuth';
+import { RepoConfigContext, useRepoConfigProvider } from './hooks/useRepoConfig';
 import { AuthGuard } from './components/auth/AuthGuard';
 import { AppLayout } from './components/layout/AppLayout';
 import { DashboardPage } from './components/dashboard/DashboardPage';
@@ -21,17 +22,20 @@ const queryClient = new QueryClient({
 
 function App() {
   const auth = useAuthProvider();
+  const repoConfig = useRepoConfigProvider();
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthContext.Provider value={auth}>
-        <AppThemeProvider>
-          <AuthGuard>
-            <AppLayout>
-              <DashboardPage />
-            </AppLayout>
-          </AuthGuard>
-        </AppThemeProvider>
+        <RepoConfigContext.Provider value={repoConfig}>
+          <AppThemeProvider>
+            <AuthGuard>
+              <AppLayout>
+                <DashboardPage />
+              </AppLayout>
+            </AuthGuard>
+          </AppThemeProvider>
+        </RepoConfigContext.Provider>
       </AuthContext.Provider>
     </QueryClientProvider>
   );

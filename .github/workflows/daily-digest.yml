@@ -1,0 +1,21 @@
+name: Daily Digest
+
+on:
+  schedule:
+    - cron: '0 8 * * 1-5'  # 8 AM UTC, weekdays
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node .github/scripts/daily-digest.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.DIGEST_GITHUB_TOKEN }}
+          GITHUB_USERNAME: ${{ vars.GITHUB_USERNAME }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          REPOS: ${{ vars.DIGEST_REPOS }}

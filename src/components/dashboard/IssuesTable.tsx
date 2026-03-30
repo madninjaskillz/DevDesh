@@ -24,9 +24,10 @@ type SortDir = 'asc' | 'desc';
 interface IssuesTableProps {
   issues: DashboardIssue[];
   isLoading: boolean;
+  onItemClick?: (owner: string, repo: string, number: number) => void;
 }
 
-export function IssuesTable({ issues, isLoading }: IssuesTableProps) {
+export function IssuesTable({ issues, isLoading, onItemClick }: IssuesTableProps) {
   const [sortField, setSortField] = useState<SortField>('ageDays');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
@@ -113,6 +114,13 @@ export function IssuesTable({ issues, isLoading }: IssuesTableProps) {
                     target="_blank"
                     rel="noopener"
                     underline="hover"
+                    onClick={(e) => {
+                      if (!e.ctrlKey && !e.metaKey && onItemClick) {
+                        e.preventDefault();
+                        const [owner, repo] = issue.repoFullName.split('/');
+                        onItemClick(owner, repo, issue.number);
+                      }
+                    }}
                     sx={{
                       display: 'block',
                       overflow: 'hidden',

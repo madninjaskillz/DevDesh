@@ -1,5 +1,6 @@
 import { useQueries } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
+import { useRepoConfig } from '../hooks/useRepoConfig';
 import {
   getAssignedIssues,
   getOpenPRs,
@@ -8,11 +9,13 @@ import {
   getPRReviews,
   getPRGraphQLData,
   getIssueLinkedPRs,
+  getRepoEvents,
+  getRecentCommits,
   type PRGraphQLData,
 } from './github';
 import { daysAgo } from '../utils/dates';
 import { computeTrendData } from '../utils/trends';
-import { REPOS, type DashboardIssue, type DashboardPR, type PRStatus, type TrendDataPoint } from '../types/github';
+import type { DashboardIssue, DashboardPR, DashboardReviewRequest, DashboardCommit, ActivityEvent, PRStatus, TrendDataPoint, LinkedPR } from '../types/github';
 import { useMemo } from 'react';
 import { subDays, formatISO } from 'date-fns';
 
@@ -21,9 +24,10 @@ const REFETCH_INTERVAL = 5 * 60 * 1000;
 
 export function useAssignedIssues() {
   const { token, user } = useAuth();
+  const { repos } = useRepoConfig();
 
   const queries = useQueries({
-    queries: REPOS.map(({ owner, repo }) => ({
+    queries: repos.map(({ owner, repo }) => ({
       queryKey: ['issues', owner, repo, user?.login],
       queryFn: () => getAssignedIssues(owner, repo, user!.login, token!),
       enabled: !!token && !!user,
@@ -32,15 +36,13 @@ export function useAssignedIssues() {
     })),
   });
 
-  // Collect issue numbers per repo for linked PR lookup
   const issuesByRepo = useMemo(() => {
     return queries.map((q, idx) => ({
-      ...REPOS[idx],
+      ...repos[idx],
       issues: (q.data ?? []).map((i) => i.number),
     }));
-  }, [queries.map((q) => q.data).join(',')]);
+  }, [queries.map((q) => q.data).join(','), repos]);
 
-  // Fetch linked PRs for all issues per repo
   const linkedPRQueries = useQueries({
     queries: issuesByRepo.map(({ owner, repo, issues: issueNums }) => ({
       queryKey: ['issue-linked-prs', owner, repo, issueNums.join(',')],
@@ -57,7 +59,7 @@ export function useAssignedIssues() {
   const issues: DashboardIssue[] = useMemo(() => {
     return queries
       .flatMap((q, idx) => {
-        const linkedPRMap = linkedPRQueries[idx]?.data as Map<number, import('../types/github').LinkedPR[]> | undefined;
+        const linkedPRMap = linkedPRQueries[idx]?.data as Map<number, LinkedPR[]> | undefined;
         return (q.data ?? []).map((issue) => ({
           number: issue.number,
           title: issue.title,
@@ -65,23 +67,24 @@ export function useAssignedIssues() {
           labels: issue.labels,
           assignedDate: issue.created_at,
           ageDays: daysAgo(issue.created_at),
-          repoName: REPOS[idx].repo,
-          repoFullName: `${REPOS[idx].owner}/${REPOS[idx].repo}`,
+          repoName: repos[idx].repo,
+          repoFullName: `${repos[idx].owner}/${repos[idx].repo}`,
           updatedAt: issue.updated_at,
           linkedPRs: linkedPRMap?.get(issue.number) ?? [],
         }));
       })
       .sort((a, b) => b.ageDays - a.ageDays);
-  }, [queries.map((q) => q.data).join(','), linkedPRQueries.map((q) => q.dataUpdatedAt).join(',')]);
+  }, [queries.map((q) => q.data).join(','), linkedPRQueries.map((q) => q.dataUpdatedAt).join(','), repos]);
 
   return { issues, isLoading, isError, error };
 }
 
 export function useOpenPRs() {
   const { token, user } = useAuth();
+  const { repos } = useRepoConfig();
 
   const prQueries = useQueries({
-    queries: REPOS.map(({ owner, repo }) => ({
+    queries: repos.map(({ owner, repo }) => ({
       queryKey: ['prs', owner, repo],
       queryFn: () => getOpenPRs(owner, repo, token!),
       enabled: !!token && !!user,
@@ -98,10 +101,9 @@ export function useOpenPRs() {
     );
   }, [prQueries.map((q) => q.data).join(','), user?.login]);
 
-  // Fetch reviews and GraphQL data (threads + linked issues) for each PR
   const enrichmentQueries = useQueries({
     queries: allPRs.flatMap((pr) => {
-      const { owner, repo } = REPOS[pr.repoIdx];
+      const { owner, repo } = repos[pr.repoIdx];
       return [
         {
           queryKey: ['pr-reviews', owner, repo, pr.number],
@@ -128,7 +130,6 @@ export function useOpenPRs() {
       const reviews = (enrichmentQueries[i * 2]?.data as Awaited<ReturnType<typeof getPRReviews>> | undefined) ?? [];
       const gqlData = enrichmentQueries[i * 2 + 1]?.data as PRGraphQLData | undefined;
 
-      // Determine status from latest review per reviewer
       const latestByReviewer = new Map<string, string>();
       for (const review of reviews) {
         if (review.state !== 'COMMENTED' && review.state !== 'PENDING') {
@@ -152,8 +153,8 @@ export function useOpenPRs() {
         draft: pr.draft,
         author: pr.user.login,
         authorAvatar: pr.user.avatar_url,
-        repoName: REPOS[pr.repoIdx].repo,
-        repoFullName: `${REPOS[pr.repoIdx].owner}/${REPOS[pr.repoIdx].repo}`,
+        repoName: repos[pr.repoIdx].repo,
+        repoFullName: `${repos[pr.repoIdx].owner}/${repos[pr.repoIdx].repo}`,
         createdAt: pr.created_at,
         ageDays: daysAgo(pr.created_at),
         status,
@@ -166,9 +167,51 @@ export function useOpenPRs() {
         baseRef: pr.base.ref,
       };
     }).sort((a, b) => b.ageDays - a.ageDays);
-  }, [allPRs, enrichmentQueries.map((q) => q.data).join(',')]);
+  }, [allPRs, enrichmentQueries.map((q) => q.data).join(','), repos]);
 
   return { prs: dashboardPRs, isLoading, isError, error };
+}
+
+export function useReviewRequests() {
+  const { token, user } = useAuth();
+  const { repos } = useRepoConfig();
+
+  // Reuses the same ['prs', owner, repo] cache keys — TanStack Query deduplicates
+  const prQueries = useQueries({
+    queries: repos.map(({ owner, repo }) => ({
+      queryKey: ['prs', owner, repo],
+      queryFn: () => getOpenPRs(owner, repo, token!),
+      enabled: !!token && !!user,
+      staleTime: STALE_TIME,
+      refetchInterval: REFETCH_INTERVAL,
+    })),
+  });
+
+  const isLoading = prQueries.some((q) => q.isLoading);
+  const isError = prQueries.some((q) => q.isError);
+  const error = prQueries.find((q) => q.error)?.error ?? null;
+
+  const requests: DashboardReviewRequest[] = useMemo(() => {
+    return prQueries
+      .flatMap((q, idx) =>
+        (q.data ?? [])
+          .filter((pr) => pr.requested_reviewers.some((r) => r.login === user?.login))
+          .map((pr) => ({
+            number: pr.number,
+            title: pr.title,
+            htmlUrl: pr.html_url,
+            repoName: repos[idx].repo,
+            repoFullName: `${repos[idx].owner}/${repos[idx].repo}`,
+            author: pr.user.login,
+            authorAvatar: pr.user.avatar_url,
+            createdAt: pr.created_at,
+            waitingDays: daysAgo(pr.created_at),
+          })),
+      )
+      .sort((a, b) => b.waitingDays - a.waitingDays);
+  }, [prQueries.map((q) => q.data).join(','), user?.login, repos]);
+
+  return { requests, isLoading, isError, error };
 }
 
 export function useDashboardSummary(issues: DashboardIssue[], prs: DashboardPR[]) {
@@ -190,11 +233,11 @@ export function useDashboardSummary(issues: DashboardIssue[], prs: DashboardPR[]
 
 export function useTrendData() {
   const { token, user } = useAuth();
+  const { repos } = useRepoConfig();
   const since = formatISO(subDays(new Date(), 30), { representation: 'date' });
 
-  // Fetch open issues (already have these, but we need the raw GitHubIssue for created_at/closed_at)
   const openIssueQueries = useQueries({
-    queries: REPOS.map(({ owner, repo }) => ({
+    queries: repos.map(({ owner, repo }) => ({
       queryKey: ['trend-open-issues', owner, repo, user?.login],
       queryFn: () => getAssignedIssues(owner, repo, user!.login, token!),
       enabled: !!token && !!user,
@@ -202,9 +245,8 @@ export function useTrendData() {
     })),
   });
 
-  // Fetch recently closed issues
   const closedIssueQueries = useQueries({
-    queries: REPOS.map(({ owner, repo }) => ({
+    queries: repos.map(({ owner, repo }) => ({
       queryKey: ['trend-closed-issues', owner, repo, user?.login, since],
       queryFn: () => getRecentlyClosedIssues(owner, repo, user!.login, since, token!),
       enabled: !!token && !!user,
@@ -212,9 +254,8 @@ export function useTrendData() {
     })),
   });
 
-  // Fetch open PRs
   const openPRQueries = useQueries({
-    queries: REPOS.map(({ owner, repo }) => ({
+    queries: repos.map(({ owner, repo }) => ({
       queryKey: ['trend-open-prs', owner, repo],
       queryFn: () => getOpenPRs(owner, repo, token!),
       enabled: !!token && !!user,
@@ -222,9 +263,8 @@ export function useTrendData() {
     })),
   });
 
-  // Fetch recently closed PRs
   const closedPRQueries = useQueries({
-    queries: REPOS.map(({ owner, repo }) => ({
+    queries: repos.map(({ owner, repo }) => ({
       queryKey: ['trend-closed-prs', owner, repo, since],
       queryFn: () => getRecentlyClosedPRs(owner, repo, since, token!),
       enabled: !!token && !!user,
@@ -242,19 +282,16 @@ export function useTrendData() {
   const trendData: TrendDataPoint[] = useMemo(() => {
     if (isLoading) return [];
 
-    // Combine open + recently closed issues
     const allIssues = [
       ...openIssueQueries.flatMap((q) => q.data ?? []),
       ...closedIssueQueries.flatMap((q) => q.data ?? []),
     ];
 
-    // Combine open + recently closed PRs, filtered to user's PRs
     const allPRs = [
       ...openPRQueries.flatMap((q) => q.data ?? []),
       ...closedPRQueries.flatMap((q) => q.data ?? []),
     ].filter((pr) => pr.user.login === user?.login);
 
-    // Deduplicate by number+repo (an item could appear in both open and closed if state changed)
     const uniqueIssues = dedup(allIssues, (i) => `${i.repository_url}-${i.number}`);
     const uniquePRs = dedup(allPRs, (p) => `${p.html_url}`);
 
@@ -273,6 +310,116 @@ export function useTrendData() {
   ]);
 
   return { trendData, isLoading };
+}
+
+export function useActivityFeed() {
+  const { token, user } = useAuth();
+  const { repos } = useRepoConfig();
+
+  const queries = useQueries({
+    queries: repos.map(({ owner, repo }) => ({
+      queryKey: ['events', owner, repo],
+      queryFn: () => getRepoEvents(owner, repo, token!),
+      enabled: !!token && !!user,
+      staleTime: 60_000,
+      refetchInterval: REFETCH_INTERVAL,
+    })),
+  });
+
+  const isLoading = queries.some((q) => q.isLoading);
+
+  const events: ActivityEvent[] = useMemo(() => {
+    const cutoff = subDays(new Date(), 2).toISOString();
+    const allEvents: ActivityEvent[] = [];
+
+    queries.forEach((q, idx) => {
+      for (const evt of q.data ?? []) {
+        if (evt.created_at < cutoff) continue;
+        // Only events involving the current user
+        const actorLogin = evt.actor?.login;
+        const isMe = actorLogin === user?.login;
+        const payload = evt.payload ?? {};
+
+        let title = '';
+        let url = '';
+        let action = evt.type;
+
+        if (evt.type === 'IssueCommentEvent') {
+          title = `Commented on #${payload.issue?.number}: ${payload.issue?.title ?? ''}`;
+          url = payload.comment?.html_url ?? payload.issue?.html_url ?? '';
+          action = 'commented';
+        } else if (evt.type === 'PullRequestReviewEvent') {
+          title = `Reviewed PR #${payload.pull_request?.number}: ${payload.pull_request?.title ?? ''}`;
+          url = payload.review?.html_url ?? payload.pull_request?.html_url ?? '';
+          action = payload.review?.state ?? 'reviewed';
+        } else if (evt.type === 'PullRequestEvent') {
+          title = `${payload.action} PR #${payload.pull_request?.number}: ${payload.pull_request?.title ?? ''}`;
+          url = payload.pull_request?.html_url ?? '';
+          action = payload.action ?? 'updated';
+        } else if (evt.type === 'IssuesEvent') {
+          title = `${payload.action} issue #${payload.issue?.number}: ${payload.issue?.title ?? ''}`;
+          url = payload.issue?.html_url ?? '';
+          action = payload.action ?? 'updated';
+        } else if (evt.type === 'PushEvent') {
+          if (!isMe) continue;
+          const count = payload.commits?.length ?? 0;
+          title = `Pushed ${count} commit${count !== 1 ? 's' : ''}`;
+          url = `https://github.com/${repos[idx].owner}/${repos[idx].repo}/compare/${payload.before?.slice(0, 7)}...${payload.head?.slice(0, 7)}`;
+          action = 'pushed';
+        } else {
+          continue;
+        }
+
+        allEvents.push({
+          id: evt.id,
+          type: evt.type,
+          action,
+          title,
+          url,
+          actor: { login: actorLogin ?? '', avatar_url: evt.actor?.avatar_url ?? '' },
+          repoName: repos[idx].repo,
+          timestamp: evt.created_at,
+        });
+      }
+    });
+
+    return allEvents.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+  }, [queries.map((q) => q.dataUpdatedAt).join(','), user?.login, repos]);
+
+  return { events, isLoading };
+}
+
+export function useRecentCommits() {
+  const { token, user } = useAuth();
+  const { repos } = useRepoConfig();
+  const since = formatISO(subDays(new Date(), 30), { representation: 'date' });
+
+  const queries = useQueries({
+    queries: repos.map(({ owner, repo }) => ({
+      queryKey: ['commits', owner, repo, user?.login, since],
+      queryFn: () => getRecentCommits(owner, repo, user!.login, since, token!),
+      enabled: !!token && !!user,
+      staleTime: STALE_TIME,
+    })),
+  });
+
+  const isLoading = queries.some((q) => q.isLoading);
+
+  const commits: DashboardCommit[] = useMemo(() => {
+    return queries
+      .flatMap((q, idx) =>
+        (q.data ?? []).map((c: any) => ({
+          sha: c.sha,
+          message: c.commit?.message ?? '',
+          url: c.html_url,
+          repoName: repos[idx].repo,
+          date: c.commit?.author?.date ?? c.commit?.committer?.date ?? '',
+        })),
+      )
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [queries.map((q) => q.dataUpdatedAt).join(','), repos]);
+
+  return { commits, isLoading };
 }
 
 function dedup<T>(items: T[], key: (item: T) => string): T[] {

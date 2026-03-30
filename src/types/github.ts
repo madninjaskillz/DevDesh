@@ -122,9 +122,38 @@ export interface TrendDataPoint {
   avgPRAgeDays: number;
 }
 
-export const REPOS = [
+export const DEFAULT_REPOS = [
   { owner: 'red-gate', repo: 'flyway-main' },
   { owner: 'red-gate', repo: 'FlywayDesktop' },
-] as const;
+];
 
-export type RepoConfig = (typeof REPOS)[number];
+export interface ActivityEvent {
+  id: string;
+  type: string;
+  action: string;
+  title: string;
+  url: string;
+  actor: { login: string; avatar_url: string };
+  repoName: string;
+  timestamp: string;
+}
+
+export interface DashboardCommit {
+  sha: string;
+  message: string;
+  url: string;
+  repoName: string;
+  date: string;
+}
+
+export interface DashboardReviewRequest {
+  number: number;
+  title: string;
+  htmlUrl: string;
+  repoName: string;
+  repoFullName: string;
+  author: string;
+  authorAvatar: string;
+  createdAt: string;
+  waitingDays: number;
+}
