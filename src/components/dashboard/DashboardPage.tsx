@@ -1,12 +1,8 @@
 import { useState, useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
 import Chip from '@mui/material/Chip';
-import Tooltip from '@mui/material/Tooltip';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAssignedIssues, useOpenPRs, useReviewRequests, useDashboardSummary, useTrendData, useActivityFeed, useRecentCommits } from '../../api/queries';
 import { SummaryCards } from './SummaryCards';
@@ -23,7 +19,6 @@ import { ShortcutsDialog } from './ShortcutsDialog';
 import { CollapsibleSection } from './CollapsibleSection';
 import { SectionErrorBoundary } from './ErrorBoundary';
 import { LabelFilter, type GroupBy } from './LabelFilter';
-import { RefreshIndicator } from './RefreshIndicator';
 import { GitHubApiError } from '../../api/github';
 import { computeActionItems } from '../../utils/actions';
 import { useNotifications } from '../../hooks/useNotifications';
@@ -96,7 +91,6 @@ export function DashboardPage() {
   // State
   const [drawerItem, setDrawerItem] = useState<DrawerItem | null>(null);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const [lastRefresh, setLastRefresh] = useState(new Date());
   const { toggleTheme } = useThemeMode();
 
   // Focus mode
@@ -108,7 +102,7 @@ export function DashboardPage() {
 
   // Keyboard shortcuts
   const shortcuts = useKeyboardShortcuts([
-    { key: 'r', description: 'Refresh data', handler: () => handleRefresh() },
+    { key: 'r', description: 'Refresh data', handler: () => queryClient.invalidateQueries() },
     { key: '1', description: 'Jump to Actions', handler: () => scrollTo('section-actions') },
     { key: '2', description: 'Jump to Issues', handler: () => scrollTo('section-issues') },
     { key: '3', description: 'Jump to PRs', handler: () => scrollTo('section-prs') },
@@ -123,11 +117,6 @@ export function DashboardPage() {
 
   const handleItemClick = (owner: string, repo: string, number: number, type: 'issue' | 'pr') => {
     setDrawerItem({ type, owner, repo, number });
-  };
-
-  const handleRefresh = () => {
-    queryClient.invalidateQueries();
-    setLastRefresh(new Date());
   };
 
   const apiError = issuesErr ?? prsErr;
@@ -148,37 +137,13 @@ export function DashboardPage() {
       <Sidebar badges={sidebarBadges} />
       <Box sx={{ flex: 1, minWidth: 0 }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            Dashboard
-          </Typography>
-          {focusMode && (
-            <Chip label="Focus Mode" size="small" color="primary" onDelete={toggleFocusMode} />
-          )}
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <RefreshIndicator lastRefresh={lastRefresh} isLoading={isLoading} />
-          <Tooltip title="Focus mode: hide everything except actions (F)">
-            <Button
-              variant={focusMode ? 'contained' : 'outlined'}
-              size="small"
-              onClick={toggleFocusMode}
-              sx={{ minWidth: 'auto', px: 1 }}
-            >
-              <CenterFocusStrongIcon fontSize="small" />
-            </Button>
-          </Tooltip>
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<RefreshIcon />}
-            onClick={handleRefresh}
-            disabled={isLoading}
-          >
-            Refresh
-          </Button>
-        </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          Dashboard
+        </Typography>
+        {focusMode && (
+          <Chip label="Focus Mode" size="small" color="primary" onDelete={toggleFocusMode} />
+        )}
       </Box>
 
       {/* Errors */}
