@@ -206,7 +206,15 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
               </TableCell>
               <TableCell>
                 {issue.projectStatus ? (
-                  <Chip label={issue.projectStatus} size="small" variant="outlined" />
+                  <Chip
+                    label={issue.projectStatus.name}
+                    size="small"
+                    sx={{
+                      bgcolor: projectStatusColor(issue.projectStatus.color),
+                      color: '#fff',
+                      fontWeight: 600,
+                    }}
+                  />
                 ) : (
                   <Typography variant="body2" color="text.secondary">--</Typography>
                 )}
@@ -259,6 +267,21 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
       </Table>
     </TableContainer>
   );
+}
+
+/** Map GitHub ProjectV2 color enum to hex */
+function projectStatusColor(color: string): string {
+  const map: Record<string, string> = {
+    GREEN: '#1a7f37',
+    YELLOW: '#bf8700',
+    ORANGE: '#bc4c00',
+    RED: '#cf222e',
+    PURPLE: '#8250df',
+    BLUE: '#0969da',
+    PINK: '#bf3989',
+    GRAY: '#6e7781',
+  };
+  return map[color] ?? map.GRAY;
 }
 
 function isLightColor(hex: string): boolean {

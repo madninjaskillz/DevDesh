@@ -71,7 +71,7 @@ export function useAssignedIssues() {
     return queries
       .flatMap((q, idx) => {
         const linkedPRMap = linkedPRQueries[idx]?.data as Map<number, import('../types/github').LinkedPR[]> | undefined;
-        const statusMap = projectStatusQueries[idx]?.data as Map<number, string | null> | undefined;
+        const statusMap = projectStatusQueries[idx]?.data as Map<number, { name: string; color: string } | null> | undefined;
         return (q.data ?? []).map((issue) => ({
           number: issue.number,
           title: issue.title,

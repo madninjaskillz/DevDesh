@@ -340,7 +340,7 @@ export async function getIssueProjectStatuses(
   repo: string,
   issueNumbers: number[],
   token: string,
-): Promise<Map<number, string | null>> {
+): Promise<Map<number, { name: string; color: string } | null>> {
   if (issueNumbers.length === 0) return new Map();
 
   const issueFragments = issueNumbers.map(
@@ -351,6 +351,7 @@ export async function getIssueProjectStatuses(
           fieldValueByName(name: "Status") {
             ... on ProjectV2ItemFieldSingleSelectValue {
               name
+              color
             }
           }
         }
@@ -377,7 +378,7 @@ export async function getIssueProjectStatuses(
     const repoData = json.data?.repository;
     if (!repoData) return new Map();
 
-    const result = new Map<number, string | null>();
+    const result = new Map<number, { name: string; color: string } | null>();
 
     issueNumbers.forEach((num, i) => {
       const issueData = repoData[`issue${i}`];
@@ -386,11 +387,11 @@ export async function getIssueProjectStatuses(
         return;
       }
 
-      let status: string | null = null;
+      let status: { name: string; color: string } | null = null;
       for (const item of issueData.projectItems.nodes) {
-        const statusName = item.fieldValueByName?.name;
-        if (statusName) {
-          status = statusName;
+        const fv = item.fieldValueByName;
+        if (fv?.name) {
+          status = { name: fv.name, color: fv.color ?? 'GRAY' };
           break;
         }
       }
