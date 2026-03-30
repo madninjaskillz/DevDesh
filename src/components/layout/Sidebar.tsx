@@ -144,27 +144,9 @@ export function Sidebar({ badges = {} }: SidebarProps) {
                 primary={s.label}
                 primaryTypographyProps={{ variant: 'body2', fontSize: '0.8rem', noWrap: true }}
               />
-              {count > 0 ? (
-                <Typography
-                  variant="caption"
-                  sx={{
-                    bgcolor: 'primary.main',
-                    color: 'primary.contrastText',
-                    borderRadius: '10px',
-                    px: 0.6,
-                    fontSize: '0.65rem',
-                    fontWeight: 600,
-                    minWidth: 18,
-                    textAlign: 'center',
-                  }}
-                >
-                  {count}
-                </Typography>
-              ) : (
-                <Typography variant="caption" sx={{ color: colors.gray[5], fontFamily: '"Roboto Mono", monospace', fontSize: '0.65rem' }}>
-                  {s.shortcut}
-                </Typography>
-              )}
+              <Typography variant="caption" sx={{ color: colors.gray[5], fontFamily: '"Roboto Mono", monospace', fontSize: '0.65rem' }}>
+                {s.shortcut}
+              </Typography>
             </ListItemButton>
           );
         })}
