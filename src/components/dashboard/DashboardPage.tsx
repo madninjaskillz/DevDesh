@@ -30,6 +30,7 @@ import { useNotifications } from '../../hooks/useNotifications';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useThemeMode } from '../../theme/ThemeProvider';
 import { useSettings } from '../../hooks/useSettings';
+import { Sidebar, type SidebarBadges } from '../layout/Sidebar';
 import type { DashboardPR, MissingIssueLink } from '../../types/github';
 
 function scrollTo(id: string) {
@@ -132,8 +133,20 @@ export function DashboardPage() {
   const apiError = issuesErr ?? prsErr;
   const isRateLimited = apiError instanceof GitHubApiError && apiError.isRateLimited;
 
+  // Sidebar badges
+  const sidebarBadges: SidebarBadges = {
+    actions: actionItems.length,
+    issues: issues.length,
+    prs: prs.length,
+    reviews: reviewRequests.length,
+    activity: events.length,
+    commits: commits.length,
+  };
+
   return (
-    <Box>
+    <Box sx={{ display: 'flex', gap: 3 }}>
+      <Sidebar badges={sidebarBadges} />
+      <Box sx={{ flex: 1, minWidth: 0 }}>
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -255,6 +268,7 @@ export function DashboardPage() {
 
       <DetailDrawer open={!!drawerItem} onClose={() => setDrawerItem(null)} item={drawerItem} />
       <ShortcutsDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} shortcuts={shortcuts} />
+      </Box>
     </Box>
   );
 }
