@@ -82,6 +82,7 @@ export interface DashboardIssue {
   repoFullName: string;
   updatedAt: string;
   linkedPRs: LinkedPR[];
+  projectStatus: string | null;
 }
 
 export type PRStatus = 'draft' | 'approved' | 'changes_requested' | 'review_pending';

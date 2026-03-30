@@ -226,18 +226,31 @@ export async function getPRGraphQLData(
   return { threads, totalCount, unresolvedCount, linkedIssues };
 }
 
-export async function getIssueLinkedPRs(
+export interface IssueGraphQLData {
+  linkedPRs: LinkedPR[];
+  projectStatus: string | null;
+}
+
+export async function getIssueGraphQLData(
   owner: string,
   repo: string,
   issueNumbers: number[],
   token: string,
-): Promise<Map<number, LinkedPR[]>> {
+): Promise<Map<number, IssueGraphQLData>> {
   if (issueNumbers.length === 0) return new Map();
 
-  // Build a batched GraphQL query for all issues at once
   const issueFragments = issueNumbers.map(
     (num, i) => `issue${i}: issue(number: ${num}) {
       number
+      projectItems(first: 5) {
+        nodes {
+          fieldValueByName(name: "Status") {
+            ... on ProjectV2ItemFieldSingleSelectValue {
+              name
+            }
+          }
+        }
+      }
       timelineItems(itemTypes: [CROSS_REFERENCED_EVENT, CONNECTED_EVENT], first: 20) {
         nodes {
           ... on CrossReferencedEvent {
@@ -293,19 +306,19 @@ export async function getIssueLinkedPRs(
     throw new Error(`GraphQL error: ${JSON.stringify(json.errors)}`);
   }
 
-  const result = new Map<number, LinkedPR[]>();
+  const result = new Map<number, IssueGraphQLData>();
   const repoData = json.data.repository;
 
   issueNumbers.forEach((num, i) => {
     const issueData = repoData[`issue${i}`];
     if (!issueData) {
-      result.set(num, []);
+      result.set(num, { linkedPRs: [], projectStatus: null });
       return;
     }
 
+    // Extract linked PRs
     const prs: LinkedPR[] = [];
     const seen = new Set<number>();
-
     for (const node of issueData.timelineItems.nodes) {
       const prData = node.source ?? node.subject;
       if (prData?.number && !seen.has(prData.number)) {
@@ -320,7 +333,17 @@ export async function getIssueLinkedPRs(
       }
     }
 
-    result.set(num, prs);
+    // Extract project status (take first project item that has a status)
+    let projectStatus: string | null = null;
+    for (const item of issueData.projectItems?.nodes ?? []) {
+      const statusName = item.fieldValueByName?.name;
+      if (statusName) {
+        projectStatus = statusName;
+        break;
+      }
+    }
+
+    result.set(num, { linkedPRs: prs, projectStatus });
   });
 
   return result;

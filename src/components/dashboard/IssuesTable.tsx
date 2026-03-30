@@ -142,6 +142,7 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
               </TableSortLabel>
             </TableCell>
             <TableCell>Labels</TableCell>
+            <TableCell>Board</TableCell>
             <TableCell>Linked PRs</TableCell>
             {notes && <TableCell>Notes</TableCell>}
             <TableCell>Assigned</TableCell>
@@ -202,6 +203,13 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
                     }}
                   />
                 ))}
+              </TableCell>
+              <TableCell>
+                {issue.projectStatus ? (
+                  <Chip label={issue.projectStatus} size="small" variant="outlined" />
+                ) : (
+                  <Typography variant="body2" color="text.secondary">--</Typography>
+                )}
               </TableCell>
               <TableCell>
                 {issue.linkedPRs.length > 0 ? (
