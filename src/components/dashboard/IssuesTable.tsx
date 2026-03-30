@@ -21,19 +21,26 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import type { DashboardIssue } from '../../types/github';
 import type { GroupBy } from './LabelFilter';
+import { NoteChip } from './NoteChip';
 import { formatAge, formatDate, getAgeColor } from '../../utils/dates';
 
 type SortField = 'title' | 'repoName' | 'ageDays';
 type SortDir = 'asc' | 'desc';
+
+interface NotesHook {
+  getNote: (repoFullName: string, number: number) => string;
+  setNote: (repoFullName: string, number: number, text: string) => void;
+}
 
 interface IssuesTableProps {
   issues: DashboardIssue[];
   isLoading: boolean;
   onItemClick?: (owner: string, repo: string, number: number) => void;
   groupBy?: GroupBy;
+  notes?: NotesHook;
 }
 
-export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none' }: IssuesTableProps) {
+export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', notes }: IssuesTableProps) {
   const [sortField, setSortField] = useState<SortField>('ageDays');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
@@ -136,6 +143,7 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none' }
             </TableCell>
             <TableCell>Labels</TableCell>
             <TableCell>Linked PRs</TableCell>
+            {notes && <TableCell>Notes</TableCell>}
             <TableCell>Assigned</TableCell>
             <TableCell>
               <TableSortLabel
@@ -218,6 +226,14 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none' }
                   <Typography variant="body2" color="text.secondary">--</Typography>
                 )}
               </TableCell>
+              {notes && (
+                <TableCell>
+                  <NoteChip
+                    note={notes.getNote(issue.repoFullName, issue.number)}
+                    onSave={(text) => notes.setNote(issue.repoFullName, issue.number, text)}
+                  />
+                </TableCell>
+              )}
               <TableCell>
                 <Typography variant="body2">{formatDate(issue.assignedDate)}</Typography>
               </TableCell>

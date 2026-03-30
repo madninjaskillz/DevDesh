@@ -1,4 +1,4 @@
-import { useState, useCallback, type ReactNode } from 'react';
+import { useState, useCallback, useEffect, type ReactNode } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
@@ -27,12 +27,25 @@ interface CollapsibleSectionProps {
   children: ReactNode;
   badge?: number;
   icon?: ReactNode;
+  autoCollapseWhenEmpty?: boolean;
 }
 
-export function CollapsibleSection({ id, title, children, badge, icon }: CollapsibleSectionProps) {
+export function CollapsibleSection({ id, title, children, badge, icon, autoCollapseWhenEmpty }: CollapsibleSectionProps) {
+  const [manuallyToggled, setManuallyToggled] = useState(false);
   const [collapsed, setCollapsed] = useState(() => loadCollapsed().has(id));
 
+  // Auto-collapse when empty (unless user has manually toggled)
+  useEffect(() => {
+    if (!autoCollapseWhenEmpty || manuallyToggled) return;
+    if (badge !== undefined && badge === 0 && !collapsed) {
+      setCollapsed(true);
+    } else if (badge !== undefined && badge > 0 && collapsed && !loadCollapsed().has(id)) {
+      setCollapsed(false);
+    }
+  }, [badge, autoCollapseWhenEmpty, manuallyToggled, id]);
+
   const toggle = useCallback(() => {
+    setManuallyToggled(true);
     setCollapsed((prev) => {
       const set = loadCollapsed();
       if (prev) {
@@ -54,6 +67,7 @@ export function CollapsibleSection({ id, title, children, badge, icon }: Collaps
           cursor: 'pointer',
           mb: collapsed ? 0 : 1.5,
           userSelect: 'none',
+          opacity: badge === 0 && collapsed ? 0.6 : 1,
         }}
         onClick={toggle}
       >

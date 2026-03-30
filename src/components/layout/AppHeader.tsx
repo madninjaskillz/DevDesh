@@ -14,6 +14,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import NotificationsOffIcon from '@mui/icons-material/NotificationsOff';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import { useQueryClient } from '@tanstack/react-query';
 import { useThemeMode } from '../../theme/ThemeProvider';
@@ -45,6 +46,10 @@ export function AppHeader() {
 
   const toggleFocusMode = () => {
     updateSettings({ focusMode: !settings.focusMode });
+  };
+
+  const toggleQuietMode = () => {
+    updateSettings({ quietMode: !settings.quietMode });
   };
 
   return (
@@ -85,6 +90,18 @@ export function AppHeader() {
                   }}
                 >
                   <CenterFocusStrongIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={settings.quietMode ? 'Exit quiet mode (Q)' : 'Quiet mode — hide info sections (Q)'}>
+                <IconButton
+                  onClick={toggleQuietMode}
+                  sx={{
+                    color: settings.quietMode ? colors.blue[4] : colors.white,
+                    bgcolor: settings.quietMode ? 'rgba(103,169,241,0.15)' : 'transparent',
+                    '&:hover': { bgcolor: settings.quietMode ? 'rgba(103,169,241,0.25)' : undefined },
+                  }}
+                >
+                  <VisibilityOffIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
               <Tooltip title={notifEnabled ? 'Disable notifications' : 'Enable notifications'}>

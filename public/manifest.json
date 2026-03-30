@@ -1,0 +1,17 @@
+{
+  "name": "DevDash",
+  "short_name": "DevDash",
+  "description": "Personal developer dashboard for monitoring GitHub issues and PRs",
+  "start_url": "/DevDesh/",
+  "display": "standalone",
+  "background_color": "#222222",
+  "theme_color": "#CC0000",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

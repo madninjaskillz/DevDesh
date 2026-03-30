@@ -20,12 +20,14 @@ import CommentIcon from '@mui/icons-material/Comment';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import MergeTypeIcon from '@mui/icons-material/MergeType';
 import { useQueryClient } from '@tanstack/react-query';
 import type { DashboardPR, PRStatus } from '../../types/github';
 import { formatAge, formatDate, getAgeColor } from '../../utils/dates';
 import { colors } from '../../theme/colors';
-import { getPRBody, updatePRBody } from '../../api/github';
+import { getPRBody, updatePRBody, mergePR } from '../../api/github';
 import { useAuth } from '../../hooks/useAuth';
+import { NoteChip } from './NoteChip';
 
 type SortField = 'title' | 'repoName' | 'ageDays' | 'status' | 'unresolvedThreadCount';
 type SortDir = 'asc' | 'desc';
@@ -37,18 +39,42 @@ const STATUS_CONFIG: Record<PRStatus, { label: string; color: 'default' | 'succe
   approved: { label: 'Approved', color: 'success' },
 };
 
+interface NotesHook {
+  getNote: (repoFullName: string, number: number) => string;
+  setNote: (repoFullName: string, number: number, text: string) => void;
+}
+
 interface PRsTableProps {
   prs: DashboardPR[];
   isLoading: boolean;
   onItemClick?: (owner: string, repo: string, number: number) => void;
+  notes?: NotesHook;
 }
 
-export function PRsTable({ prs, isLoading, onItemClick }: PRsTableProps) {
+export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) {
   const { token } = useAuth();
   const queryClient = useQueryClient();
   const [sortField, setSortField] = useState<SortField>('ageDays');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [fixingPRs, setFixingPRs] = useState<Set<string>>(new Set());
+  const [mergingPRs, setMergingPRs] = useState<Set<string>>(new Set());
+
+  const handleMerge = async (pr: DashboardPR) => {
+    if (!token) return;
+    const prKey = `${pr.repoFullName}-${pr.number}`;
+    if (!window.confirm(`Merge PR #${pr.number} "${pr.title}"?`)) return;
+    setMergingPRs((prev) => new Set(prev).add(prKey));
+    try {
+      const [owner, repo] = pr.repoFullName.split('/');
+      await mergePR(owner, repo, pr.number, token);
+      queryClient.invalidateQueries({ queryKey: ['prs'] });
+    } catch (err) {
+      console.error('Failed to merge:', err);
+      alert('Failed to merge PR. Check the console for details.');
+    } finally {
+      setMergingPRs((prev) => { const n = new Set(prev); n.delete(prKey); return n; });
+    }
+  };
 
   const handleSort = (field: SortField) => {
     if (field === sortField) {
@@ -168,6 +194,7 @@ export function PRsTable({ prs, isLoading, onItemClick }: PRsTableProps) {
               </TableSortLabel>
             </TableCell>
             <TableCell>Linked Issues</TableCell>
+            {notes && <TableCell>Notes</TableCell>}
             <TableCell>Created</TableCell>
             <TableCell>
               <TableSortLabel
@@ -310,6 +337,14 @@ export function PRsTable({ prs, isLoading, onItemClick }: PRsTableProps) {
                     )}
                   </Box>
                 </TableCell>
+                {notes && (
+                  <TableCell>
+                    <NoteChip
+                      note={notes.getNote(pr.repoFullName, pr.number)}
+                      onSave={(text) => notes.setNote(pr.repoFullName, pr.number, text)}
+                    />
+                  </TableCell>
+                )}
                 <TableCell>
                   <Typography variant="body2">{formatDate(pr.createdAt)}</Typography>
                 </TableCell>
@@ -317,9 +352,23 @@ export function PRsTable({ prs, isLoading, onItemClick }: PRsTableProps) {
                   <Chip label={formatAge(pr.ageDays)} color={getAgeColor(pr.ageDays)} size="small" />
                 </TableCell>
                 <TableCell>
-                  <IconButton href={pr.htmlUrl} target="_blank" rel="noopener" size="small">
-                    <OpenInNewIcon />
-                  </IconButton>
+                  <Box sx={{ display: 'flex', gap: 0.25 }}>
+                    {pr.status === 'approved' && (
+                      <Tooltip title="Merge this PR">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleMerge(pr)}
+                          disabled={mergingPRs.has(prKey)}
+                          sx={{ color: colors.green[5] }}
+                        >
+                          {mergingPRs.has(prKey) ? <CircularProgress size={16} /> : <MergeTypeIcon fontSize="small" />}
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    <IconButton href={pr.htmlUrl} target="_blank" rel="noopener" size="small">
+                      <OpenInNewIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
                 </TableCell>
               </TableRow>
             );

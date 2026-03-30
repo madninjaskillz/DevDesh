@@ -112,7 +112,15 @@ export function ReviewRequestsTable({ requests, isLoading }: ReviewRequestsTable
         </TableHead>
         <TableBody>
           {sorted.map((req) => (
-            <TableRow key={`${req.repoFullName}-${req.number}`} hover>
+            <TableRow
+              key={`${req.repoFullName}-${req.number}`}
+              hover
+              sx={req.waitingDays >= 3 ? {
+                bgcolor: (theme) => theme.palette.mode === 'light' ? '#FFF3E0' : 'rgba(252, 144, 3, 0.08)',
+                borderLeft: '3px solid',
+                borderColor: 'warning.main',
+              } : undefined}
+            >
               <TableCell sx={{ maxWidth: 400 }}>
                 <Tooltip title={req.title} enterDelay={500}>
                   <Link

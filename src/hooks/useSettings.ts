@@ -8,6 +8,8 @@ export interface AppSettings {
   stalePRApprovedDays: number;
   staleReviewRequestDays: number;
   focusMode: boolean;
+  quietMode: boolean;
+  autoCollapseEmpty: boolean;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -16,6 +18,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   stalePRApprovedDays: 1,
   staleReviewRequestDays: 3,
   focusMode: false,
+  quietMode: false,
+  autoCollapseEmpty: true,
 };
 
 interface SettingsContextValue {

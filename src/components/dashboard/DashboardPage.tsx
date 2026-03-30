@@ -19,6 +19,12 @@ import { ShortcutsDialog } from './ShortcutsDialog';
 import { CollapsibleSection } from './CollapsibleSection';
 import { SectionErrorBoundary } from './ErrorBoundary';
 import { LabelFilter, type GroupBy } from './LabelFilter';
+import { StatusSummary } from './StatusSummary';
+import { HealthBar } from './HealthBar';
+import { LastVisitBanner } from './LastVisitBanner';
+import { LastWorkedOn } from './LastWorkedOn';
+import { WeeklySummary } from './WeeklySummary';
+import { CalendarHeatmap } from './CalendarHeatmap';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import MergeIcon from '@mui/icons-material/CallMerge';
@@ -32,6 +38,7 @@ import { useNotifications } from '../../hooks/useNotifications';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useThemeMode } from '../../theme/ThemeProvider';
 import { useSettings } from '../../hooks/useSettings';
+import { useNotes } from '../../hooks/useNotes';
 import { Sidebar, type SidebarBadges } from '../layout/Sidebar';
 import type { DashboardPR, MissingIssueLink } from '../../types/github';
 
@@ -48,6 +55,7 @@ export function DashboardPage() {
   const { events, isLoading: eventsLoading } = useActivityFeed();
   const { commits, isLoading: commitsLoading } = useRecentCommits();
   const { settings, updateSettings } = useSettings();
+  const notes = useNotes();
 
   const isLoading = issuesLoading || prsLoading;
   const summary = useDashboardSummary(issues, prs);
@@ -77,7 +85,7 @@ export function DashboardPage() {
     });
   }, [prs, issues, isLoading]);
 
-  // Action items with configurable thresholds
+  // Action items
   const actionItems = useMemo(
     () => computeActionItems(prsWithMissingLinks, issues, reviewRequests, {
       staleIssueDays: settings.staleIssueDays,
@@ -100,9 +108,11 @@ export function DashboardPage() {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const { toggleTheme } = useThemeMode();
 
-  // Focus mode
   const focusMode = settings.focusMode;
+  const quietMode = settings.quietMode;
+  const autoCollapse = settings.autoCollapseEmpty;
   const toggleFocusMode = () => updateSettings({ focusMode: !focusMode });
+  const toggleQuietMode = () => updateSettings({ quietMode: !quietMode });
 
   // Notifications
   useNotifications(prsWithMissingLinks, issues, reviewRequests, isLoading || reviewsLoading);
@@ -119,6 +129,7 @@ export function DashboardPage() {
     { key: '7', description: 'Jump to Commits', handler: () => scrollTo('section-commits') },
     { key: 'd', description: 'Toggle dark mode', handler: () => toggleTheme() },
     { key: 'f', description: 'Toggle focus mode', handler: () => toggleFocusMode() },
+    { key: 'q', description: 'Toggle quiet mode', handler: () => toggleQuietMode() },
     { key: '?', description: 'Show shortcuts', handler: () => setShortcutsOpen(true) },
   ]);
 
@@ -129,7 +140,6 @@ export function DashboardPage() {
   const apiError = issuesErr ?? prsErr;
   const isRateLimited = apiError instanceof GitHubApiError && apiError.isRateLimited;
 
-  // Sidebar badges
   const sidebarBadges: SidebarBadges = {
     actions: actionItems.length,
     issues: issues.length,
@@ -144,14 +154,29 @@ export function DashboardPage() {
       <Sidebar badges={sidebarBadges} />
       <Box sx={{ flex: 1, minWidth: 0 }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
           Dashboard
         </Typography>
         {focusMode && (
-          <Chip label="Focus Mode" size="small" color="primary" onDelete={toggleFocusMode} />
+          <Chip label="Focus" size="small" color="primary" onDelete={toggleFocusMode} />
+        )}
+        {quietMode && !focusMode && (
+          <Chip label="Quiet" size="small" color="secondary" onDelete={toggleQuietMode} />
         )}
       </Box>
+
+      {/* Health bar */}
+      <HealthBar actionItems={actionItems} isLoading={isLoading} />
+
+      {/* Status summary */}
+      <StatusSummary issues={issues} prs={prs} reviewRequests={reviewRequests} actionItems={actionItems} isLoading={isLoading} />
+
+      {/* Last visit banner */}
+      <LastVisitBanner issues={issues} prs={prs} reviewRequests={reviewRequests} isLoading={isLoading} />
+
+      {/* Last worked on */}
+      <LastWorkedOn commits={commits} prs={prsWithMissingLinks} isLoading={isLoading || commitsLoading} />
 
       {/* Errors */}
       {(issuesError || prsError) && (
@@ -162,7 +187,7 @@ export function DashboardPage() {
         </Alert>
       )}
 
-      {/* Summary */}
+      {/* Summary Cards */}
       <SectionErrorBoundary section="Summary Cards">
         <SummaryCards {...summary} isLoading={isLoading} />
       </SectionErrorBoundary>
@@ -172,7 +197,7 @@ export function DashboardPage() {
 
       {/* Action List */}
       <SectionErrorBoundary section="Action List">
-        <CollapsibleSection id="section-actions" title="What should I do next?" badge={actionItems.length} icon={<PriorityHighIcon fontSize="small" />}>
+        <CollapsibleSection id="section-actions" title="What should I do next?" badge={actionItems.length} icon={<PriorityHighIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
           <ActionList items={actionItems} isLoading={isLoading || reviewsLoading} />
         </CollapsibleSection>
       </SectionErrorBoundary>
@@ -182,7 +207,7 @@ export function DashboardPage() {
         <>
           {/* Issues */}
           <SectionErrorBoundary section="Issues">
-            <CollapsibleSection id="section-issues" title="My Issues" badge={issues.length} icon={<BugReportIcon fontSize="small" />}>
+            <CollapsibleSection id="section-issues" title="My Issues" badge={issues.length} icon={<BugReportIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
               <LabelFilter
                 issues={issues}
                 selectedLabels={selectedLabels}
@@ -195,46 +220,52 @@ export function DashboardPage() {
                 isLoading={issuesLoading}
                 onItemClick={(o, r, n) => handleItemClick(o, r, n, 'issue')}
                 groupBy={groupBy}
+                notes={notes}
               />
             </CollapsibleSection>
           </SectionErrorBoundary>
 
           {/* PRs */}
           <SectionErrorBoundary section="Pull Requests">
-            <CollapsibleSection id="section-prs" title="My Pull Requests" badge={prs.length} icon={<MergeIcon fontSize="small" />}>
-              <PRsTable prs={prsWithMissingLinks} isLoading={prsLoading} onItemClick={(o, r, n) => handleItemClick(o, r, n, 'pr')} />
+            <CollapsibleSection id="section-prs" title="My Pull Requests" badge={prs.length} icon={<MergeIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
+              <PRsTable prs={prsWithMissingLinks} isLoading={prsLoading} onItemClick={(o, r, n) => handleItemClick(o, r, n, 'pr')} notes={notes} />
             </CollapsibleSection>
           </SectionErrorBoundary>
 
           {/* Reviews */}
-          {(reviewRequests.length > 0 || reviewsLoading) && (
-            <SectionErrorBoundary section="Reviews">
-              <CollapsibleSection id="section-reviews" title="Reviews Requested" badge={reviewRequests.length} icon={<ReviewsIcon fontSize="small" />}>
-                <ReviewRequestsTable requests={reviewRequests} isLoading={reviewsLoading} />
-              </CollapsibleSection>
-            </SectionErrorBoundary>
+          <SectionErrorBoundary section="Reviews">
+            <CollapsibleSection id="section-reviews" title="Reviews Requested" badge={reviewRequests.length} icon={<ReviewsIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
+              <ReviewRequestsTable requests={reviewRequests} isLoading={reviewsLoading} />
+            </CollapsibleSection>
+          </SectionErrorBoundary>
+
+          {/* Quiet mode hides informational sections */}
+          {!quietMode && (
+            <>
+              {/* Activity */}
+              <SectionErrorBoundary section="Activity">
+                <CollapsibleSection id="section-activity" title="Activity (Last 48h)" badge={events.length} icon={<TimelineIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
+                  <ActivityTimeline events={events} isLoading={eventsLoading} />
+                </CollapsibleSection>
+              </SectionErrorBoundary>
+
+              {/* Trends */}
+              <SectionErrorBoundary section="Trends">
+                <CollapsibleSection id="section-trends" title="Trends" icon={<TrendingUpIcon fontSize="small" />}>
+                  <WeeklySummary trendData={trendData} isLoading={trendLoading} />
+                  <CalendarHeatmap trendData={trendData} isLoading={trendLoading} />
+                  <TrendChart data={trendData} isLoading={trendLoading} />
+                </CollapsibleSection>
+              </SectionErrorBoundary>
+
+              {/* Commits */}
+              <SectionErrorBoundary section="Commits">
+                <CollapsibleSection id="section-commits" title="My Recent Commits" badge={commits.length} icon={<CommitIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
+                  <CommitsSection commits={commits} isLoading={commitsLoading} />
+                </CollapsibleSection>
+              </SectionErrorBoundary>
+            </>
           )}
-
-          {/* Activity */}
-          <SectionErrorBoundary section="Activity">
-            <CollapsibleSection id="section-activity" title="Activity (Last 48h)" badge={events.length} icon={<TimelineIcon fontSize="small" />}>
-              <ActivityTimeline events={events} isLoading={eventsLoading} />
-            </CollapsibleSection>
-          </SectionErrorBoundary>
-
-          {/* Trends */}
-          <SectionErrorBoundary section="Trends">
-            <CollapsibleSection id="section-trends" title="Trends" icon={<TrendingUpIcon fontSize="small" />}>
-              <TrendChart data={trendData} isLoading={trendLoading} />
-            </CollapsibleSection>
-          </SectionErrorBoundary>
-
-          {/* Commits */}
-          <SectionErrorBoundary section="Commits">
-            <CollapsibleSection id="section-commits" title="My Recent Commits" badge={commits.length} icon={<CommitIcon fontSize="small" />}>
-              <CommitsSection commits={commits} isLoading={commitsLoading} />
-            </CollapsibleSection>
-          </SectionErrorBoundary>
         </>
       )}
 

@@ -424,3 +424,20 @@ export async function updatePRBody(
     throw new GitHubApiError(res.status, text, res.headers);
   }
 }
+
+export async function mergePR(
+  owner: string,
+  repo: string,
+  prNumber: number,
+  token: string,
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/repos/${owner}/${repo}/pulls/${prNumber}/merge`, {
+    method: 'PUT',
+    headers: { ...headers(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ merge_method: 'squash' }),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new GitHubApiError(res.status, text, res.headers);
+  }
+}
