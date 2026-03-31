@@ -190,6 +190,7 @@ export interface PRGraphQLData {
   threads: ReviewThread[];
   totalCount: number;
   unresolvedCount: number;
+  unresolvedAuthors: { login: string; avatarUrl: string }[];
   linkedIssues: LinkedIssue[];
   ciStatus: CIStatus;
 }
@@ -207,8 +208,14 @@ export async function getPRGraphQLData(
           reviewThreads(first: 100) {
             nodes {
               isResolved
-              comments {
+              comments(first: 1) {
                 totalCount
+                nodes {
+                  author {
+                    login
+                    avatarUrl
+                  }
+                }
               }
             }
             totalCount
@@ -262,6 +269,18 @@ export async function getPRGraphQLData(
   const totalCount = reviewThreads.totalCount;
   const unresolvedCount = threads.filter((t: ReviewThread) => !t.isResolved).length;
 
+  // Extract unique authors of unresolved threads
+  const authorMap = new Map<string, { login: string; avatarUrl: string }>();
+  for (const t of threads) {
+    if (!t.isResolved && t.comments?.nodes?.[0]?.author) {
+      const a = t.comments.nodes[0].author;
+      if (!authorMap.has(a.login)) {
+        authorMap.set(a.login, { login: a.login, avatarUrl: a.avatarUrl });
+      }
+    }
+  }
+  const unresolvedAuthors = [...authorMap.values()];
+
   const linkedIssues: LinkedIssue[] = (pr.closingIssuesReferences.nodes ?? []).map(
     (node: { number: number; title: string; url: string; repository: { name: string } }) => ({
       number: node.number,
@@ -279,7 +298,7 @@ export async function getPRGraphQLData(
   else if (rollupState === 'PENDING' || rollupState === 'EXPECTED') ciStatus = 'pending';
   else if (rollupState) ciStatus = 'neutral';
 
-  return { threads, totalCount, unresolvedCount, linkedIssues, ciStatus };
+  return { threads, totalCount, unresolvedCount, unresolvedAuthors, linkedIssues, ciStatus };
 }
 
 export async function getIssueLinkedPRs(

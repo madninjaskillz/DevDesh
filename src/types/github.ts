@@ -54,6 +54,7 @@ export interface ReviewThread {
   isResolved: boolean;
   comments: {
     totalCount: number;
+    nodes?: { author: { login: string; avatarUrl: string } }[];
   };
 }
 
@@ -110,7 +111,9 @@ export interface DashboardPR {
   status: PRStatus;
   reviews: GitHubReview[];
   unresolvedThreadCount: number;
+  unresolvedAuthors: { login: string; avatarUrl: string }[];
   totalThreadCount: number;
+  reviewers: { login: string; avatar_url: string }[];
   linkedIssues: LinkedIssue[];
   missingIssueLinks: MissingIssueLink[];
   ciStatus: 'success' | 'failure' | 'pending' | 'neutral' | null;

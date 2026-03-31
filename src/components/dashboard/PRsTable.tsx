@@ -14,6 +14,8 @@ import IconButton from '@mui/material/IconButton';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Avatar from '@mui/material/Avatar';
+import AvatarGroup from '@mui/material/AvatarGroup';
 import CircularProgress from '@mui/material/CircularProgress';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import CommentIcon from '@mui/icons-material/Comment';
@@ -198,6 +200,7 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
                 Unresolved
               </TableSortLabel>
             </TableCell>
+            <TableCell>Reviewers</TableCell>
             <TableCell>Linked Issues</TableCell>
             <TableCell>CI</TableCell>
             <TableCell>
@@ -269,11 +272,21 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
                 </TableCell>
                 <TableCell>
                   {pr.unresolvedThreadCount > 0 ? (
-                    <Chip
-                      icon={<CommentIcon />}
-                      label={`${pr.unresolvedThreadCount} / ${pr.totalThreadCount}`}
-                      sx={{ bgcolor: `${colors.orange[5]}30`, color: colors.orange[5], fontWeight: 600 }}
-                    />
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Chip
+                        icon={<CommentIcon />}
+                        label={`${pr.unresolvedThreadCount} / ${pr.totalThreadCount}`}
+                        size="small"
+                        sx={{ bgcolor: `${colors.orange[5]}30`, color: colors.orange[5], fontWeight: 600 }}
+                      />
+                      <AvatarGroup max={3} sx={{ '& .MuiAvatar-root': { width: 20, height: 20, fontSize: '0.6rem' } }}>
+                        {pr.unresolvedAuthors.map((a) => (
+                          <Tooltip key={a.login} title={a.login}>
+                            <Avatar src={a.avatarUrl} alt={a.login} />
+                          </Tooltip>
+                        ))}
+                      </AvatarGroup>
+                    </Box>
                   ) : pr.totalThreadCount > 0 ? (
                     <Typography variant="body2" color="text.secondary">
                       0 / {pr.totalThreadCount}
@@ -282,6 +295,18 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
                     <Typography variant="body2" color="text.secondary">
                       --
                     </Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <AvatarGroup max={4} sx={{ justifyContent: 'flex-start', '& .MuiAvatar-root': { width: 22, height: 22, fontSize: '0.65rem' } }}>
+                    {pr.reviewers.map((r) => (
+                      <Tooltip key={r.login} title={r.login}>
+                        <Avatar src={r.avatar_url} alt={r.login} />
+                      </Tooltip>
+                    ))}
+                  </AvatarGroup>
+                  {pr.reviewers.length === 0 && (
+                    <Typography variant="body2" color="text.secondary">--</Typography>
                   )}
                 </TableCell>
                 <TableCell>
