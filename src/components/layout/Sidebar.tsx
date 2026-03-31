@@ -81,7 +81,7 @@ export function Sidebar({ badges = {} }: SidebarProps) {
         width,
         flexShrink: 0,
         position: 'sticky',
-        top: 56,
+        top: 56, // 44px header + 12px padding
         alignSelf: 'flex-start',
         maxHeight: 'calc(100vh - 56px)',
         overflow: 'auto',

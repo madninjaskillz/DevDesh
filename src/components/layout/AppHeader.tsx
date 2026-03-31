@@ -58,7 +58,7 @@ export function AppHeader() {
   return (
     <>
       <AppBar
-        position="static"
+        position="fixed"
         elevation={0}
         color="inherit"
         sx={{ backgroundColor: colors.gray[7], color: colors.white }}
