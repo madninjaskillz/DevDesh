@@ -27,7 +27,7 @@ import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import { useQueryClient } from '@tanstack/react-query';
 import type { DashboardPR, PRStatus } from '../../types/github';
-import { formatAge, formatDate, getAgeColor } from '../../utils/dates';
+import { formatAge, getAgeColor } from '../../utils/dates';
 import { colors } from '../../theme/colors';
 import { getPRBody, updatePRBody, mergePR } from '../../api/github';
 import { useAuth } from '../../hooks/useAuth';
@@ -198,9 +198,8 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
               </TableSortLabel>
             </TableCell>
             <TableCell>Linked Issues</TableCell>
-            <TableCell>CI</TableCell>
             {notes && <TableCell>Notes</TableCell>}
-            <TableCell>Created</TableCell>
+            <TableCell>CI</TableCell>
             <TableCell>
               <TableSortLabel
                 active={sortField === 'ageDays'}
@@ -342,6 +341,14 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
                     )}
                   </Box>
                 </TableCell>
+                {notes && (
+                  <TableCell>
+                    <NoteChip
+                      note={notes.getNote(pr.repoFullName, pr.number)}
+                      onSave={(text) => notes.setNote(pr.repoFullName, pr.number, text)}
+                    />
+                  </TableCell>
+                )}
                 <TableCell>
                   {pr.ciStatus === 'success' && (
                     <Tooltip title="CI passed"><CheckCircleIcon sx={{ color: colors.green[5], fontSize: 18 }} /></Tooltip>
@@ -358,17 +365,6 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
                   {!pr.ciStatus && (
                     <Typography variant="body2" color="text.secondary">--</Typography>
                   )}
-                </TableCell>
-                {notes && (
-                  <TableCell>
-                    <NoteChip
-                      note={notes.getNote(pr.repoFullName, pr.number)}
-                      onSave={(text) => notes.setNote(pr.repoFullName, pr.number, text)}
-                    />
-                  </TableCell>
-                )}
-                <TableCell>
-                  <Typography variant="body2">{formatDate(pr.createdAt)}</Typography>
                 </TableCell>
                 <TableCell>
                   <Chip label={formatAge(pr.ageDays)} color={getAgeColor(pr.ageDays)} size="small" />

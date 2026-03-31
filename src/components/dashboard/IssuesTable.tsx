@@ -24,7 +24,7 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import type { DashboardIssue } from '../../types/github';
 import type { GroupBy } from './LabelFilter';
 import { NoteChip } from './NoteChip';
-import { formatAge, formatDate, getAgeColor } from '../../utils/dates';
+import { formatAge, getAgeColor } from '../../utils/dates';
 
 type SortField = 'title' | 'repoName' | 'ageDays';
 type SortDir = 'asc' | 'desc';
@@ -143,12 +143,11 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
                 Repo
               </TableSortLabel>
             </TableCell>
+            {notes && <TableCell>Notes</TableCell>}
             <TableCell>Assignees</TableCell>
             <TableCell>Labels</TableCell>
             <TableCell>Board</TableCell>
             <TableCell>Linked PRs</TableCell>
-            {notes && <TableCell>Notes</TableCell>}
-            <TableCell>Assigned</TableCell>
             <TableCell>
               <TableSortLabel
                 active={sortField === 'ageDays'}
@@ -189,6 +188,14 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
                   </Link>
                 </Tooltip>
               </TableCell>
+              {notes && (
+                <TableCell>
+                  <NoteChip
+                    note={notes.getNote(issue.repoFullName, issue.number)}
+                    onSave={(text) => notes.setNote(issue.repoFullName, issue.number, text)}
+                  />
+                </TableCell>
+              )}
               <TableCell>
                 <Chip label={issue.repoName} variant="outlined" />
               </TableCell>
@@ -253,17 +260,6 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
                 ) : (
                   <Typography variant="body2" color="text.secondary">--</Typography>
                 )}
-              </TableCell>
-              {notes && (
-                <TableCell>
-                  <NoteChip
-                    note={notes.getNote(issue.repoFullName, issue.number)}
-                    onSave={(text) => notes.setNote(issue.repoFullName, issue.number, text)}
-                  />
-                </TableCell>
-              )}
-              <TableCell>
-                <Typography variant="body2">{formatDate(issue.assignedDate)}</Typography>
               </TableCell>
               <TableCell>
                 <Chip label={formatAge(issue.ageDays)} color={getAgeColor(issue.ageDays)} size="small" />
