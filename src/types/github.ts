@@ -52,6 +52,7 @@ export interface GitHubReview {
 
 export interface ReviewThread {
   isResolved: boolean;
+  isOutdated: boolean;
   comments: {
     totalCount: number;
     nodes?: { author: { login: string; avatarUrl: string } }[];

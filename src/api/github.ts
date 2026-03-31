@@ -208,6 +208,7 @@ export async function getPRGraphQLData(
           reviewThreads(first: 100) {
             nodes {
               isResolved
+              isOutdated
               comments(first: 1) {
                 totalCount
                 nodes {
@@ -267,12 +268,15 @@ export async function getPRGraphQLData(
   const reviewThreads = pr.reviewThreads;
   const threads: ReviewThread[] = reviewThreads.nodes;
   const totalCount = reviewThreads.totalCount;
-  const unresolvedCount = threads.filter((t: ReviewThread) => !t.isResolved).length;
+  // A thread is "active" (needs attention) if it's not resolved AND not outdated
+  // Outdated means the code it comments on has been changed by a subsequent push
+  const activeThreads = threads.filter((t: any) => !t.isResolved && !t.isOutdated);
+  const unresolvedCount = activeThreads.length;
 
-  // Extract unique authors of unresolved threads
+  // Extract unique authors of active unresolved threads
   const authorMap = new Map<string, { login: string; avatarUrl: string }>();
-  for (const t of threads) {
-    if (!t.isResolved && t.comments?.nodes?.[0]?.author) {
+  for (const t of activeThreads) {
+    if (t.comments?.nodes?.[0]?.author) {
       const a = t.comments.nodes[0].author;
       if (!authorMap.has(a.login)) {
         authorMap.set(a.login, { login: a.login, avatarUrl: a.avatarUrl });
