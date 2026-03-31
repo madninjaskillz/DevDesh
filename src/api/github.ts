@@ -268,9 +268,16 @@ export async function getPRGraphQLData(
   const reviewThreads = pr.reviewThreads;
   const threads: ReviewThread[] = reviewThreads.nodes;
   const totalCount = reviewThreads.totalCount;
-  // A thread is "active" (needs attention) if it's not resolved AND not outdated
-  // Outdated means the code it comments on has been changed by a subsequent push
-  const activeThreads = threads.filter((t: any) => !t.isResolved && !t.isOutdated);
+  // A thread is "active" (needs attention) if:
+  // - not resolved
+  // - not outdated (code changed since comment)
+  // - not authored by a bot (e.g. github-advanced-security, dependabot)
+  const activeThreads = threads.filter((t: any) => {
+    if (t.isResolved || t.isOutdated) return false;
+    const authorLogin: string = t.comments?.nodes?.[0]?.author?.login ?? '';
+    if (authorLogin.endsWith('[bot]') || authorLogin === 'github-advanced-security') return false;
+    return true;
+  });
   const unresolvedCount = activeThreads.length;
 
   // Extract unique authors of active unresolved threads
