@@ -548,6 +548,35 @@ export async function updatePRBody(
   }
 }
 
+export interface CheckRun {
+  name: string;
+  status: 'queued' | 'in_progress' | 'completed';
+  conclusion: 'success' | 'failure' | 'neutral' | 'cancelled' | 'skipped' | 'timed_out' | 'action_required' | null;
+  html_url: string;
+  started_at: string | null;
+  completed_at: string | null;
+}
+
+export async function getPRCheckRuns(
+  owner: string,
+  repo: string,
+  prNumber: number,
+  token: string,
+): Promise<CheckRun[]> {
+  // First get the PR to find the head SHA
+  const pr = await fetchJSON<{ head: { sha: string } }>(
+    `${API_BASE}/repos/${owner}/${repo}/pulls/${prNumber}`,
+    token,
+  );
+  const sha = pr.head.sha;
+
+  const result = await fetchJSON<{ check_runs: CheckRun[] }>(
+    `${API_BASE}/repos/${owner}/${repo}/commits/${sha}/check-runs?per_page=100`,
+    token,
+  );
+  return result.check_runs;
+}
+
 export async function mergePR(
   owner: string,
   repo: string,

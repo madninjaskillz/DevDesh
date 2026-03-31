@@ -15,9 +15,20 @@ import { useQuery } from '@tanstack/react-query';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+import SkipNextIcon from '@mui/icons-material/SkipNext';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Link from '@mui/material/Link';
 import { useAuth } from '../../hooks/useAuth';
-import { getIssueDetail, getItemComments } from '../../api/github';
+import { getIssueDetail, getItemComments, getPRCheckRuns, type CheckRun } from '../../api/github';
 import { formatDate } from '../../utils/dates';
+import { colors } from '../../theme/colors';
 
 /**
  * GitHub private image URLs need auth headers.
@@ -152,6 +163,13 @@ export function DetailDrawer({ open, onClose, item }: DetailDrawerProps) {
     staleTime: 60_000,
   });
 
+  const { data: checkRuns, isLoading: checksLoading } = useQuery({
+    queryKey: ['check-runs', item?.owner, item?.repo, item?.number],
+    queryFn: () => getPRCheckRuns(item!.owner, item!.repo, item!.number, token!),
+    enabled: open && !!item && !!token && item?.type === 'pr',
+    staleTime: 60_000,
+  });
+
   return (
     <Drawer
       anchor="right"
@@ -215,6 +233,46 @@ export function DetailDrawer({ open, onClose, item }: DetailDrawerProps) {
               </Box>
             )}
 
+            {/* CI Checks — only for PRs */}
+            {item?.type === 'pr' && (
+              <>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  CI Checks
+                </Typography>
+                {checksLoading ? (
+                  [...Array(3)].map((_, i) => <Skeleton key={i} height={32} sx={{ my: 0.5 }} />)
+                ) : !checkRuns || checkRuns.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">No checks found.</Typography>
+                ) : (
+                  <List dense disablePadding>
+                    {checkRuns.map((check) => (
+                      <ListItem key={check.name} disablePadding sx={{ py: 0.25 }}>
+                        <ListItemIcon sx={{ minWidth: 28 }}>
+                          <CheckIcon run={check} />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={
+                            check.html_url ? (
+                              <Link href={check.html_url} target="_blank" rel="noopener" underline="hover" variant="body2">
+                                {check.name}
+                              </Link>
+                            ) : (
+                              <Typography variant="body2">{check.name}</Typography>
+                            )
+                          }
+                          secondary={check.status === 'completed'
+                            ? check.conclusion
+                            : check.status}
+                          secondaryTypographyProps={{ variant: 'caption' }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                )}
+              </>
+            )}
+
             <Divider sx={{ my: 2 }} />
 
             {/* Comments */}
@@ -273,6 +331,22 @@ export function DetailDrawer({ open, onClose, item }: DetailDrawerProps) {
       </Box>
     </Drawer>
   );
+}
+
+function CheckIcon({ run }: { run: CheckRun }) {
+  if (run.status !== 'completed') {
+    return <HourglassEmptyIcon sx={{ fontSize: 18, color: colors.orange[5] }} />;
+  }
+  switch (run.conclusion) {
+    case 'success': return <CheckCircleIcon sx={{ fontSize: 18, color: colors.green[5] }} />;
+    case 'failure': return <CancelIcon sx={{ fontSize: 18, color: colors.red.brand }} />;
+    case 'cancelled':
+    case 'timed_out': return <CancelIcon sx={{ fontSize: 18, color: colors.orange[5] }} />;
+    case 'skipped': return <SkipNextIcon sx={{ fontSize: 18, color: colors.gray[5] }} />;
+    case 'neutral': return <RemoveCircleOutlineIcon sx={{ fontSize: 18, color: colors.gray[5] }} />;
+    case 'action_required': return <CancelIcon sx={{ fontSize: 18, color: colors.orange[5] }} />;
+    default: return <RemoveCircleOutlineIcon sx={{ fontSize: 18, color: colors.gray[5] }} />;
+  }
 }
 
 function isLight(hex: string): boolean {
