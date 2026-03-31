@@ -16,7 +16,6 @@ import BugReportIcon from '@mui/icons-material/BugReport';
 import MergeIcon from '@mui/icons-material/CallMerge';
 import ReviewsIcon from '@mui/icons-material/Reviews';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import TimelineIcon from '@mui/icons-material/Timeline';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import CommitIcon from '@mui/icons-material/Commit';
 import { colors } from '../../theme/colors';
@@ -40,9 +39,8 @@ const sections: SidebarSection[] = [
   { id: 'section-prs', label: 'Pull Requests', shortcut: '3', icon: <MergeIcon fontSize="small" />, badgeKey: 'prs' },
   { id: 'section-reviews', label: 'Reviews', shortcut: '4', icon: <ReviewsIcon fontSize="small" />, badgeKey: 'reviews' },
   { id: 'section-awaiting', label: 'Awaiting Review', shortcut: '5', icon: <VisibilityIcon fontSize="small" />, badgeKey: 'awaiting' },
-  { id: 'section-activity', label: 'Activity', shortcut: '6', icon: <TimelineIcon fontSize="small" />, badgeKey: 'activity' },
-  { id: 'section-trends', label: 'Trends', shortcut: '7', icon: <TrendingUpIcon fontSize="small" />, badgeKey: 'trends' },
-  { id: 'section-commits', label: 'Commits', shortcut: '8', icon: <CommitIcon fontSize="small" />, badgeKey: 'commits' },
+  { id: 'section-trends', label: 'Trends', shortcut: '6', icon: <TrendingUpIcon fontSize="small" />, badgeKey: 'trends' },
+  { id: 'section-commits', label: 'Commits', shortcut: '7', icon: <CommitIcon fontSize="small" />, badgeKey: 'commits' },
 ];
 
 export interface SidebarBadges {
@@ -51,7 +49,6 @@ export interface SidebarBadges {
   prs?: number;
   reviews?: number;
   awaiting?: number;
-  activity?: number;
   trends?: number;
   commits?: number;
 }
