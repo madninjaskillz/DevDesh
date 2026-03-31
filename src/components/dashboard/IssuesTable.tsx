@@ -18,8 +18,9 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import Avatar from '@mui/material/Avatar';
+import AvatarGroup from '@mui/material/AvatarGroup';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import GroupIcon from '@mui/icons-material/Group';
 import type { DashboardIssue } from '../../types/github';
 import type { GroupBy } from './LabelFilter';
 import { NoteChip } from './NoteChip';
@@ -142,6 +143,7 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
                 Repo
               </TableSortLabel>
             </TableCell>
+            <TableCell>Assignees</TableCell>
             <TableCell>Labels</TableCell>
             <TableCell>Board</TableCell>
             <TableCell>Linked PRs</TableCell>
@@ -186,14 +188,18 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
                     #{issue.number} {issue.title}
                   </Link>
                 </Tooltip>
-                {issue.assigneeCount > 1 && (
-                  <Tooltip title={`${issue.assigneeCount} assignees — shared ownership`}>
-                    <GroupIcon sx={{ fontSize: 14, color: 'warning.main', ml: 0.5, verticalAlign: 'middle' }} />
-                  </Tooltip>
-                )}
               </TableCell>
               <TableCell>
                 <Chip label={issue.repoName} variant="outlined" />
+              </TableCell>
+              <TableCell>
+                <AvatarGroup max={4} sx={{ justifyContent: 'flex-start', '& .MuiAvatar-root': { width: 24, height: 24, fontSize: '0.7rem' } }}>
+                  {issue.assignees.map((a) => (
+                    <Tooltip key={a.login} title={a.login}>
+                      <Avatar src={a.avatar_url} alt={a.login} />
+                    </Tooltip>
+                  ))}
+                </AvatarGroup>
               </TableCell>
               <TableCell>
                 {issue.labels.map((label) => (

@@ -84,7 +84,7 @@ export function useAssignedIssues() {
           updatedAt: issue.updated_at,
           linkedPRs: linkedPRMap?.get(issue.number) ?? [],
           projectStatus: statusMap?.get(issue.number) ?? null,
-          assigneeCount: issue.assignees?.length ?? 1,
+          assignees: issue.assignees ?? [],
         }));
       })
       .sort((a, b) => b.ageDays - a.ageDays);

@@ -19,7 +19,7 @@ export interface GitHubIssue {
   state: string;
   labels: GitHubLabel[];
   assignee: { login: string } | null;
-  assignees: { login: string }[];
+  assignees: { login: string; avatar_url: string }[];
   created_at: string;
   updated_at: string;
   closed_at: string | null;
@@ -84,7 +84,7 @@ export interface DashboardIssue {
   updatedAt: string;
   linkedPRs: LinkedPR[];
   projectStatus: { name: string; color: string } | null;
-  assigneeCount: number;
+  assignees: { login: string; avatar_url: string }[];
 }
 
 export type PRStatus = 'draft' | 'approved' | 'changes_requested' | 'review_pending';
