@@ -78,7 +78,7 @@ export function TrendChart({ data, isLoading }: TrendChartProps) {
                 type="monotone"
                 dataKey="openIssues"
                 name="Issues"
-                stroke={colors.red.brand}
+                stroke={colors.orange[5]}
                 strokeWidth={2}
                 dot={{ r: 3 }}
               />
@@ -86,7 +86,7 @@ export function TrendChart({ data, isLoading }: TrendChartProps) {
                 type="monotone"
                 dataKey="openPRs"
                 name="PRs"
-                stroke={colors.blue[6]}
+                stroke={colors.green[5]}
                 strokeWidth={2}
                 dot={{ r: 3 }}
               />
