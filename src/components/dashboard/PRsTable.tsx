@@ -161,6 +161,7 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
       <Table size="small">
         <TableHead>
           <TableRow>
+            {notes && <TableCell>Notes</TableCell>}
             <TableCell>
               <TableSortLabel
                 active={sortField === 'title'}
@@ -198,7 +199,6 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
               </TableSortLabel>
             </TableCell>
             <TableCell>Linked Issues</TableCell>
-            {notes && <TableCell>Notes</TableCell>}
             <TableCell>CI</TableCell>
             <TableCell>
               <TableSortLabel
@@ -228,6 +228,14 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
                   bgcolor: (theme) => theme.palette.mode === 'light' ? '#FDE8E8' : 'rgba(245, 204, 204, 0.08)',
                 } : undefined}
               >
+                {notes && (
+                  <TableCell>
+                    <NoteChip
+                      note={notes.getNote(pr.repoFullName, pr.number)}
+                      onSave={(text) => notes.setNote(pr.repoFullName, pr.number, text)}
+                    />
+                  </TableCell>
+                )}
                 <TableCell sx={{ maxWidth: 400 }}>
                   <Tooltip title={`${pr.headRef} → ${pr.baseRef}`} enterDelay={500}>
                     <Link
@@ -341,14 +349,6 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
                     )}
                   </Box>
                 </TableCell>
-                {notes && (
-                  <TableCell>
-                    <NoteChip
-                      note={notes.getNote(pr.repoFullName, pr.number)}
-                      onSave={(text) => notes.setNote(pr.repoFullName, pr.number, text)}
-                    />
-                  </TableCell>
-                )}
                 <TableCell>
                   {pr.ciStatus === 'success' && (
                     <Tooltip title="CI passed"><CheckCircleIcon sx={{ color: colors.green[5], fontSize: 18 }} /></Tooltip>

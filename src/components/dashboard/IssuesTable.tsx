@@ -125,6 +125,7 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
       <Table size="small">
         <TableHead>
           <TableRow>
+            {notes && <TableCell>Notes</TableCell>}
             <TableCell>
               <TableSortLabel
                 active={sortField === 'title'}
@@ -143,7 +144,6 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
                 Repo
               </TableSortLabel>
             </TableCell>
-            {notes && <TableCell>Notes</TableCell>}
             <TableCell>Assignees</TableCell>
             <TableCell>Labels</TableCell>
             <TableCell>Board</TableCell>
@@ -163,6 +163,14 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
         <TableBody>
           {sorted.map((issue) => (
             <TableRow key={`${issue.repoFullName}-${issue.number}`} hover>
+              {notes && (
+                <TableCell>
+                  <NoteChip
+                    note={notes.getNote(issue.repoFullName, issue.number)}
+                    onSave={(text) => notes.setNote(issue.repoFullName, issue.number, text)}
+                  />
+                </TableCell>
+              )}
               <TableCell sx={{ maxWidth: 400 }}>
                 <Tooltip title={issue.title} enterDelay={500}>
                   <Link
@@ -188,14 +196,6 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
                   </Link>
                 </Tooltip>
               </TableCell>
-              {notes && (
-                <TableCell>
-                  <NoteChip
-                    note={notes.getNote(issue.repoFullName, issue.number)}
-                    onSave={(text) => notes.setNote(issue.repoFullName, issue.number, text)}
-                  />
-                </TableCell>
-              )}
               <TableCell>
                 <Chip label={issue.repoName} variant="outlined" />
               </TableCell>
