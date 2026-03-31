@@ -7,7 +7,6 @@ import Avatar from '@mui/material/Avatar';
 import Tooltip from '@mui/material/Tooltip';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
-import Chip from '@mui/material/Chip';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -24,7 +23,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useThemeMode } from '../../theme/ThemeProvider';
 import { useAuth } from '../../hooks/useAuth';
 import { useSettings } from '../../hooks/useSettings';
-import { getRateLimit } from '../../api/github';
 import { colors } from '../../theme/colors';
 import { SettingsDialog } from '../settings/SettingsDialog';
 
@@ -56,8 +54,6 @@ export function AppHeader() {
   const toggleFocusMode = () => updateSettings({ focusMode: !settings.focusMode });
   const toggleQuietMode = () => updateSettings({ quietMode: !settings.quietMode });
   const toggleCompactMode = () => updateSettings({ compactMode: !settings.compactMode });
-
-  const rateLimit = getRateLimit();
 
   return (
     <>
@@ -141,24 +137,6 @@ export function AppHeader() {
 
               <HeaderDivider />
 
-              {/* Rate limit */}
-              <Tooltip title={`API: ${rateLimit.remaining}/${rateLimit.limit} remaining`}>
-                <Chip
-                  label={rateLimit.remaining}
-                  size="small"
-                  sx={{
-                    height: 20,
-                    fontSize: '0.6rem',
-                    fontWeight: 600,
-                    bgcolor: rateLimit.remaining < 100 ? colors.red.brand : rateLimit.remaining < 500 ? colors.orange[5] : 'transparent',
-                    color: rateLimit.remaining < 500 ? colors.white : colors.gray[4],
-                    border: rateLimit.remaining >= 500 ? `1px solid ${colors.gray[6]}` : 'none',
-                  }}
-                />
-              </Tooltip>
-
-              <HeaderDivider />
-
               {/* Notifications & Settings */}
               <Tooltip title={notifEnabled ? 'Disable notifications' : 'Enable notifications'}>
                 <IconButton onClick={toggleNotifications} size="small" sx={{ color: colors.white }}>
@@ -208,18 +186,36 @@ export function AppHeader() {
             sx={{
               display: 'flex',
               alignItems: 'center',
-              px: 2,
+              px: 2.5,
               alignSelf: 'stretch',
               borderLeft: '1px solid rgba(255,255,255,0.1)',
+              gap: 1,
             }}
           >
+            {/* Redgate "R" mark */}
+            <Box
+              sx={{
+                width: 18,
+                height: 18,
+                borderRadius: '3px',
+                bgcolor: colors.red.brand,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Typography sx={{ color: colors.white, fontSize: '0.7rem', fontWeight: 700, lineHeight: 1 }}>
+                R
+              </Typography>
+            </Box>
             <Typography
               sx={{
-                color: 'rgba(255,255,255,0.5)',
-                fontSize: '0.75rem',
-                fontWeight: 400,
-                letterSpacing: '0.05em',
+                color: 'rgba(255,255,255,0.6)',
+                fontSize: '0.8rem',
+                fontWeight: 300,
+                letterSpacing: '0.08em',
                 whiteSpace: 'nowrap',
+                fontFamily: '"Roboto", "Helvetica Neue", Arial, sans-serif',
               }}
             >
               redgate
