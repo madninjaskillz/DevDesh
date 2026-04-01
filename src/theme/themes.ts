@@ -1,7 +1,7 @@
 import { createTheme, type Theme, type ThemeOptions } from '@mui/material/styles';
 import { colors } from './colors';
 
-export type ThemeName = 'redgate' | 'glass' | 'metro' | 'fluent' | 'win95';
+export type ThemeName = 'redgate' | 'glass' | 'metro' | 'fluent' | 'win95' | 'winxp';
 
 export interface AppThemeDef {
   name: ThemeName;
@@ -286,6 +286,110 @@ const win95Dark = createTheme({
   components: { ...win95Components, MuiPaper: { styleOverrides: { root: { borderRadius: 0, boxShadow: 'inset -1px -1px 0 #000, inset 1px 1px 0 #555, inset -2px -2px 0 #333, inset 2px 2px 0 #4a4a4a' } } } },
 });
 
+// === 6. WINDOWS XP (Luna) ===
+// Key: Rounded bubbly UI, blue/green/silver Luna theme, Tahoma font,
+// gradient title bars, soft drop shadows, colorful and friendly
+const winxpFont = 'Tahoma, "Segoe UI", "Roboto", Arial, sans-serif';
+const winxpLightComponents: ThemeOptions['components'] = {
+  ...baseComponents,
+  MuiPaper: { styleOverrides: { root: {
+    borderRadius: 8,
+    border: '1px solid #AEB2B5',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+    backgroundColor: '#FFFFFF',
+  } } },
+  MuiCard: { styleOverrides: { root: ({ theme }) => ({
+    padding: theme.spacing(2),
+    borderRadius: 8,
+    border: '1px solid #AEB2B5',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+    backgroundColor: '#F5F8FC',
+    backgroundImage: 'linear-gradient(180deg, #FFFFFF 0%, #ECF4FC 100%)',
+  }) } },
+  MuiButton: { styleOverrides: { root: {
+    textTransform: 'none' as const,
+    borderRadius: 6,
+    fontWeight: 400,
+    border: '1px solid #ADB2B5',
+    backgroundImage: 'linear-gradient(180deg, #FFFFFF 0%, #ECE9D8 100%)',
+    boxShadow: '0 1px 0 rgba(255,255,255,0.5) inset',
+    '&:hover': { backgroundImage: 'linear-gradient(180deg, #FFF8E1 0%, #FFE9A0 100%)' },
+  } } },
+  MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 12 } } },
+  MuiTableCell: { styleOverrides: { root: { padding: '6px 10px', borderColor: '#D6DDE5' } } },
+  MuiTooltip: { defaultProps: { arrow: true }, styleOverrides: { tooltip: {
+    backgroundColor: '#FFFFE1',
+    color: '#000000',
+    border: '1px solid #000000',
+    borderRadius: 2,
+    fontSize: '0.75rem',
+  } } },
+};
+const winxpDarkComponents: ThemeOptions['components'] = {
+  ...baseComponents,
+  MuiPaper: { styleOverrides: { root: {
+    borderRadius: 8,
+    border: '1px solid #4A5568',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+    backgroundColor: '#2A3142',
+  } } },
+  MuiCard: { styleOverrides: { root: ({ theme }) => ({
+    padding: theme.spacing(2),
+    borderRadius: 8,
+    border: '1px solid #4A5568',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+    backgroundColor: '#2A3142',
+    backgroundImage: 'linear-gradient(180deg, #323B4F 0%, #2A3142 100%)',
+  }) } },
+  MuiButton: { styleOverrides: { root: {
+    textTransform: 'none' as const,
+    borderRadius: 6,
+    fontWeight: 400,
+    border: '1px solid #4A5568',
+    backgroundImage: 'linear-gradient(180deg, #3D4A60 0%, #2D3748 100%)',
+    '&:hover': { backgroundImage: 'linear-gradient(180deg, #4A5A72 0%, #3D4A60 100%)' },
+  } } },
+  MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 12 } } },
+  MuiTableCell: { styleOverrides: { root: { padding: '6px 10px', borderColor: '#4A5568' } } },
+  MuiTooltip: { defaultProps: { arrow: true }, styleOverrides: { tooltip: {
+    backgroundColor: '#2D3748',
+    color: '#E2E8F0',
+    border: '1px solid #4A5568',
+    borderRadius: 2,
+    fontSize: '0.75rem',
+  } } },
+};
+const winxpLight = createTheme({
+  palette: {
+    mode: 'light',
+    primary: { main: '#0054E3', light: '#3C8CF5', dark: '#003399' },
+    secondary: { main: '#7B8FA1' },
+    error: { main: '#CC0000' },
+    warning: { main: '#FF9900' },
+    success: { main: '#339933' },
+    background: { default: '#D6DDE5', paper: '#FFFFFF' },
+    text: { primary: '#000000', secondary: '#4A5568' },
+  },
+  typography: { fontFamily: winxpFont, fontSize: 13, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 700 }, h4: { fontWeight: 700 }, h5: { fontWeight: 700 }, h6: { fontWeight: 700, fontSize: '0.85rem' }, button: { fontWeight: 400 } },
+  shape: { borderRadius: 6 },
+  components: winxpLightComponents,
+});
+const winxpDark = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: { main: '#5B9BF5', light: '#89BDF8', dark: '#2A6FD4' },
+    secondary: { main: '#8899AA' },
+    error: { main: '#FF6666' },
+    warning: { main: '#FFBB33' },
+    success: { main: '#66CC66' },
+    background: { default: '#1A2233', paper: '#2A3142' },
+    text: { primary: '#E2E8F0', secondary: '#A0AEC0' },
+  },
+  typography: { fontFamily: winxpFont, fontSize: 13, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 700 }, h4: { fontWeight: 700 }, h5: { fontWeight: 700 }, h6: { fontWeight: 700, fontSize: '0.85rem' }, button: { fontWeight: 400 } },
+  shape: { borderRadius: 6 },
+  components: winxpDarkComponents,
+});
+
 // === Registry ===
 export const THEMES: Record<ThemeName, AppThemeDef> = {
   redgate: {
@@ -347,6 +451,18 @@ export const THEMES: Record<ThemeName, AppThemeDef> = {
       brandBlockColor: '#000',
       sidebarBg: () => 'transparent',
       cardBorderRadius: 0,
+    },
+  },
+  winxp: {
+    name: 'winxp', label: 'Windows XP', description: 'Luna blue theme with gradient buttons',
+    light: winxpLight, dark: winxpDark,
+    custom: {
+      headerBg: (m) => m === 'dark' ? 'linear-gradient(180deg, #1E3A5F 0%, #0F2744 100%)' : 'linear-gradient(180deg, #0A246A 0%, #3A6EA5 50%, #0A246A 100%)',
+      headerColor: '#fff',
+      brandBlockBg: '#2A8E2A',
+      brandBlockColor: '#fff',
+      sidebarBg: () => 'transparent',
+      cardBorderRadius: 8,
     },
   },
 };

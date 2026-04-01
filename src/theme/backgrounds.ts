@@ -28,12 +28,16 @@ export const BACKGROUNDS: BackgroundDef[] = [
   { id: 'fluent-flow', label: 'Light Flow', file: `${BASE}fluent-light-flow.jpg`, themes: ['fluent'] },
 
   // Win95
+  { id: 'win95-clouds', label: 'Clouds', file: `${BASE}win95-clouds.jpg`, themes: ['win95'] },
   { id: 'win95-teal', label: 'Teal Retro', file: `${BASE}win95-teal-retro.jpg`, themes: ['win95'] },
   { id: 'win95-vaporwave', label: 'Vaporwave', file: `${BASE}win95-vaporwave.jpg`, themes: ['win95'] },
 
+  // Windows XP
+  { id: 'winxp-bliss', label: 'Bliss', file: `${BASE}winxp-bliss.jpg`, themes: ['winxp'] },
+  { id: 'general-mountain', label: 'Mountain Landscape', file: `${BASE}general-mountain-landscape.jpg`, themes: ['winxp', 'glass', 'fluent', 'metro'] },
+
   // General
   { id: 'general-space', label: 'Space Galaxy', file: `${BASE}general-space-galaxy.jpg`, themes: ['redgate', 'glass', 'fluent'] },
-  { id: 'general-mountain', label: 'Mountain Landscape', file: `${BASE}general-mountain-landscape.jpg`, themes: ['glass', 'fluent', 'metro'] },
   { id: 'general-minimalist', label: 'Minimalist Gradient', file: `${BASE}general-minimalist-gradient.jpg`, themes: ['glass', 'fluent', 'redgate'] },
 ];
 

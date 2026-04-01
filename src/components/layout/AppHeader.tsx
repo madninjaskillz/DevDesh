@@ -67,7 +67,11 @@ export function AppHeader() {
         position="fixed"
         elevation={0}
         color="inherit"
-        sx={{ backgroundColor: headerBg, color: headerColor, backdropFilter: (themeDef.name === 'glass' || themeDef.name === 'fluent') ? 'blur(20px) saturate(180%)' : undefined }}
+        sx={{
+          background: headerBg,
+          color: headerColor,
+          backdropFilter: (themeDef.name === 'glass' || themeDef.name === 'fluent') ? 'blur(20px) saturate(180%)' : undefined,
+        }}
       >
         <Toolbar variant="dense" sx={{ minHeight: 44, px: '0 !important', gap: 0 }}>
           {/* Brand block — colored background like Flyway Desktop */}
