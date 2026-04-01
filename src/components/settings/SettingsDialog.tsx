@@ -16,6 +16,10 @@ import Slider from '@mui/material/Slider';
 import Tooltip from '@mui/material/Tooltip';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import Link from '@mui/material/Link';
@@ -91,37 +95,39 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
             <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
               Theme
             </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 1, mb: 2.5 }}>
-              {THEME_NAMES.map((name) => {
-                const selected = (settings.themeName || 'redgate') === name;
-                return (
-                  <Box
-                    key={name}
-                    onClick={() => {
-                      const defaultBg = THEME_DEFAULT_BACKGROUND[name] ?? '';
-                      updateSettings({ themeName: name, backgroundId: defaultBg });
-                    }}
-                    sx={{
-                      p: 1.5,
-                      borderRadius: 1,
-                      cursor: 'pointer',
-                      border: '2px solid',
-                      borderColor: selected ? 'primary.main' : 'divider',
-                      bgcolor: selected ? 'action.selected' : 'transparent',
-                      '&:hover': { borderColor: 'primary.light' },
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {THEMES[name].label}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
-                      {THEMES[name].description}
-                    </Typography>
-                  </Box>
-                );
-              })}
-            </Box>
+            <FormControl fullWidth size="small" sx={{ mb: 1 }}>
+              <InputLabel>Theme</InputLabel>
+              <Select
+                value={settings.themeName || 'redgate'}
+                label="Theme"
+                onChange={(e) => {
+                  const name = e.target.value as typeof THEME_NAMES[number];
+                  const defaultBg = THEME_DEFAULT_BACKGROUND[name] ?? '';
+                  updateSettings({ themeName: name, backgroundId: defaultBg });
+                }}
+              >
+                {THEME_NAMES.map((name) => (
+                  <MenuItem key={name} value={name}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
+                      {/* Color preview swatch */}
+                      <Box sx={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
+                        <Box sx={{ width: 14, height: 14, borderRadius: '2px', bgcolor: THEMES[name].custom.brandBlockBg }} />
+                        <Box sx={{ width: 14, height: 14, borderRadius: '2px', bgcolor: THEMES[name].custom.headerBg(mode), border: '1px solid rgba(128,128,128,0.3)' }} />
+                        <Box sx={{ width: 14, height: 14, borderRadius: '2px', bgcolor: mode === 'dark' ? THEMES[name].dark.palette?.background?.paper : THEMES[name].light.palette?.background?.paper, border: '1px solid rgba(128,128,128,0.3)' }} />
+                      </Box>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {THEMES[name].label}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                          {THEMES[name].description}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
             <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
               Background

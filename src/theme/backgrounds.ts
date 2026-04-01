@@ -32,6 +32,12 @@ export const BACKGROUNDS: BackgroundDef[] = [
   { id: 'catppuccin-pastel', label: 'Pastel Gradient', file: `${BASE}catppuccin-pastel.jpg` },
   { id: 'synthwave-sunset', label: 'Synthwave Sunset', file: `${BASE}synthwave-sunset.jpg` },
   { id: 'terminal-matrix', label: 'Matrix', file: `${BASE}terminal-matrix.jpg` },
+  { id: 'amiga-workbench', label: 'Amiga', file: `${BASE}amiga-workbench.jpg` },
+  { id: 'beos-desktop', label: 'BeOS', file: `${BASE}beos-desktop.jpg` },
+  { id: 'ubuntu-warty', label: 'Ubuntu', file: `${BASE}ubuntu-warty.jpg` },
+  { id: 'ios-gradient', label: 'iOS Gradient', file: `${BASE}ios-gradient.jpg` },
+  { id: 'android-material', label: 'Material', file: `${BASE}android-material.jpg` },
+  { id: 'chromeos-blue', label: 'Chrome Blue', file: `${BASE}chromeos-blue.jpg` },
   { id: 'general-space', label: 'Space Galaxy', file: `${BASE}general-space-galaxy.jpg` },
   { id: 'general-minimalist', label: 'Minimalist Gradient', file: `${BASE}general-minimalist-gradient.jpg` },
 ];
@@ -54,6 +60,12 @@ export const THEME_DEFAULT_BACKGROUND: Record<ThemeName, string> = {
   catppuccin: '',
   synthwave: 'synthwave-sunset',
   terminal: 'terminal-matrix',
+  amiga: 'amiga-workbench',
+  beos: 'beos-desktop',
+  ubuntu: 'ubuntu-warty',
+  ios: 'ios-gradient',
+  android: 'android-material',
+  chromeos: 'chromeos-blue',
 };
 
 export function getBackgroundById(id: string): BackgroundDef | undefined {

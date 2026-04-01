@@ -1,7 +1,7 @@
 import { createTheme, type Theme, type ThemeOptions } from '@mui/material/styles';
 import { colors } from './colors';
 
-export type ThemeName = 'redgate' | 'glass' | 'metro' | 'fluent' | 'win95' | 'winxp' | 'macos9' | 'aqua' | 'vista' | 'cyberpunk' | 'nord' | 'dracula' | 'solarized' | 'catppuccin' | 'synthwave' | 'terminal';
+export type ThemeName = 'redgate' | 'glass' | 'metro' | 'fluent' | 'win95' | 'winxp' | 'macos9' | 'aqua' | 'vista' | 'cyberpunk' | 'nord' | 'dracula' | 'solarized' | 'catppuccin' | 'synthwave' | 'terminal' | 'amiga' | 'beos' | 'ubuntu' | 'ios' | 'android' | 'chromeos';
 
 export interface AppThemeDef {
   name: ThemeName;
@@ -585,6 +585,97 @@ const terminalDark = createTheme({
   components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 0, border: '1px solid #002200', boxShadow: 'none', backgroundColor: '#0A0A0A' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1.5), borderRadius: 0, border: '1px solid #002200', boxShadow: 'none', backgroundColor: '#050505' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'uppercase' as const, borderRadius: 0, fontWeight: 400, border: '1px solid #00DD00', color: '#00DD00', backgroundColor: 'transparent', '&:hover': { backgroundColor: '#002200' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 0, border: '1px solid #007700' } } }, MuiTableCell: { styleOverrides: { root: { padding: '4px 8px', borderColor: '#002200', fontFamily: termFont } } }, MuiTooltip: { defaultProps: { arrow: false }, styleOverrides: { tooltip: { backgroundColor: '#000000', color: '#00DD00', border: '1px solid #002200', borderRadius: 0, fontFamily: termFont } } } },
 });
 
+// === 17. AMIGA WORKBENCH 1.3 ===
+// Orange/blue/white/black 4-colour palette. Topaz font. Beveled window borders.
+const amigaFont = '"Courier New", "Roboto Mono", monospace';
+const amigaLight = createTheme({
+  palette: { mode: 'light', primary: { main: '#0055AA' }, secondary: { main: '#FF8800' }, error: { main: '#FF0000' }, warning: { main: '#FF8800' }, success: { main: '#00AA00' }, background: { default: '#0055AA', paper: '#AAAAAA' }, text: { primary: '#000000', secondary: '#0055AA' } },
+  typography: { fontFamily: amigaFont, fontSize: 13, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 700 }, h4: { fontWeight: 700 }, h5: { fontWeight: 700 }, h6: { fontWeight: 700, fontSize: '0.85rem' }, button: { fontWeight: 700 } },
+  shape: { borderRadius: 0 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 0, border: '2px solid #000', boxShadow: '2px 2px 0 #000', backgroundColor: '#AAAAAA' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1.5), borderRadius: 0, border: '2px solid #000', boxShadow: '2px 2px 0 #000', backgroundColor: '#AAAAAA' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 0, fontWeight: 700, border: '2px solid #000', backgroundColor: '#FF8800', color: '#000', boxShadow: '2px 2px 0 #000', '&:hover': { backgroundColor: '#FFAA33' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 0, border: '1px solid #000' } } }, MuiTableCell: { styleOverrides: { root: { padding: '4px 8px', borderColor: '#000', fontFamily: amigaFont } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+const amigaDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#5599DD' }, secondary: { main: '#FF8800' }, error: { main: '#FF4444' }, warning: { main: '#FFAA33' }, success: { main: '#44CC44' }, background: { default: '#000022', paper: '#222244' }, text: { primary: '#FF8800', secondary: '#5599DD' } },
+  typography: { fontFamily: amigaFont, fontSize: 13, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 700 }, h4: { fontWeight: 700 }, h5: { fontWeight: 700 }, h6: { fontWeight: 700, fontSize: '0.85rem' }, button: { fontWeight: 700 } },
+  shape: { borderRadius: 0 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 0, border: '2px solid #FF8800', boxShadow: '2px 2px 0 #FF8800', backgroundColor: '#222244' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1.5), borderRadius: 0, border: '2px solid #FF8800', backgroundColor: '#222244' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 0, fontWeight: 700, border: '2px solid #FF8800', backgroundColor: 'transparent', color: '#FF8800', '&:hover': { backgroundColor: '#FF880020' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 0, border: '1px solid #FF8800' } } }, MuiTableCell: { styleOverrides: { root: { padding: '4px 8px', borderColor: '#FF8800', fontFamily: amigaFont } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+
+// === 18. BeOS ===
+// Clean, tabbed yellow title bars, grey surfaces. Distinctive and minimal.
+const beosLight = createTheme({
+  palette: { mode: 'light', primary: { main: '#336698' }, secondary: { main: '#CCCC00' }, error: { main: '#CC0000' }, warning: { main: '#CCCC00' }, success: { main: '#009900' }, background: { default: '#BEBEBE', paper: '#D4D4D4' }, text: { primary: '#000000', secondary: '#444444' } },
+  typography: { fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontSize: 13, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600, fontSize: '0.85rem' }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 0 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 0, border: '1px solid #999', boxShadow: 'none', backgroundColor: '#D4D4D4' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1.5), borderRadius: 0, border: '1px solid #999', borderTop: '3px solid #CCCC00', backgroundColor: '#D4D4D4' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 2, border: '1px solid #999', backgroundColor: '#D4D4D4', '&:hover': { backgroundColor: '#E4E4E4' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 2 } } }, MuiTableCell: { styleOverrides: { root: { padding: '4px 8px', borderColor: '#999' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+const beosDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#5599CC' }, secondary: { main: '#DDDD33' }, error: { main: '#FF4444' }, warning: { main: '#DDDD33' }, success: { main: '#44BB44' }, background: { default: '#2A2A2A', paper: '#3A3A3A' }, text: { primary: '#DDDDDD', secondary: '#999999' } },
+  typography: { fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontSize: 13, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600, fontSize: '0.85rem' }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 0 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 0, border: '1px solid #555', boxShadow: 'none', backgroundColor: '#3A3A3A' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1.5), borderRadius: 0, border: '1px solid #555', borderTop: '3px solid #DDDD33', backgroundColor: '#3A3A3A' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 2, border: '1px solid #555', '&:hover': { backgroundColor: '#4A4A4A' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 2 } } }, MuiTableCell: { styleOverrides: { root: { padding: '4px 8px', borderColor: '#555' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+
+// === 19. UBUNTU ===
+// Aubergine/orange Yaru theme. Warm, human, distinctive.
+const ubuntuLight = createTheme({
+  palette: { mode: 'light', primary: { main: '#E95420' }, secondary: { main: '#77216F' }, error: { main: '#DF382C' }, warning: { main: '#EFB73E' }, success: { main: '#38B44A' }, background: { default: '#FAF7F2', paper: '#FFFFFF' }, text: { primary: '#3C3B37', secondary: '#77767B' } },
+  typography: { fontFamily: '"Ubuntu", "Roboto", sans-serif', h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 500 }, h4: { fontWeight: 500 }, h5: { fontWeight: 500 }, h6: { fontWeight: 500 }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 10 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 10, border: '1px solid #E0E0E0', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 10 }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 20 } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 20 } } }, MuiTableCell: { styleOverrides: { root: { padding: '8px 12px' } } }, MuiTooltip: { defaultProps: { arrow: true } } },
+});
+const ubuntuDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#E95420' }, secondary: { main: '#924D8B' }, error: { main: '#FF6B55' }, warning: { main: '#F7C648' }, success: { main: '#5AC463' }, background: { default: '#2C2828', paper: '#3D3838' }, text: { primary: '#F7F7F7', secondary: '#B8B8B8' } },
+  typography: { fontFamily: '"Ubuntu", "Roboto", sans-serif', h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 500 }, h4: { fontWeight: 500 }, h5: { fontWeight: 500 }, h6: { fontWeight: 500 }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 10 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 10, border: '1px solid #4A4444', boxShadow: 'none', backgroundColor: '#3D3838' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 10, border: '1px solid #4A4444', backgroundColor: '#3D3838' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 20 } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 20 } } }, MuiTableCell: { styleOverrides: { root: { padding: '8px 12px', borderColor: '#4A4444' } } }, MuiTooltip: { defaultProps: { arrow: true } } },
+});
+
+// === 20. iOS ===
+// Clean, SF Pro font, dynamic type, vibrancy, system blue.
+const iosLight = createTheme({
+  palette: { mode: 'light', primary: { main: '#007AFF' }, secondary: { main: '#5856D6' }, error: { main: '#FF3B30' }, warning: { main: '#FF9500' }, success: { main: '#34C759' }, background: { default: '#F2F2F7', paper: '#FFFFFF' }, text: { primary: '#000000', secondary: '#3C3C4399' } },
+  typography: { fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif', h1: { fontWeight: 700, fontSize: '2rem' }, h2: { fontWeight: 700, fontSize: '1.4rem' }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600 }, button: { fontWeight: 600 } },
+  shape: { borderRadius: 12 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 12, border: 'none', boxShadow: '0 0 0 0.5px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.06)' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 12 }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 10 } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 16 } } }, MuiTableCell: { styleOverrides: { root: { padding: '10px 14px', borderColor: '#C6C6C8' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+const iosDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#0A84FF' }, secondary: { main: '#5E5CE6' }, error: { main: '#FF453A' }, warning: { main: '#FF9F0A' }, success: { main: '#30D158' }, background: { default: '#000000', paper: '#1C1C1E' }, text: { primary: '#FFFFFF', secondary: '#EBEBF599' } },
+  typography: { fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif', h1: { fontWeight: 700, fontSize: '2rem' }, h2: { fontWeight: 700, fontSize: '1.4rem' }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600 }, button: { fontWeight: 600 } },
+  shape: { borderRadius: 12 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 12, border: 'none', boxShadow: 'none', backgroundColor: '#1C1C1E' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 12, backgroundColor: '#1C1C1E' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 10 } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 16 } } }, MuiTableCell: { styleOverrides: { root: { padding: '10px 14px', borderColor: '#38383A' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+
+// === 21. ANDROID (Material You / M3) ===
+// Dynamic color, large rounded shapes, tonal surfaces.
+const androidLight = createTheme({
+  palette: { mode: 'light', primary: { main: '#6750A4' }, secondary: { main: '#625B71' }, error: { main: '#B3261E' }, warning: { main: '#F9A825' }, success: { main: '#2E7D32' }, background: { default: '#FFFBFE', paper: '#FFFBFE' }, text: { primary: '#1C1B1F', secondary: '#49454F' } },
+  typography: { fontFamily: '"Google Sans", "Product Sans", "Roboto", sans-serif', h1: { fontWeight: 400, fontSize: '2rem' }, h2: { fontWeight: 400, fontSize: '1.5rem' }, h3: { fontWeight: 400 }, h4: { fontWeight: 500 }, h5: { fontWeight: 500 }, h6: { fontWeight: 500 }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 16 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 16, border: 'none', boxShadow: '0 1px 2px rgba(0,0,0,0.08)', backgroundColor: '#F4EFF4' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 16, backgroundColor: '#F4EFF4' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 20, fontWeight: 500, padding: '8px 24px' } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 8 } } }, MuiTableCell: { styleOverrides: { root: { padding: '12px 16px' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+const androidDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#D0BCFF' }, secondary: { main: '#CCC2DC' }, error: { main: '#F2B8B5' }, warning: { main: '#FFE082' }, success: { main: '#81C784' }, background: { default: '#1C1B1F', paper: '#2B2930' }, text: { primary: '#E6E1E5', secondary: '#CAC4D0' } },
+  typography: { fontFamily: '"Google Sans", "Product Sans", "Roboto", sans-serif', h1: { fontWeight: 400, fontSize: '2rem' }, h2: { fontWeight: 400, fontSize: '1.5rem' }, h3: { fontWeight: 400 }, h4: { fontWeight: 500 }, h5: { fontWeight: 500 }, h6: { fontWeight: 500 }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 16 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 16, border: 'none', boxShadow: 'none', backgroundColor: '#2B2930' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 16, backgroundColor: '#2B2930' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 20, fontWeight: 500, padding: '8px 24px' } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 8 } } }, MuiTableCell: { styleOverrides: { root: { padding: '12px 16px' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+
+// === 22. CHROME OS ===
+// Clean, Google-style, simple rounded corners, system blue.
+const chromeosLight = createTheme({
+  palette: { mode: 'light', primary: { main: '#1A73E8' }, secondary: { main: '#5F6368' }, error: { main: '#D93025' }, warning: { main: '#F9AB00' }, success: { main: '#1E8E3E' }, background: { default: '#F1F3F4', paper: '#FFFFFF' }, text: { primary: '#202124', secondary: '#5F6368' } },
+  typography: { fontFamily: '"Google Sans", "Roboto", sans-serif', h1: { fontWeight: 500 }, h2: { fontWeight: 500 }, h3: { fontWeight: 500 }, h4: { fontWeight: 500 }, h5: { fontWeight: 500 }, h6: { fontWeight: 500 }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 8 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 8, border: '1px solid #DADCE0', boxShadow: 'none' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 8, border: '1px solid #DADCE0' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 20 } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 16 } } }, MuiTableCell: { styleOverrides: { root: { padding: '8px 12px', borderColor: '#DADCE0' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+const chromeosDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#8AB4F8' }, secondary: { main: '#9AA0A6' }, error: { main: '#F28B82' }, warning: { main: '#FDD663' }, success: { main: '#81C995' }, background: { default: '#202124', paper: '#303134' }, text: { primary: '#E8EAED', secondary: '#9AA0A6' } },
+  typography: { fontFamily: '"Google Sans", "Roboto", sans-serif', h1: { fontWeight: 500 }, h2: { fontWeight: 500 }, h3: { fontWeight: 500 }, h4: { fontWeight: 500 }, h5: { fontWeight: 500 }, h6: { fontWeight: 500 }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 8 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 8, border: '1px solid #3C4043', boxShadow: 'none', backgroundColor: '#303134' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 8, border: '1px solid #3C4043', backgroundColor: '#303134' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 20 } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 16 } } }, MuiTableCell: { styleOverrides: { root: { padding: '8px 12px', borderColor: '#3C4043' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+
 // === Registry ===
 export const THEMES: Record<ThemeName, AppThemeDef> = {
   redgate: {
@@ -737,6 +828,36 @@ export const THEMES: Record<ThemeName, AppThemeDef> = {
     name: 'terminal', label: 'Terminal', description: 'Green on black hacker aesthetic',
     light: terminalLight, dark: terminalDark,
     custom: { headerBg: () => '#0A0A0A', headerColor: '#00FF00', brandBlockBg: '#003300', brandBlockColor: '#00FF00', sidebarBg: () => 'transparent', cardBorderRadius: 0 },
+  },
+  amiga: {
+    name: 'amiga', label: 'Amiga Workbench', description: 'Orange/blue 4-colour Commodore classic',
+    light: amigaLight, dark: amigaDark,
+    custom: { headerBg: () => '#FF8800', headerColor: '#000', brandBlockBg: '#0055AA', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 0 },
+  },
+  beos: {
+    name: 'beos', label: 'BeOS', description: 'Clean grey with yellow tab accents',
+    light: beosLight, dark: beosDark,
+    custom: { headerBg: (m) => m === 'dark' ? '#2A2A2A' : '#CCCC00', headerColor: '#000', brandBlockBg: '#336698', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 0 },
+  },
+  ubuntu: {
+    name: 'ubuntu', label: 'Ubuntu', description: 'Aubergine and orange Yaru theme',
+    light: ubuntuLight, dark: ubuntuDark,
+    custom: { headerBg: (m) => m === 'dark' ? '#2C2828' : '#77216F', headerColor: '#fff', brandBlockBg: '#E95420', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 10 },
+  },
+  ios: {
+    name: 'ios', label: 'iOS', description: 'Clean Apple system design',
+    light: iosLight, dark: iosDark,
+    custom: { headerBg: (m) => m === 'dark' ? 'rgba(28,28,30,0.9)' : 'rgba(242,242,247,0.9)', headerColor: '', brandBlockBg: '#007AFF', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 12 },
+  },
+  android: {
+    name: 'android', label: 'Android', description: 'Material You / Material Design 3',
+    light: androidLight, dark: androidDark,
+    custom: { headerBg: (m) => m === 'dark' ? '#1C1B1F' : '#FFFBFE', headerColor: '', brandBlockBg: '#6750A4', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 16 },
+  },
+  chromeos: {
+    name: 'chromeos', label: 'Chrome OS', description: 'Google clean with pill buttons',
+    light: chromeosLight, dark: chromeosDark,
+    custom: { headerBg: (m) => m === 'dark' ? '#202124' : '#FFFFFF', headerColor: '', brandBlockBg: '#1A73E8', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 8 },
   },
 };
 
