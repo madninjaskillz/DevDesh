@@ -1,7 +1,7 @@
 import { createTheme, type Theme, type ThemeOptions } from '@mui/material/styles';
 import { colors } from './colors';
 
-export type ThemeName = 'redgate' | 'glass' | 'metro' | 'fluent' | 'win95' | 'winxp' | 'macos9' | 'aqua' | 'vista' | 'cyberpunk';
+export type ThemeName = 'redgate' | 'glass' | 'metro' | 'fluent' | 'win95' | 'winxp' | 'macos9' | 'aqua' | 'vista' | 'cyberpunk' | 'nord' | 'dracula' | 'solarized' | 'catppuccin' | 'synthwave' | 'terminal';
 
 export interface AppThemeDef {
   name: ThemeName;
@@ -494,6 +494,97 @@ const cyberDark = createTheme({
   components: cyberComponents,
 });
 
+// === 11. NORD ===
+// Arctic, blue-grey palette. Clean, calm, low contrast.
+const nordLight = createTheme({
+  palette: { mode: 'light', primary: { main: '#5E81AC' }, secondary: { main: '#81A1C1' }, error: { main: '#BF616A' }, warning: { main: '#EBCB8B' }, success: { main: '#A3BE8C' }, background: { default: '#ECEFF4', paper: '#E5E9F0' }, text: { primary: '#2E3440', secondary: '#4C566A' }, divider: '#D8DEE9' },
+  typography: { fontFamily: '"Inter", "Roboto", sans-serif', h1: { fontWeight: 600 }, h2: { fontWeight: 600 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600 }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 8 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 8, border: '1px solid #D8DEE9', boxShadow: 'none' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 8, border: '1px solid #D8DEE9', boxShadow: 'none', backgroundColor: '#E5E9F0' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 6, fontWeight: 500 } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 6 } } }, MuiTableCell: { styleOverrides: { root: { padding: '8px 12px', borderColor: '#D8DEE9' } } }, MuiTooltip: { defaultProps: { arrow: true } } },
+});
+const nordDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#88C0D0' }, secondary: { main: '#81A1C1' }, error: { main: '#BF616A' }, warning: { main: '#EBCB8B' }, success: { main: '#A3BE8C' }, background: { default: '#2E3440', paper: '#3B4252' }, text: { primary: '#ECEFF4', secondary: '#D8DEE9' }, divider: '#4C566A' },
+  typography: { fontFamily: '"Inter", "Roboto", sans-serif', h1: { fontWeight: 600 }, h2: { fontWeight: 600 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600 }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 8 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 8, border: '1px solid #4C566A', boxShadow: 'none', backgroundColor: '#3B4252' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 8, border: '1px solid #4C566A', boxShadow: 'none', backgroundColor: '#3B4252' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 6, fontWeight: 500 } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 6 } } }, MuiTableCell: { styleOverrides: { root: { padding: '8px 12px', borderColor: '#4C566A' } } }, MuiTooltip: { defaultProps: { arrow: true } } },
+});
+
+// === 12. DRACULA ===
+// Purple/pink dark theme. Rich, vibrant, iconic.
+const draculaLight = createTheme({
+  palette: { mode: 'light', primary: { main: '#6272A4' }, secondary: { main: '#BD93F9' }, error: { main: '#FF5555' }, warning: { main: '#F1FA8C' }, success: { main: '#50FA7B' }, background: { default: '#F8F8F2', paper: '#FFFFFF' }, text: { primary: '#282A36', secondary: '#6272A4' } },
+  typography: { fontFamily: '"Fira Code", "Roboto Mono", "Roboto", monospace', h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600 }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 8 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 8, border: '1px solid #E0E0E0' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 8 }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 6 } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 6 } } }, MuiTableCell: { styleOverrides: { root: { padding: '8px 12px' } } }, MuiTooltip: { defaultProps: { arrow: true } } },
+});
+const draculaDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#BD93F9' }, secondary: { main: '#FF79C6' }, error: { main: '#FF5555' }, warning: { main: '#F1FA8C' }, success: { main: '#50FA7B' }, info: { main: '#8BE9FD' }, background: { default: '#282A36', paper: '#44475A' }, text: { primary: '#F8F8F2', secondary: '#6272A4' } },
+  typography: { fontFamily: '"Fira Code", "Roboto Mono", "Roboto", monospace', h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600 }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 8 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 8, border: '1px solid #6272A4', backgroundColor: '#44475A' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 8, border: '1px solid #6272A4', backgroundColor: '#44475A' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 6 } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 6 } } }, MuiTableCell: { styleOverrides: { root: { padding: '8px 12px', borderColor: '#6272A4' } } }, MuiTooltip: { defaultProps: { arrow: true } } },
+});
+
+// === 13. SOLARIZED ===
+// Ethan Schoonover's scientific colour scheme. Warm base, precise accents.
+const solarizedLight = createTheme({
+  palette: { mode: 'light', primary: { main: '#268BD2' }, secondary: { main: '#2AA198' }, error: { main: '#DC322F' }, warning: { main: '#B58900' }, success: { main: '#859900' }, background: { default: '#FDF6E3', paper: '#EEE8D5' }, text: { primary: '#657B83', secondary: '#93A1A1' }, divider: '#EEE8D5' },
+  typography: { fontFamily: '"Source Sans Pro", "Roboto", sans-serif', h1: { fontWeight: 600 }, h2: { fontWeight: 600 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600 }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 6 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 6, border: '1px solid #EEE8D5', boxShadow: 'none', backgroundColor: '#EEE8D5' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 6, boxShadow: 'none', backgroundColor: '#EEE8D5' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 4 } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 4 } } }, MuiTableCell: { styleOverrides: { root: { padding: '8px 12px', borderColor: '#EEE8D5' } } }, MuiTooltip: { defaultProps: { arrow: true } } },
+});
+const solarizedDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#268BD2' }, secondary: { main: '#2AA198' }, error: { main: '#DC322F' }, warning: { main: '#B58900' }, success: { main: '#859900' }, background: { default: '#002B36', paper: '#073642' }, text: { primary: '#839496', secondary: '#586E75' }, divider: '#073642' },
+  typography: { fontFamily: '"Source Sans Pro", "Roboto", sans-serif', h1: { fontWeight: 600 }, h2: { fontWeight: 600 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600 }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 6 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 6, border: '1px solid #073642', boxShadow: 'none', backgroundColor: '#073642' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 6, boxShadow: 'none', backgroundColor: '#073642' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 4 } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 4 } } }, MuiTableCell: { styleOverrides: { root: { padding: '8px 12px', borderColor: '#073642' } } }, MuiTooltip: { defaultProps: { arrow: true } } },
+});
+
+// === 14. CATPPUCCIN (Mocha) ===
+// Trendy pastel palette. Warm, cozy, soft on the eyes.
+const catppuccinLight = createTheme({
+  palette: { mode: 'light', primary: { main: '#8839EF' }, secondary: { main: '#EA76CB' }, error: { main: '#D20F39' }, warning: { main: '#DF8E1D' }, success: { main: '#40A02B' }, info: { main: '#209FB5' }, background: { default: '#EFF1F5', paper: '#E6E9EF' }, text: { primary: '#4C4F69', secondary: '#6C6F85' }, divider: '#CCD0DA' },
+  typography: { fontFamily: '"Inter", "Roboto", sans-serif', h1: { fontWeight: 600 }, h2: { fontWeight: 600 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600 }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 12 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 12, border: '1px solid #CCD0DA', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 12, border: '1px solid #CCD0DA' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 20 } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 20 } } }, MuiTableCell: { styleOverrides: { root: { padding: '8px 12px', borderColor: '#CCD0DA' } } }, MuiTooltip: { defaultProps: { arrow: true } } },
+});
+const catppuccinDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#CBA6F7' }, secondary: { main: '#F5C2E7' }, error: { main: '#F38BA8' }, warning: { main: '#FAB387' }, success: { main: '#A6E3A1' }, info: { main: '#89DCEB' }, background: { default: '#1E1E2E', paper: '#313244' }, text: { primary: '#CDD6F4', secondary: '#A6ADC8' }, divider: '#45475A' },
+  typography: { fontFamily: '"Inter", "Roboto", sans-serif', h1: { fontWeight: 600 }, h2: { fontWeight: 600 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600 }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 12 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 12, border: '1px solid #45475A', boxShadow: 'none', backgroundColor: '#313244' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 12, border: '1px solid #45475A', backgroundColor: '#313244' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 20 } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 20 } } }, MuiTableCell: { styleOverrides: { root: { padding: '8px 12px', borderColor: '#45475A' } } }, MuiTooltip: { defaultProps: { arrow: true } } },
+});
+
+// === 15. SYNTHWAVE ===
+// 80s retro neon. Purple/pink sunset gradient feel, warm neon glow.
+const synthwaveLight = createTheme({
+  palette: { mode: 'dark', primary: { main: '#FF7EDB' }, secondary: { main: '#36F9F6' }, error: { main: '#FE4450' }, warning: { main: '#FEDE5D' }, success: { main: '#72F1B8' }, background: { default: '#262335', paper: '#34294F' }, text: { primary: '#F0E3FF', secondary: '#B4A5CC' } },
+  typography: { fontFamily: '"Orbitron", "Rajdhani", "Roboto", sans-serif', fontSize: 13, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600, letterSpacing: '0.05em' }, button: { fontWeight: 600 } },
+  shape: { borderRadius: 4 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 4, border: '1px solid #FF7EDB30', boxShadow: '0 0 8px rgba(255,126,219,0.1)', backgroundColor: '#34294F' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 4, border: '1px solid #FF7EDB25', boxShadow: '0 0 6px rgba(255,126,219,0.08)', backgroundColor: '#34294F' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 4, border: '1px solid #FF7EDB50', '&:hover': { boxShadow: '0 0 10px rgba(255,126,219,0.3)' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 4 } } }, MuiTableCell: { styleOverrides: { root: { padding: '6px 10px', borderColor: '#FF7EDB15' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+const synthwaveDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#FF7EDB' }, secondary: { main: '#36F9F6' }, error: { main: '#FE4450' }, warning: { main: '#FEDE5D' }, success: { main: '#72F1B8' }, background: { default: '#1A1328', paper: '#2A1F3D' }, text: { primary: '#F0E3FF', secondary: '#9B8BB4' } },
+  typography: { fontFamily: '"Orbitron", "Rajdhani", "Roboto", sans-serif', fontSize: 13, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600, letterSpacing: '0.05em' }, button: { fontWeight: 600 } },
+  shape: { borderRadius: 4 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 4, border: '1px solid #FF7EDB25', boxShadow: '0 0 8px rgba(255,126,219,0.08)', backgroundColor: '#2A1F3D' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 4, border: '1px solid #FF7EDB20', backgroundColor: '#2A1F3D' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 4, border: '1px solid #FF7EDB40', '&:hover': { boxShadow: '0 0 10px rgba(255,126,219,0.25)' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 4 } } }, MuiTableCell: { styleOverrides: { root: { padding: '6px 10px', borderColor: '#FF7EDB12' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+
+// === 16. TERMINAL ===
+// Green on black. Monospace everything. The hacker aesthetic.
+const termFont = '"Fira Code", "Cascadia Code", "Roboto Mono", monospace';
+const terminalLight = createTheme({
+  palette: { mode: 'dark', primary: { main: '#00FF00' }, secondary: { main: '#00CC00' }, error: { main: '#FF0000' }, warning: { main: '#FFFF00' }, success: { main: '#00FF00' }, background: { default: '#0A0A0A', paper: '#111111' }, text: { primary: '#00FF00', secondary: '#009900' }, divider: '#003300' },
+  typography: { fontFamily: termFont, fontSize: 13, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 400 }, h4: { fontWeight: 400 }, h5: { fontWeight: 400 }, h6: { fontWeight: 400, fontSize: '0.85rem' }, body1: { fontSize: '0.85rem' }, body2: { fontSize: '0.8rem' }, button: { fontWeight: 400 } },
+  shape: { borderRadius: 0 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 0, border: '1px solid #003300', boxShadow: 'none', backgroundColor: '#111111' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1.5), borderRadius: 0, border: '1px solid #003300', boxShadow: 'none', backgroundColor: '#0D0D0D' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'uppercase' as const, borderRadius: 0, fontWeight: 400, border: '1px solid #00FF00', color: '#00FF00', backgroundColor: 'transparent', '&:hover': { backgroundColor: '#003300' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 0, border: '1px solid #009900' } } }, MuiTableCell: { styleOverrides: { root: { padding: '4px 8px', borderColor: '#003300', fontFamily: termFont } } }, MuiTooltip: { defaultProps: { arrow: false }, styleOverrides: { tooltip: { backgroundColor: '#001100', color: '#00FF00', border: '1px solid #003300', borderRadius: 0, fontFamily: termFont } } } },
+});
+const terminalDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#00FF00' }, secondary: { main: '#00AA00' }, error: { main: '#FF3333' }, warning: { main: '#FFFF33' }, success: { main: '#00FF00' }, background: { default: '#000000', paper: '#0A0A0A' }, text: { primary: '#00DD00', secondary: '#007700' }, divider: '#002200' },
+  typography: { fontFamily: termFont, fontSize: 13, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 400 }, h4: { fontWeight: 400 }, h5: { fontWeight: 400 }, h6: { fontWeight: 400, fontSize: '0.85rem' }, body1: { fontSize: '0.85rem' }, body2: { fontSize: '0.8rem' }, button: { fontWeight: 400 } },
+  shape: { borderRadius: 0 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 0, border: '1px solid #002200', boxShadow: 'none', backgroundColor: '#0A0A0A' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1.5), borderRadius: 0, border: '1px solid #002200', boxShadow: 'none', backgroundColor: '#050505' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'uppercase' as const, borderRadius: 0, fontWeight: 400, border: '1px solid #00DD00', color: '#00DD00', backgroundColor: 'transparent', '&:hover': { backgroundColor: '#002200' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 0, border: '1px solid #007700' } } }, MuiTableCell: { styleOverrides: { root: { padding: '4px 8px', borderColor: '#002200', fontFamily: termFont } } }, MuiTooltip: { defaultProps: { arrow: false }, styleOverrides: { tooltip: { backgroundColor: '#000000', color: '#00DD00', border: '1px solid #002200', borderRadius: 0, fontFamily: termFont } } } },
+});
+
 // === Registry ===
 export const THEMES: Record<ThemeName, AppThemeDef> = {
   redgate: {
@@ -616,6 +707,36 @@ export const THEMES: Record<ThemeName, AppThemeDef> = {
       sidebarBg: () => 'transparent',
       cardBorderRadius: 2,
     },
+  },
+  nord: {
+    name: 'nord', label: 'Nord', description: 'Arctic blue-grey, calm and clean',
+    light: nordLight, dark: nordDark,
+    custom: { headerBg: (m) => m === 'dark' ? '#2E3440' : '#D8DEE9', headerColor: '', brandBlockBg: '#5E81AC', brandBlockColor: '#ECEFF4', sidebarBg: () => 'transparent', cardBorderRadius: 8 },
+  },
+  dracula: {
+    name: 'dracula', label: 'Dracula', description: 'Iconic purple/pink dark theme',
+    light: draculaLight, dark: draculaDark,
+    custom: { headerBg: (m) => m === 'dark' ? '#282A36' : '#F8F8F2', headerColor: '', brandBlockBg: '#BD93F9', brandBlockColor: '#282A36', sidebarBg: () => 'transparent', cardBorderRadius: 8 },
+  },
+  solarized: {
+    name: 'solarized', label: 'Solarized', description: 'Precision colours for readability',
+    light: solarizedLight, dark: solarizedDark,
+    custom: { headerBg: (m) => m === 'dark' ? '#002B36' : '#FDF6E3', headerColor: '', brandBlockBg: '#268BD2', brandBlockColor: '#FDF6E3', sidebarBg: () => 'transparent', cardBorderRadius: 6 },
+  },
+  catppuccin: {
+    name: 'catppuccin', label: 'Catppuccin', description: 'Warm pastel tones, cozy and soft',
+    light: catppuccinLight, dark: catppuccinDark,
+    custom: { headerBg: (m) => m === 'dark' ? '#1E1E2E' : '#EFF1F5', headerColor: '', brandBlockBg: '#CBA6F7', brandBlockColor: '#1E1E2E', sidebarBg: () => 'transparent', cardBorderRadius: 12 },
+  },
+  synthwave: {
+    name: 'synthwave', label: 'Synthwave', description: '80s retro sunset with neon pink',
+    light: synthwaveLight, dark: synthwaveDark,
+    custom: { headerBg: () => '#1A1328', headerColor: '#FF7EDB', brandBlockBg: '#FF7EDB', brandBlockColor: '#1A1328', sidebarBg: () => 'transparent', cardBorderRadius: 4 },
+  },
+  terminal: {
+    name: 'terminal', label: 'Terminal', description: 'Green on black hacker aesthetic',
+    light: terminalLight, dark: terminalDark,
+    custom: { headerBg: () => '#0A0A0A', headerColor: '#00FF00', brandBlockBg: '#003300', brandBlockColor: '#00FF00', sidebarBg: () => 'transparent', cardBorderRadius: 0 },
   },
 };
 

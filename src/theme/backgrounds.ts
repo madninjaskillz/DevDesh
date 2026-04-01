@@ -26,6 +26,12 @@ export const BACKGROUNDS: BackgroundDef[] = [
   { id: 'aqua-blue', label: 'Aqua Blue', file: `${BASE}aqua-blue.jpg` },
   { id: 'vista-aurora', label: 'Vista Aurora', file: `${BASE}vista-aurora.jpg` },
   { id: 'cyberpunk-neon', label: 'Neon City', file: `${BASE}cyberpunk-neon.jpg` },
+  { id: 'nord-arctic', label: 'Arctic', file: `${BASE}nord-arctic.jpg` },
+  { id: 'dracula-purple', label: 'Purple Night', file: `${BASE}dracula-purple.jpg` },
+  { id: 'solarized-warm', label: 'Warm Sunset', file: `${BASE}solarized-warm.jpg` },
+  { id: 'catppuccin-pastel', label: 'Pastel Gradient', file: `${BASE}catppuccin-pastel.jpg` },
+  { id: 'synthwave-sunset', label: 'Synthwave Sunset', file: `${BASE}synthwave-sunset.jpg` },
+  { id: 'terminal-matrix', label: 'Matrix', file: `${BASE}terminal-matrix.jpg` },
   { id: 'general-space', label: 'Space Galaxy', file: `${BASE}general-space-galaxy.jpg` },
   { id: 'general-minimalist', label: 'Minimalist Gradient', file: `${BASE}general-minimalist-gradient.jpg` },
 ];
@@ -42,6 +48,12 @@ export const THEME_DEFAULT_BACKGROUND: Record<ThemeName, string> = {
   aqua: 'aqua-blue',
   vista: 'vista-aurora',
   cyberpunk: 'cyberpunk-neon',
+  nord: 'nord-arctic',
+  dracula: 'dracula-purple',
+  solarized: '',
+  catppuccin: '',
+  synthwave: 'synthwave-sunset',
+  terminal: 'terminal-matrix',
 };
 
 export function getBackgroundById(id: string): BackgroundDef | undefined {
