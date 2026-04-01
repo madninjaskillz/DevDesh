@@ -114,27 +114,148 @@ const metroDark = createTheme({
   components: { ...metroComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 0, boxShadow: 'none', border: '2px solid', borderColor: 'rgba(255,255,255,0.08)' } } } },
 });
 
-// === 4. FLUENT ===
-const fluentComponents: ThemeOptions['components'] = {
+// === 4. FLUENT (Windows 11 / Fluent 2) ===
+// Key: Mica-like layered surfaces, subtle borders, 4px control radius, 8px container radius,
+// Segoe UI Variable font at 600 weight for headings, layered shadow system, calm/warm feel
+const fluentTypography: ThemeOptions['typography'] = {
+  fontFamily: '"Segoe UI Variable", "Segoe UI", -apple-system, "Roboto", sans-serif',
+  fontSize: 14,
+  h1: { fontWeight: 600, fontSize: '1.75rem', lineHeight: 1.3 },
+  h2: { fontWeight: 600, fontSize: '1.25rem', lineHeight: 1.4 },
+  h3: { fontWeight: 600, fontSize: '1rem', lineHeight: 1.5 },
+  h4: { fontWeight: 600, fontSize: '0.95rem' },
+  h5: { fontWeight: 600, fontSize: '0.9rem' },
+  h6: { fontWeight: 600, fontSize: '0.85rem' },
+  body1: { fontSize: '0.875rem', lineHeight: 1.43 },
+  body2: { fontSize: '0.8125rem', lineHeight: 1.43 },
+  caption: { fontSize: '0.75rem', lineHeight: 1.33 },
+  button: { fontWeight: 600, fontSize: '0.875rem' },
+};
+const fluentLightComponents: ThemeOptions['components'] = {
   ...baseComponents,
-  MuiPaper: { styleOverrides: { root: { borderRadius: 8, boxShadow: '0 2px 4px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.06)' } } },
-  MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 8 }) } },
-  MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 4, fontWeight: 600 } } },
+  MuiPaper: { styleOverrides: { root: {
+    borderRadius: 8,
+    border: '1px solid rgba(0,0,0,0.0578)',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.14), 0 0 2px rgba(0,0,0,0.12)',
+    backgroundColor: '#FFFFFF',
+  } } },
+  MuiCard: { styleOverrides: { root: ({ theme }) => ({
+    padding: theme.spacing(1.5),
+    borderRadius: 8,
+    border: '1px solid rgba(0,0,0,0.0578)',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.04), 0 0 2px rgba(0,0,0,0.06)',
+    backgroundColor: '#FAFAFA',
+  }) } },
+  MuiButton: { styleOverrides: { root: {
+    textTransform: 'none' as const,
+    borderRadius: 4,
+    fontWeight: 600,
+    boxShadow: 'none',
+    transition: 'background 100ms ease-out, box-shadow 100ms ease-out',
+    '&:hover': { boxShadow: '0 1px 2px rgba(0,0,0,0.14)' },
+  } } },
   MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 4 } } },
-  MuiTableCell: { styleOverrides: { root: { padding: '8px 12px' } } },
-  MuiTooltip: { defaultProps: { arrow: true } },
+  MuiTableCell: { styleOverrides: { root: { padding: '8px 12px', borderColor: 'rgba(0,0,0,0.0578)' } } },
+  MuiTableRow: { styleOverrides: { root: {
+    transition: 'background 100ms ease-out',
+    '&:hover': { backgroundColor: 'rgba(0,0,0,0.024)' },
+  } } },
+  MuiTooltip: { defaultProps: { arrow: false }, styleOverrides: { tooltip: {
+    borderRadius: 4,
+    boxShadow: '0 8px 16px rgba(0,0,0,0.14), 0 0 2px rgba(0,0,0,0.12)',
+    backgroundColor: '#FFFFFF',
+    color: '#242424',
+    border: '1px solid rgba(0,0,0,0.0578)',
+    fontSize: '0.75rem',
+  } } },
+  MuiIconButton: { styleOverrides: { root: {
+    borderRadius: 4,
+    transition: 'background 100ms ease-out',
+  } } },
+  MuiListItemButton: { styleOverrides: { root: {
+    borderRadius: 4,
+    transition: 'background 100ms ease-out',
+  } } },
+};
+const fluentDarkComponents: ThemeOptions['components'] = {
+  ...baseComponents,
+  MuiPaper: { styleOverrides: { root: {
+    borderRadius: 8,
+    border: '1px solid rgba(255,255,255,0.0837)',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.28), 0 0 2px rgba(0,0,0,0.24)',
+    backgroundColor: '#2D2D2D',
+  } } },
+  MuiCard: { styleOverrides: { root: ({ theme }) => ({
+    padding: theme.spacing(1.5),
+    borderRadius: 8,
+    border: '1px solid rgba(255,255,255,0.0605)',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.14), 0 0 2px rgba(0,0,0,0.2)',
+    backgroundColor: '#292929',
+  }) } },
+  MuiButton: { styleOverrides: { root: {
+    textTransform: 'none' as const,
+    borderRadius: 4,
+    fontWeight: 600,
+    boxShadow: 'none',
+    transition: 'background 100ms ease-out, box-shadow 100ms ease-out',
+    '&:hover': { boxShadow: '0 1px 2px rgba(0,0,0,0.28)' },
+  } } },
+  MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 4 } } },
+  MuiTableCell: { styleOverrides: { root: { padding: '8px 12px', borderColor: 'rgba(255,255,255,0.0605)' } } },
+  MuiTableRow: { styleOverrides: { root: {
+    transition: 'background 100ms ease-out',
+    '&:hover': { backgroundColor: 'rgba(255,255,255,0.035)' },
+  } } },
+  MuiTooltip: { defaultProps: { arrow: false }, styleOverrides: { tooltip: {
+    borderRadius: 4,
+    boxShadow: '0 8px 16px rgba(0,0,0,0.28), 0 0 2px rgba(0,0,0,0.24)',
+    backgroundColor: '#2D2D2D',
+    color: '#FFFFFF',
+    border: '1px solid rgba(255,255,255,0.0837)',
+    fontSize: '0.75rem',
+  } } },
+  MuiIconButton: { styleOverrides: { root: {
+    borderRadius: 4,
+    transition: 'background 100ms ease-out',
+  } } },
+  MuiListItemButton: { styleOverrides: { root: {
+    borderRadius: 4,
+    transition: 'background 100ms ease-out',
+  } } },
 };
 const fluentLight = createTheme({
-  palette: { mode: 'light', primary: { main: '#0078D4' }, secondary: { main: '#605E5C' }, error: { main: '#D13438' }, warning: { main: '#FFB900' }, success: { main: '#107C10' }, background: { default: '#F3F2F1', paper: '#FFFFFF' } },
-  typography: { fontFamily: '"Segoe UI Variable", "Segoe UI", "Roboto", sans-serif', h1: { fontWeight: 600 }, h2: { fontWeight: 600 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600 }, button: { fontWeight: 600 } },
-  shape: { borderRadius: 8 },
-  components: fluentComponents,
+  palette: {
+    mode: 'light',
+    primary: { main: '#0078D4', light: '#62ABF5', dark: '#005A9E' },
+    secondary: { main: '#605E5C', light: '#8A8886', dark: '#3B3A39' },
+    error: { main: '#D13438' },
+    warning: { main: '#FFB900' },
+    success: { main: '#107C10' },
+    background: { default: '#F5F5F5', paper: '#FFFFFF' },
+    text: { primary: '#242424', secondary: '#616161' },
+    divider: 'rgba(0,0,0,0.0578)',
+    action: { hover: 'rgba(0,0,0,0.024)', selected: 'rgba(0,0,0,0.04)' },
+  },
+  typography: fluentTypography,
+  shape: { borderRadius: 4 },
+  components: fluentLightComponents,
 });
 const fluentDark = createTheme({
-  palette: { mode: 'dark', primary: { main: '#60CDFF' }, secondary: { main: '#9E9E9E' }, error: { main: '#FF99A4' }, warning: { main: '#FCE100' }, success: { main: '#6CCB5F' }, background: { default: '#202020', paper: '#2D2D2D' } },
-  typography: { fontFamily: '"Segoe UI Variable", "Segoe UI", "Roboto", sans-serif', h1: { fontWeight: 600 }, h2: { fontWeight: 600 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600 }, button: { fontWeight: 600 } },
-  shape: { borderRadius: 8 },
-  components: { ...fluentComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 8, boxShadow: '0 2px 4px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.04)', backgroundColor: '#2D2D2D' } } } },
+  palette: {
+    mode: 'dark',
+    primary: { main: '#60CDFF', light: '#98ECFF', dark: '#0078D4' },
+    secondary: { main: '#9E9E9E', light: '#C8C6C4', dark: '#605E5C' },
+    error: { main: '#FF99A4' },
+    warning: { main: '#FCE100' },
+    success: { main: '#6CCB5F' },
+    background: { default: '#1F1F1F', paper: '#2D2D2D' },
+    text: { primary: '#FFFFFF', secondary: '#C8C8C8' },
+    divider: 'rgba(255,255,255,0.0837)',
+    action: { hover: 'rgba(255,255,255,0.035)', selected: 'rgba(255,255,255,0.06)' },
+  },
+  typography: fluentTypography,
+  shape: { borderRadius: 4 },
+  components: fluentDarkComponents,
 });
 
 // === 5. WIN95 ===
@@ -201,14 +322,14 @@ export const THEMES: Record<ThemeName, AppThemeDef> = {
     },
   },
   fluent: {
-    name: 'fluent', label: 'Fluent', description: 'Microsoft Fluent Design with depth',
+    name: 'fluent', label: 'Fluent', description: 'Windows 11 Fluent Design System',
     light: fluentLight, dark: fluentDark,
     custom: {
-      headerBg: (m) => m === 'dark' ? '#1A1A1A' : '#F3F2F1',
+      headerBg: (m) => m === 'dark' ? '#1C1C1C' : '#F9F9F9',
       headerColor: '',
       brandBlockBg: '#0078D4',
       brandBlockColor: '#fff',
-      sidebarBg: () => 'transparent',
+      sidebarBg: (m) => m === 'dark' ? '#1C1C1C' : '#F9F9F9',
       cardBorderRadius: 8,
     },
   },
