@@ -1,7 +1,7 @@
 import { createTheme, type Theme, type ThemeOptions } from '@mui/material/styles';
 import { colors } from './colors';
 
-export type ThemeName = 'redgate' | 'glass' | 'metro' | 'fluent' | 'win95' | 'winxp' | 'macos9' | 'aqua' | 'vista' | 'cyberpunk' | 'nord' | 'dracula' | 'solarized' | 'catppuccin' | 'synthwave' | 'terminal' | 'amiga' | 'beos' | 'ubuntu' | 'ios' | 'android' | 'chromeos';
+export type ThemeName = 'redgate' | 'glass' | 'metro' | 'fluent' | 'win95' | 'winxp' | 'macos9' | 'aqua' | 'vista' | 'cyberpunk' | 'nord' | 'dracula' | 'solarized' | 'catppuccin' | 'synthwave' | 'terminal' | 'amiga' | 'beos' | 'ubuntu' | 'ios' | 'android' | 'chromeos' | 'nextstep' | 'os2' | 'irix' | 'palmos' | 'c64' | 'msdos';
 
 export interface AppThemeDef {
   name: ThemeName;
@@ -676,6 +676,100 @@ const chromeosDark = createTheme({
   components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 8, border: '1px solid #3C4043', boxShadow: 'none', backgroundColor: '#303134' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 8, border: '1px solid #3C4043', backgroundColor: '#303134' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 20 } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 16 } } }, MuiTableCell: { styleOverrides: { root: { padding: '8px 12px', borderColor: '#3C4043' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
 });
 
+// === 23. NeXTSTEP ===
+// Steve Jobs' OS between Apple stints. Dark grey surfaces, vertical menus, black borders.
+const nextFont = '"Helvetica Neue", Helvetica, Arial, sans-serif';
+const nextstepLight = createTheme({
+  palette: { mode: 'light', primary: { main: '#333333' }, secondary: { main: '#666666' }, error: { main: '#CC0000' }, warning: { main: '#CC9900' }, success: { main: '#339933' }, background: { default: '#A8A8A8', paper: '#C0C0C0' }, text: { primary: '#000000', secondary: '#333333' } },
+  typography: { fontFamily: nextFont, fontSize: 13, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600, fontSize: '0.85rem' }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 2 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 2, border: '2px solid #000', boxShadow: '3px 3px 0 rgba(0,0,0,0.4)', backgroundColor: '#C0C0C0' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1.5), borderRadius: 2, border: '2px solid #000', boxShadow: '2px 2px 0 rgba(0,0,0,0.3)', backgroundColor: '#C0C0C0' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 2, border: '2px solid #000', backgroundColor: '#C0C0C0', boxShadow: 'inset -1px -1px 0 #888, inset 1px 1px 0 #fff', '&:hover': { backgroundColor: '#D0D0D0' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 2 } } }, MuiTableCell: { styleOverrides: { root: { padding: '4px 8px', borderColor: '#000' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+const nextstepDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#999999' }, secondary: { main: '#777777' }, error: { main: '#FF4444' }, warning: { main: '#DDAA33' }, success: { main: '#55BB55' }, background: { default: '#222222', paper: '#333333' }, text: { primary: '#CCCCCC', secondary: '#999999' } },
+  typography: { fontFamily: nextFont, fontSize: 13, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600, fontSize: '0.85rem' }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 2 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 2, border: '2px solid #555', boxShadow: '3px 3px 0 rgba(0,0,0,0.5)', backgroundColor: '#333333' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1.5), borderRadius: 2, border: '2px solid #555', backgroundColor: '#333333' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 2, border: '2px solid #555', backgroundColor: '#444', '&:hover': { backgroundColor: '#555' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 2 } } }, MuiTableCell: { styleOverrides: { root: { padding: '4px 8px', borderColor: '#555' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+
+// === 24. OS/2 WARP ===
+// IBM's alternative to Windows. Teal/blue WPS desktop, clean professional look.
+const os2Light = createTheme({
+  palette: { mode: 'light', primary: { main: '#004080' }, secondary: { main: '#008080' }, error: { main: '#CC0000' }, warning: { main: '#CC8800' }, success: { main: '#008800' }, background: { default: '#C0C0C0', paper: '#D4D4D4' }, text: { primary: '#000000', secondary: '#404040' } },
+  typography: { fontFamily: '"Helvetica", "Arial", sans-serif', fontSize: 13, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600, fontSize: '0.85rem' }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 0 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 0, border: '1px solid #808080', boxShadow: 'inset -1px -1px 0 #404040, inset 1px 1px 0 #fff', backgroundColor: '#D4D4D4' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1.5), borderRadius: 0, border: '1px solid #808080', boxShadow: 'inset -1px -1px 0 #404040, inset 1px 1px 0 #fff', backgroundColor: '#D4D4D4' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 0, border: '1px solid #808080', boxShadow: 'inset -1px -1px 0 #404040, inset 1px 1px 0 #fff', '&:hover': { backgroundColor: '#E0E0E0' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 0 } } }, MuiTableCell: { styleOverrides: { root: { padding: '4px 8px', borderColor: '#808080' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+const os2Dark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#4488CC' }, secondary: { main: '#44AAAA' }, error: { main: '#FF4444' }, warning: { main: '#DDAA33' }, success: { main: '#44AA44' }, background: { default: '#1A2A3A', paper: '#2A3A4A' }, text: { primary: '#C0D0E0', secondary: '#8090A0' } },
+  typography: { fontFamily: '"Helvetica", "Arial", sans-serif', fontSize: 13, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600, fontSize: '0.85rem' }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 0 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 0, border: '1px solid #4A5A6A', boxShadow: 'none', backgroundColor: '#2A3A4A' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1.5), borderRadius: 0, border: '1px solid #4A5A6A', backgroundColor: '#2A3A4A' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 0, border: '1px solid #4A5A6A', '&:hover': { backgroundColor: '#3A4A5A' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 0 } } }, MuiTableCell: { styleOverrides: { root: { padding: '4px 8px', borderColor: '#4A5A6A' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+
+// === 25. SGI IRIX ===
+// Silicon Graphics workstation. Purple/indigo 4Dwm, sleek professional.
+const irixLight = createTheme({
+  palette: { mode: 'light', primary: { main: '#5C2D91' }, secondary: { main: '#2E4057' }, error: { main: '#CC0033' }, warning: { main: '#CC9900' }, success: { main: '#339933' }, background: { default: '#B8B0C8', paper: '#D0C8E0' }, text: { primary: '#1A0A2E', secondary: '#4A3A5E' } },
+  typography: { fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontSize: 13, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600, fontSize: '0.85rem' }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 2 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 2, border: '1px solid #8A7AAA', boxShadow: '1px 1px 0 #6A5A8A', backgroundColor: '#D0C8E0' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1.5), borderRadius: 2, border: '1px solid #8A7AAA', backgroundColor: '#D0C8E0', backgroundImage: 'linear-gradient(180deg, #D8D0E8 0%, #C8C0D8 100%)' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 2, border: '1px solid #8A7AAA', backgroundImage: 'linear-gradient(180deg, #E0D8F0 0%, #C0B8D0 100%)', '&:hover': { backgroundImage: 'linear-gradient(180deg, #E8E0F8 0%, #D0C8E0 100%)' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 2 } } }, MuiTableCell: { styleOverrides: { root: { padding: '4px 8px', borderColor: '#8A7AAA' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+const irixDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#9B7BCF' }, secondary: { main: '#6080A0' }, error: { main: '#FF4466' }, warning: { main: '#DDAA33' }, success: { main: '#55BB55' }, background: { default: '#1A0A2E', paper: '#2A1A3E' }, text: { primary: '#D0C0E8', secondary: '#9A8AB8' } },
+  typography: { fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontSize: 13, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600, fontSize: '0.85rem' }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 2 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 2, border: '1px solid #4A3A6A', boxShadow: 'none', backgroundColor: '#2A1A3E' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1.5), borderRadius: 2, border: '1px solid #4A3A6A', backgroundColor: '#2A1A3E' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 2, border: '1px solid #4A3A6A', '&:hover': { backgroundColor: '#3A2A4E' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 2 } } }, MuiTableCell: { styleOverrides: { root: { padding: '4px 8px', borderColor: '#4A3A6A' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+
+// === 26. PALM OS ===
+// PDA era. Greenish-grey LCD look, small fonts, simple borders, Silk area feel.
+const palmFont = '"Geneva", "Helvetica Neue", Arial, sans-serif';
+const palmosLight = createTheme({
+  palette: { mode: 'light', primary: { main: '#336699' }, secondary: { main: '#669966' }, error: { main: '#CC3333' }, warning: { main: '#CC9933' }, success: { main: '#339933' }, background: { default: '#C8D0B8', paper: '#D8E0C8' }, text: { primary: '#2A3020', secondary: '#5A6050' } },
+  typography: { fontFamily: palmFont, fontSize: 12, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 700 }, h4: { fontWeight: 700 }, h5: { fontWeight: 700 }, h6: { fontWeight: 700, fontSize: '0.8rem' }, button: { fontWeight: 700 } },
+  shape: { borderRadius: 2 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 2, border: '1px solid #8A9A7A', boxShadow: 'none', backgroundColor: '#D8E0C8' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1), borderRadius: 2, border: '1px solid #8A9A7A', backgroundColor: '#D8E0C8' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 4, border: '1px solid #8A9A7A', fontSize: '0.75rem', padding: '2px 8px', backgroundColor: '#E0E8D0', '&:hover': { backgroundColor: '#E8F0D8' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 4, fontSize: '0.7rem' } } }, MuiTableCell: { styleOverrides: { root: { padding: '2px 6px', borderColor: '#8A9A7A', fontSize: '0.75rem' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+const palmosDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#6699CC' }, secondary: { main: '#88AA88' }, error: { main: '#FF6666' }, warning: { main: '#DDAA44' }, success: { main: '#66BB66' }, background: { default: '#1A2018', paper: '#2A3028' }, text: { primary: '#B0C0A0', secondary: '#708060' } },
+  typography: { fontFamily: palmFont, fontSize: 12, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 700 }, h4: { fontWeight: 700 }, h5: { fontWeight: 700 }, h6: { fontWeight: 700, fontSize: '0.8rem' }, button: { fontWeight: 700 } },
+  shape: { borderRadius: 2 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 2, border: '1px solid #4A5A3A', boxShadow: 'none', backgroundColor: '#2A3028' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1), borderRadius: 2, border: '1px solid #4A5A3A', backgroundColor: '#2A3028' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 4, border: '1px solid #4A5A3A', fontSize: '0.75rem', '&:hover': { backgroundColor: '#3A4038' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 4, fontSize: '0.7rem' } } }, MuiTableCell: { styleOverrides: { root: { padding: '2px 6px', borderColor: '#4A5A3A', fontSize: '0.75rem' } } }, MuiTooltip: { defaultProps: { arrow: false } } },
+});
+
+// === 27. COMMODORE 64 ===
+// Blue/light blue 8-bit computer. PETSCII feel. Monospace everything.
+const c64Font = '"Courier New", "Roboto Mono", monospace';
+const c64Light = createTheme({
+  palette: { mode: 'dark', primary: { main: '#6C6CFF' }, secondary: { main: '#A8A8FF' }, error: { main: '#FF4444' }, warning: { main: '#FFFF44' }, success: { main: '#44FF44' }, background: { default: '#40318D', paper: '#40318D' }, text: { primary: '#A8A8FF', secondary: '#6C6CFF' } },
+  typography: { fontFamily: c64Font, fontSize: 14, h1: { fontWeight: 700, textTransform: 'uppercase' as const }, h2: { fontWeight: 700, textTransform: 'uppercase' as const }, h3: { fontWeight: 700 }, h4: { fontWeight: 700 }, h5: { fontWeight: 700 }, h6: { fontWeight: 700, fontSize: '0.85rem', textTransform: 'uppercase' as const }, button: { fontWeight: 700 } },
+  shape: { borderRadius: 0 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 0, border: '2px solid #A8A8FF', boxShadow: 'none', backgroundColor: '#40318D' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1.5), borderRadius: 0, border: '2px solid #A8A8FF', backgroundColor: '#40318D' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'uppercase' as const, borderRadius: 0, fontWeight: 700, border: '2px solid #A8A8FF', color: '#A8A8FF', backgroundColor: 'transparent', '&:hover': { backgroundColor: '#6C6CFF20' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 0, border: '1px solid #A8A8FF', fontFamily: c64Font } } }, MuiTableCell: { styleOverrides: { root: { padding: '4px 8px', borderColor: '#6C6CFF', fontFamily: c64Font } } }, MuiTooltip: { defaultProps: { arrow: false }, styleOverrides: { tooltip: { backgroundColor: '#40318D', color: '#A8A8FF', border: '2px solid #A8A8FF', borderRadius: 0 } } } },
+});
+const c64Dark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#6C6CFF' }, secondary: { main: '#A8A8FF' }, error: { main: '#FF4444' }, warning: { main: '#FFFF44' }, success: { main: '#44FF44' }, background: { default: '#2A1C6D', paper: '#352880' }, text: { primary: '#A8A8FF', secondary: '#5C5CDD' } },
+  typography: { fontFamily: c64Font, fontSize: 14, h1: { fontWeight: 700, textTransform: 'uppercase' as const }, h2: { fontWeight: 700, textTransform: 'uppercase' as const }, h3: { fontWeight: 700 }, h4: { fontWeight: 700 }, h5: { fontWeight: 700 }, h6: { fontWeight: 700, fontSize: '0.85rem', textTransform: 'uppercase' as const }, button: { fontWeight: 700 } },
+  shape: { borderRadius: 0 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 0, border: '2px solid #6C6CFF', boxShadow: 'none', backgroundColor: '#352880' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1.5), borderRadius: 0, border: '2px solid #6C6CFF', backgroundColor: '#352880' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'uppercase' as const, borderRadius: 0, fontWeight: 700, border: '2px solid #6C6CFF', color: '#A8A8FF', backgroundColor: 'transparent', '&:hover': { backgroundColor: '#6C6CFF15' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 0, border: '1px solid #6C6CFF', fontFamily: c64Font } } }, MuiTableCell: { styleOverrides: { root: { padding: '4px 8px', borderColor: '#6C6CFF', fontFamily: c64Font } } }, MuiTooltip: { defaultProps: { arrow: false }, styleOverrides: { tooltip: { backgroundColor: '#352880', color: '#A8A8FF', border: '2px solid #6C6CFF', borderRadius: 0 } } } },
+});
+
+// === 28. MS-DOS ===
+// White/grey text on black. The command line era. Pure monospace.
+const dosFont = '"Fixedsys Excelsior", "Courier New", "Roboto Mono", monospace';
+const msdosLight = createTheme({
+  palette: { mode: 'dark', primary: { main: '#AAAAAA' }, secondary: { main: '#FFFFFF' }, error: { main: '#FF5555' }, warning: { main: '#FFFF55' }, success: { main: '#55FF55' }, background: { default: '#000000', paper: '#000000' }, text: { primary: '#AAAAAA', secondary: '#555555' }, divider: '#333333' },
+  typography: { fontFamily: dosFont, fontSize: 14, h1: { fontWeight: 400 }, h2: { fontWeight: 400 }, h3: { fontWeight: 400 }, h4: { fontWeight: 400 }, h5: { fontWeight: 400 }, h6: { fontWeight: 400, fontSize: '0.9rem' }, body1: { fontSize: '0.85rem' }, body2: { fontSize: '0.8rem' }, button: { fontWeight: 400 } },
+  shape: { borderRadius: 0 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 0, border: '1px solid #555', boxShadow: 'none', backgroundColor: '#000000' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1), borderRadius: 0, border: '1px solid #555', backgroundColor: '#000000' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'uppercase' as const, borderRadius: 0, border: '1px solid #AAA', color: '#AAA', backgroundColor: '#000', '&:hover': { backgroundColor: '#222', color: '#FFF' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 0, border: '1px solid #555', fontFamily: dosFont } } }, MuiTableCell: { styleOverrides: { root: { padding: '2px 8px', borderColor: '#333', fontFamily: dosFont } } }, MuiTooltip: { defaultProps: { arrow: false }, styleOverrides: { tooltip: { backgroundColor: '#000', color: '#FFF', border: '1px solid #AAA', borderRadius: 0, fontFamily: dosFont } } } },
+});
+const msdosDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#AAAAAA' }, secondary: { main: '#FFFFFF' }, error: { main: '#FF5555' }, warning: { main: '#FFFF55' }, success: { main: '#55FF55' }, background: { default: '#000000', paper: '#0A0A0A' }, text: { primary: '#AAAAAA', secondary: '#444444' }, divider: '#222222' },
+  typography: { fontFamily: dosFont, fontSize: 14, h1: { fontWeight: 400 }, h2: { fontWeight: 400 }, h3: { fontWeight: 400 }, h4: { fontWeight: 400 }, h5: { fontWeight: 400 }, h6: { fontWeight: 400, fontSize: '0.9rem' }, body1: { fontSize: '0.85rem' }, body2: { fontSize: '0.8rem' }, button: { fontWeight: 400 } },
+  shape: { borderRadius: 0 },
+  components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 0, border: '1px solid #444', boxShadow: 'none', backgroundColor: '#0A0A0A' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1), borderRadius: 0, border: '1px solid #444', backgroundColor: '#0A0A0A' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'uppercase' as const, borderRadius: 0, border: '1px solid #888', color: '#888', backgroundColor: '#000', '&:hover': { backgroundColor: '#1A1A1A', color: '#FFF' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 0, border: '1px solid #444', fontFamily: dosFont } } }, MuiTableCell: { styleOverrides: { root: { padding: '2px 8px', borderColor: '#222', fontFamily: dosFont } } }, MuiTooltip: { defaultProps: { arrow: false }, styleOverrides: { tooltip: { backgroundColor: '#000', color: '#FFF', border: '1px solid #888', borderRadius: 0, fontFamily: dosFont } } } },
+});
+
 // === Registry ===
 export const THEMES: Record<ThemeName, AppThemeDef> = {
   redgate: {
@@ -858,6 +952,36 @@ export const THEMES: Record<ThemeName, AppThemeDef> = {
     name: 'chromeos', label: 'Chrome OS', description: 'Google clean with pill buttons',
     light: chromeosLight, dark: chromeosDark,
     custom: { headerBg: (m) => m === 'dark' ? '#202124' : '#FFFFFF', headerColor: '', brandBlockBg: '#1A73E8', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 8 },
+  },
+  nextstep: {
+    name: 'nextstep', label: 'NeXTSTEP', description: 'Dark grey with black borders, Steve Jobs era',
+    light: nextstepLight, dark: nextstepDark,
+    custom: { headerBg: () => '#333333', headerColor: '#fff', brandBlockBg: '#000', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 2 },
+  },
+  os2: {
+    name: 'os2', label: 'OS/2 Warp', description: 'IBM teal/blue Workplace Shell',
+    light: os2Light, dark: os2Dark,
+    custom: { headerBg: () => '#004080', headerColor: '#fff', brandBlockBg: '#008080', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 0 },
+  },
+  irix: {
+    name: 'irix', label: 'SGI IRIX', description: 'Purple/indigo Silicon Graphics workstation',
+    light: irixLight, dark: irixDark,
+    custom: { headerBg: (m) => m === 'dark' ? '#1A0A2E' : 'linear-gradient(180deg, #6A4A9A 0%, #4A2A7A 100%)', headerColor: '#fff', brandBlockBg: '#5C2D91', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 2 },
+  },
+  palmos: {
+    name: 'palmos', label: 'Palm OS', description: 'Green-grey LCD handheld PDA look',
+    light: palmosLight, dark: palmosDark,
+    custom: { headerBg: (m) => m === 'dark' ? '#1A2018' : '#8A9A7A', headerColor: '#000', brandBlockBg: '#336699', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 2 },
+  },
+  c64: {
+    name: 'c64', label: 'Commodore 64', description: 'Blue/light blue 8-bit BASIC screen',
+    light: c64Light, dark: c64Dark,
+    custom: { headerBg: () => '#40318D', headerColor: '#A8A8FF', brandBlockBg: '#A8A8FF', brandBlockColor: '#40318D', sidebarBg: () => 'transparent', cardBorderRadius: 0 },
+  },
+  msdos: {
+    name: 'msdos', label: 'MS-DOS', description: 'Grey text on black command line',
+    light: msdosLight, dark: msdosDark,
+    custom: { headerBg: () => '#000000', headerColor: '#AAAAAA', brandBlockBg: '#0000AA', brandBlockColor: '#AAA', sidebarBg: () => 'transparent', cardBorderRadius: 0 },
   },
 };
 

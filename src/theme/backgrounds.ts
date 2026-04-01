@@ -38,6 +38,12 @@ export const BACKGROUNDS: BackgroundDef[] = [
   { id: 'ios-gradient', label: 'iOS Gradient', file: `${BASE}ios-gradient.jpg` },
   { id: 'android-material', label: 'Material', file: `${BASE}android-material.jpg` },
   { id: 'chromeos-blue', label: 'Chrome Blue', file: `${BASE}chromeos-blue.jpg` },
+  { id: 'nextstep-dark', label: 'NeXTSTEP', file: `${BASE}nextstep-dark.jpg` },
+  { id: 'os2-warp', label: 'OS/2 Warp', file: `${BASE}os2-warp.jpg` },
+  { id: 'irix-indigo', label: 'IRIX Indigo', file: `${BASE}irix-indigo.jpg` },
+  { id: 'palmos-warm', label: 'Palm OS', file: `${BASE}palmos-warm.jpg` },
+  { id: 'c64-blue', label: 'C64 Blue', file: `${BASE}c64-blue.jpg` },
+  { id: 'msdos-dark', label: 'DOS', file: `${BASE}msdos-dark.jpg` },
   { id: 'general-space', label: 'Space Galaxy', file: `${BASE}general-space-galaxy.jpg` },
   { id: 'general-minimalist', label: 'Minimalist Gradient', file: `${BASE}general-minimalist-gradient.jpg` },
 ];
@@ -66,6 +72,12 @@ export const THEME_DEFAULT_BACKGROUND: Record<ThemeName, string> = {
   ios: 'ios-gradient',
   android: 'android-material',
   chromeos: 'chromeos-blue',
+  nextstep: 'nextstep-dark',
+  os2: 'os2-warp',
+  irix: 'irix-indigo',
+  palmos: '',
+  c64: '',
+  msdos: '',
 };
 
 export function getBackgroundById(id: string): BackgroundDef | undefined {
