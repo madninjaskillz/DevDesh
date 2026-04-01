@@ -18,9 +18,12 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import Link from '@mui/material/Link';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { useRepoConfig } from '../../hooks/useRepoConfig';
 import { useSettings } from '../../hooks/useSettings';
 import { useAuth } from '../../hooks/useAuth';
+import { THEMES, THEME_NAMES } from '../../theme/themes';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -48,6 +51,32 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Settings</DialogTitle>
       <DialogContent>
+        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+          Theme
+        </Typography>
+        <ToggleButtonGroup
+          value={settings.themeName || 'redgate'}
+          exclusive
+          onChange={(_, val) => val && updateSettings({ themeName: val })}
+          size="small"
+          sx={{ mb: 1, flexWrap: 'wrap' }}
+        >
+          {THEME_NAMES.map((name) => (
+            <ToggleButton key={name} value={name} sx={{ px: 2, py: 0.5, textTransform: 'none' }}>
+              <Box sx={{ textAlign: 'left' }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                  {THEMES[name].label}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+                  {THEMES[name].description}
+                </Typography>
+              </Box>
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+
+        <Divider sx={{ my: 2 }} />
+
         <Typography variant="subtitle2" sx={{ mb: 1 }}>
           Monitored Repositories
         </Typography>

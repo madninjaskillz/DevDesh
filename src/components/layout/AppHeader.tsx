@@ -20,6 +20,7 @@ import DensitySmallIcon from '@mui/icons-material/DensitySmall';
 import DensityMediumIcon from '@mui/icons-material/DensityMedium';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTheme } from '@mui/material/styles';
 import { useThemeMode } from '../../theme/ThemeProvider';
 import { useAuth } from '../../hooks/useAuth';
 import { useSettings } from '../../hooks/useSettings';
@@ -31,7 +32,12 @@ function HeaderDivider() {
 }
 
 export function AppHeader() {
-  const { mode, toggleTheme } = useThemeMode();
+  const { mode, toggleTheme, themeDef } = useThemeMode();
+  const muiTheme = useTheme();
+  const headerBg = themeDef.custom.headerBg(mode);
+  const headerColor = themeDef.custom.headerColor || muiTheme.palette.text.primary;
+  const brandBg = themeDef.custom.brandBlockBg;
+  const brandColor = themeDef.custom.brandBlockColor;
   const { user, isAuthenticated, logout } = useAuth();
   const { settings, updateSettings } = useSettings();
   const queryClient = useQueryClient();
@@ -61,7 +67,7 @@ export function AppHeader() {
         position="fixed"
         elevation={0}
         color="inherit"
-        sx={{ backgroundColor: colors.gray[7], color: colors.white }}
+        sx={{ backgroundColor: headerBg, color: headerColor, backdropFilter: themeDef.name === 'glass' ? 'blur(20px) saturate(180%)' : undefined }}
       >
         <Toolbar variant="dense" sx={{ minHeight: 44, px: '0 !important', gap: 0 }}>
           {/* Brand block — colored background like Flyway Desktop */}
@@ -69,13 +75,13 @@ export function AppHeader() {
             sx={{
               display: 'flex',
               alignItems: 'center',
-              bgcolor: colors.red.brand,
+              bgcolor: brandBg,
               px: 2,
               alignSelf: 'stretch',
               gap: 1,
             }}
           >
-            <DashboardIcon sx={{ color: colors.white, fontSize: 22 }} />
+            <DashboardIcon sx={{ color: brandColor, fontSize: 22 }} />
           </Box>
 
           {/* Product name */}
@@ -83,7 +89,7 @@ export function AppHeader() {
             noWrap
             sx={{
               fontWeight: 700,
-              color: colors.white,
+              color: headerColor,
               fontSize: '0.95rem',
               px: 2,
               letterSpacing: '0.02em',
@@ -101,7 +107,7 @@ export function AppHeader() {
             <>
               {/* View modes */}
               <Tooltip title="Refresh data (R)">
-                <IconButton onClick={handleRefresh} size="small" sx={{ color: colors.white }}>
+                <IconButton onClick={handleRefresh} size="small" sx={{ color: headerColor }}>
                   <RefreshIcon sx={{ fontSize: 18 }} />
                 </IconButton>
               </Tooltip>
@@ -130,7 +136,7 @@ export function AppHeader() {
                 </IconButton>
               </Tooltip>
               <Tooltip title={settings.compactMode ? 'Normal density' : 'Compact density'}>
-                <IconButton onClick={toggleCompactMode} size="small" sx={{ color: colors.white }}>
+                <IconButton onClick={toggleCompactMode} size="small" sx={{ color: headerColor }}>
                   {settings.compactMode ? <DensitySmallIcon sx={{ fontSize: 18 }} /> : <DensityMediumIcon sx={{ fontSize: 18 }} />}
                 </IconButton>
               </Tooltip>
@@ -139,17 +145,17 @@ export function AppHeader() {
 
               {/* Notifications & Settings */}
               <Tooltip title={notifEnabled ? 'Disable notifications' : 'Enable notifications'}>
-                <IconButton onClick={toggleNotifications} size="small" sx={{ color: colors.white }}>
+                <IconButton onClick={toggleNotifications} size="small" sx={{ color: headerColor }}>
                   {notifEnabled ? <NotificationsIcon sx={{ fontSize: 18 }} /> : <NotificationsOffIcon sx={{ fontSize: 18 }} />}
                 </IconButton>
               </Tooltip>
               <Tooltip title="Settings">
-                <IconButton onClick={() => setSettingsOpen(true)} size="small" sx={{ color: colors.white }}>
+                <IconButton onClick={() => setSettingsOpen(true)} size="small" sx={{ color: headerColor }}>
                   <SettingsIcon sx={{ fontSize: 18 }} />
                 </IconButton>
               </Tooltip>
               <Tooltip title={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}>
-                <IconButton onClick={toggleTheme} size="small" sx={{ color: colors.white }}>
+                <IconButton onClick={toggleTheme} size="small" sx={{ color: headerColor }}>
                   {mode === 'light' ? <DarkModeIcon sx={{ fontSize: 18 }} /> : <LightModeIcon sx={{ fontSize: 18 }} />}
                 </IconButton>
               </Tooltip>
@@ -160,11 +166,11 @@ export function AppHeader() {
               {user && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mx: 1 }}>
                   <Avatar src={user.avatar_url} alt={user.login} sx={{ width: 24, height: 24 }} />
-                  <Typography variant="body2" sx={{ color: colors.white, fontSize: '0.8rem' }} noWrap>
+                  <Typography variant="body2" sx={{ color: headerColor, fontSize: '0.8rem' }} noWrap>
                     {user.login}
                   </Typography>
                   <Tooltip title="Sign out">
-                    <IconButton onClick={logout} size="small" sx={{ color: colors.white }}>
+                    <IconButton onClick={logout} size="small" sx={{ color: headerColor }}>
                       <LogoutIcon sx={{ fontSize: 16 }} />
                     </IconButton>
                   </Tooltip>
@@ -175,7 +181,7 @@ export function AppHeader() {
 
           {!isAuthenticated && (
             <Tooltip title={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}>
-              <IconButton onClick={toggleTheme} size="small" sx={{ color: colors.white, mr: 1 }}>
+              <IconButton onClick={toggleTheme} size="small" sx={{ color: headerColor, mr: 1 }}>
                 {mode === 'light' ? <DarkModeIcon sx={{ fontSize: 18 }} /> : <LightModeIcon sx={{ fontSize: 18 }} />}
               </IconButton>
             </Tooltip>
