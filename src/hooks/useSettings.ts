@@ -4,6 +4,7 @@ const STORAGE_KEY = 'devdash-settings';
 
 export interface AppSettings {
   themeName: string;
+  backgroundId: string;
   staleIssueDays: number;
   staleCommentDays: number;
   stalePRApprovedDays: number;
@@ -16,6 +17,7 @@ export interface AppSettings {
 
 const DEFAULT_SETTINGS: AppSettings = {
   themeName: 'redgate',
+  backgroundId: '',
   staleIssueDays: 7,
   staleCommentDays: 2,
   stalePRApprovedDays: 1,

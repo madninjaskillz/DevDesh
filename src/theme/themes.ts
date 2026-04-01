@@ -62,8 +62,8 @@ const redgateDark = createTheme({
 // === 2. APPLE GLASS ===
 const glassComponents: ThemeOptions['components'] = {
   ...baseComponents,
-  MuiPaper: { styleOverrides: { root: { backdropFilter: 'blur(20px) saturate(180%)', backgroundColor: 'rgba(255,255,255,0.65)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.3)' } } },
-  MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), backdropFilter: 'blur(20px) saturate(180%)', backgroundColor: 'rgba(255,255,255,0.5)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.3)' }) } },
+  MuiPaper: { styleOverrides: { root: { backdropFilter: 'blur(24px) saturate(200%)', backgroundColor: 'rgba(255,255,255,0.45)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.4)', boxShadow: '0 8px 32px rgba(0,0,0,0.08)' } } },
+  MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), backdropFilter: 'blur(24px) saturate(200%)', backgroundColor: 'rgba(255,255,255,0.35)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.4)', boxShadow: '0 8px 32px rgba(0,0,0,0.08)' }) } },
   MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 20 } } },
   MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 20 } } },
   MuiTableCell: { styleOverrides: { root: { padding: '8px 12px', borderColor: 'rgba(0,0,0,0.06)' } } },
@@ -71,21 +71,21 @@ const glassComponents: ThemeOptions['components'] = {
 };
 const glassDarkComponents: ThemeOptions['components'] = {
   ...baseComponents,
-  MuiPaper: { styleOverrides: { root: { backdropFilter: 'blur(20px) saturate(180%)', backgroundColor: 'rgba(30,30,30,0.7)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)' } } },
-  MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), backdropFilter: 'blur(20px) saturate(180%)', backgroundColor: 'rgba(30,30,30,0.6)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)' }) } },
+  MuiPaper: { styleOverrides: { root: { backdropFilter: 'blur(24px) saturate(200%)', backgroundColor: 'rgba(20,20,20,0.5)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' } } },
+  MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), backdropFilter: 'blur(24px) saturate(200%)', backgroundColor: 'rgba(20,20,20,0.4)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }) } },
   MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 20 } } },
   MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 20 } } },
   MuiTableCell: { styleOverrides: { root: { padding: '8px 12px', borderColor: 'rgba(255,255,255,0.06)' } } },
   MuiTooltip: { defaultProps: { arrow: true } },
 };
 const glassLight = createTheme({
-  palette: { mode: 'light', primary: { main: '#007AFF' }, secondary: { main: '#8E8E93' }, error: { main: '#FF3B30' }, warning: { main: '#FF9500' }, success: { main: '#34C759' }, background: { default: '#F2F2F7', paper: 'rgba(255,255,255,0.65)' } },
+  palette: { mode: 'light', primary: { main: '#007AFF' }, secondary: { main: '#8E8E93' }, error: { main: '#FF3B30' }, warning: { main: '#FF9500' }, success: { main: '#34C759' }, background: { default: 'transparent', paper: 'rgba(255,255,255,0.45)' } },
   typography: { fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif', fontWeightBold: 600, h1: { fontWeight: 600 }, h2: { fontWeight: 600 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600 }, button: { fontWeight: 500 } },
   shape: { borderRadius: 12 },
   components: glassComponents,
 });
 const glassDark = createTheme({
-  palette: { mode: 'dark', primary: { main: '#0A84FF' }, secondary: { main: '#98989D' }, error: { main: '#FF453A' }, warning: { main: '#FF9F0A' }, success: { main: '#30D158' }, background: { default: '#000000', paper: 'rgba(30,30,30,0.7)' } },
+  palette: { mode: 'dark', primary: { main: '#0A84FF' }, secondary: { main: '#98989D' }, error: { main: '#FF453A' }, warning: { main: '#FF9F0A' }, success: { main: '#30D158' }, background: { default: 'transparent', paper: 'rgba(20,20,20,0.5)' } },
   typography: { fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif', fontWeightBold: 600, h1: { fontWeight: 600 }, h2: { fontWeight: 600 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600 }, button: { fontWeight: 500 } },
   shape: { borderRadius: 12 },
   components: glassDarkComponents,

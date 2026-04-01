@@ -14,16 +14,16 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import Slider from '@mui/material/Slider';
+import Tooltip from '@mui/material/Tooltip';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import Link from '@mui/material/Link';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { useRepoConfig } from '../../hooks/useRepoConfig';
 import { useSettings } from '../../hooks/useSettings';
 import { useAuth } from '../../hooks/useAuth';
-import { THEMES, THEME_NAMES } from '../../theme/themes';
+import { THEMES, THEME_NAMES, type ThemeName } from '../../theme/themes';
+import { getBackgroundsForTheme } from '../../theme/backgrounds';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -51,29 +51,86 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Settings</DialogTitle>
       <DialogContent>
-        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+        <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
           Theme
         </Typography>
-        <ToggleButtonGroup
-          value={settings.themeName || 'redgate'}
-          exclusive
-          onChange={(_, val) => val && updateSettings({ themeName: val })}
-          size="small"
-          sx={{ mb: 1, flexWrap: 'wrap' }}
-        >
-          {THEME_NAMES.map((name) => (
-            <ToggleButton key={name} value={name} sx={{ px: 2, py: 0.5, textTransform: 'none' }}>
-              <Box sx={{ textAlign: 'left' }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 1, mb: 2 }}>
+          {THEME_NAMES.map((name) => {
+            const selected = (settings.themeName || 'redgate') === name;
+            return (
+              <Box
+                key={name}
+                onClick={() => updateSettings({ themeName: name })}
+                sx={{
+                  p: 1.5,
+                  borderRadius: 1,
+                  cursor: 'pointer',
+                  border: '2px solid',
+                  borderColor: selected ? 'primary.main' : 'divider',
+                  bgcolor: selected ? 'action.selected' : 'transparent',
+                  '&:hover': { borderColor: 'primary.light' },
+                  transition: 'all 0.15s',
+                }}
+              >
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
                   {THEMES[name].label}
                 </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
                   {THEMES[name].description}
                 </Typography>
               </Box>
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
+            );
+          })}
+        </Box>
+
+        <Divider sx={{ my: 2 }} />
+
+        <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
+          Background
+        </Typography>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 1, mb: 2 }}>
+          {/* No background option */}
+          <Box
+            onClick={() => updateSettings({ backgroundId: '' })}
+            sx={{
+              height: 60,
+              borderRadius: 1,
+              cursor: 'pointer',
+              border: '2px solid',
+              borderColor: !settings.backgroundId ? 'primary.main' : 'divider',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: 'action.hover',
+              '&:hover': { borderColor: 'primary.light' },
+              transition: 'all 0.15s',
+            }}
+          >
+            <Typography variant="caption" color="text.secondary">None</Typography>
+          </Box>
+          {getBackgroundsForTheme((settings.themeName as ThemeName) || 'redgate').map((bg) => {
+            const selected = settings.backgroundId === bg.id;
+            return (
+              <Tooltip key={bg.id} title={bg.label}>
+                <Box
+                  onClick={() => updateSettings({ backgroundId: bg.id })}
+                  sx={{
+                    height: 60,
+                    borderRadius: 1,
+                    cursor: 'pointer',
+                    border: '2px solid',
+                    borderColor: selected ? 'primary.main' : 'transparent',
+                    backgroundImage: `url(${bg.file})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    '&:hover': { borderColor: 'primary.light', transform: 'scale(1.05)' },
+                    transition: 'all 0.15s',
+                  }}
+                />
+              </Tooltip>
+            );
+          })}
+        </Box>
 
         <Divider sx={{ my: 2 }} />
 
