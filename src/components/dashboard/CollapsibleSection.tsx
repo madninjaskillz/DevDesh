@@ -51,22 +51,27 @@ function Win95Buttons({ collapsed, onToggle }: { collapsed: boolean; onToggle: (
   };
   return (
     <Box sx={{ display: 'flex', gap: '2px', ml: 'auto' }} onClick={(e) => e.stopPropagation()}>
-      <Box onClick={onToggle} sx={btnSx}><span style={{ fontSize: '9px' }}>_</span></Box>
-      <Box onClick={onToggle} sx={btnSx}><span style={{ fontSize: '9px' }}>{collapsed ? '□' : '▪'}</span></Box>
+      <Box onClick={onToggle} sx={btnSx}>
+        <span style={{ fontSize: '9px' }}>{collapsed ? '□' : '_'}</span>
+      </Box>
     </Box>
   );
 }
 
 function WinXPButtons({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
-  const btnSx = {
-    width: 20, height: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    borderRadius: '3px', border: '1px solid rgba(0,0,0,0.3)',
-    fontSize: '10px', fontWeight: 700, lineHeight: 1, color: '#fff',
-  };
   return (
     <Box sx={{ display: 'flex', gap: '2px', ml: 'auto' }} onClick={(e) => e.stopPropagation()}>
-      <Box onClick={onToggle} sx={{ ...btnSx, backgroundImage: 'linear-gradient(180deg, #3C8CF5 0%, #1A5FBF 100%)' }}>_</Box>
-      <Box onClick={onToggle} sx={{ ...btnSx, backgroundImage: 'linear-gradient(180deg, #3C8CF5 0%, #1A5FBF 100%)' }}>{collapsed ? '□' : '▪'}</Box>
+      <Box
+        onClick={onToggle}
+        sx={{
+          width: 20, height: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          borderRadius: '3px', border: '1px solid rgba(0,0,0,0.3)',
+          fontSize: '10px', fontWeight: 700, lineHeight: 1, color: '#fff',
+          backgroundImage: 'linear-gradient(180deg, #3C8CF5 0%, #1A5FBF 100%)',
+        }}
+      >
+        {collapsed ? '□' : '_'}
+      </Box>
     </Box>
   );
 }
