@@ -151,8 +151,9 @@ export function CollapsibleSection({ id, title, children, badge, icon, autoColla
 
   const buttonPosition = chrome?.buttonPosition ?? 'right';
   const buttonStyle = chrome?.buttonStyle ?? 'default';
-  const titleBarBg = chrome?.titleBarBg?.(mode);
-  const hasTitleBar = !!titleBarBg || !!chrome;
+  // Use explicit titleBarBg, or fall back to theme headerBg when chrome exists
+  const titleBarBg = chrome?.titleBarBg?.(mode) ?? (chrome ? themeDef.custom.headerBg(mode) : undefined);
+  const hasWindowFrame = !!chrome;
 
   return (
     <Box id={id} sx={{ mt: 3 }}>
@@ -162,15 +163,15 @@ export function CollapsibleSection({ id, title, children, badge, icon, autoColla
           display: 'flex',
           alignItems: 'center',
           cursor: 'pointer',
-          mb: collapsed ? 0 : 1.5,
+          mb: hasWindowFrame ? 0 : (collapsed ? 0 : 1.5),
           userSelect: 'none',
           opacity: badge === 0 && collapsed ? 0.6 : 1,
-          ...(titleBarBg ? {
+          ...(hasWindowFrame ? {
             background: titleBarBg,
-            color: '#fff',
+            color: themeDef.custom.headerColor || '#fff',
             px: 1,
             py: 0.5,
-            borderRadius: hasTitleBar ? '4px 4px 0 0' : undefined,
+            borderRadius: collapsed ? '4px' : '4px 4px 0 0',
           } : {
             py: 0.25,
           }),
@@ -195,7 +196,7 @@ export function CollapsibleSection({ id, title, children, badge, icon, autoColla
             fontSize: chrome?.titleFontSize ?? undefined,
             fontFamily: chrome?.titleFontFamily ?? undefined,
             textTransform: (chrome?.titleTextTransform as any) ?? undefined,
-            color: titleBarBg ? '#fff' : undefined,
+            color: hasWindowFrame ? (themeDef.custom.headerColor || '#fff') : undefined,
             flex: buttonPosition === 'right' ? undefined : 1,
           }}
         >
@@ -236,7 +237,20 @@ export function CollapsibleSection({ id, title, children, badge, icon, autoColla
       </Box>
 
       <Collapse in={!collapsed}>
-        {children}
+        {hasWindowFrame ? (
+          <Box sx={{
+            border: '1px solid',
+            borderColor: 'divider',
+            borderTop: 'none',
+            borderRadius: '0 0 4px 4px',
+            p: 1.5,
+            bgcolor: 'background.paper',
+          }}>
+            {children}
+          </Box>
+        ) : (
+          children
+        )}
       </Collapse>
     </Box>
   );
