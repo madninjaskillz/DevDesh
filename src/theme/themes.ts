@@ -52,6 +52,76 @@ const baseComponents: ThemeOptions['components'] = {
   MuiTooltip: { defaultProps: { arrow: true } },
 };
 
+// === Tab style presets for different OS families ===
+const win9xTabs: ThemeOptions['components'] = {
+  MuiTabs: { styleOverrides: { root: { minHeight: 28, borderBottom: 'none' }, indicator: { display: 'none' } } },
+  MuiTab: { styleOverrides: { root: { minHeight: 28, textTransform: 'none', fontSize: '0.75rem', fontWeight: 700, padding: '2px 12px', borderRadius: 0, bgcolor: '#C0C0C0', border: '1px solid #000', borderBottom: 'none', boxShadow: 'inset -1px 0 0 #808080, inset 1px 1px 0 #fff', marginRight: '1px', '&.Mui-selected': { bgcolor: '#D4D4D4', borderBottom: '1px solid #D4D4D4', zIndex: 1, position: 'relative', top: '1px' } } } },
+};
+const winxpTabs: ThemeOptions['components'] = {
+  MuiTabs: { styleOverrides: { root: { minHeight: 30 }, indicator: { display: 'none' } } },
+  MuiTab: { styleOverrides: { root: { minHeight: 30, textTransform: 'none', fontSize: '0.8rem', fontWeight: 600, borderRadius: '6px 6px 0 0', padding: '4px 16px', fontFamily: 'Tahoma, sans-serif', '&.Mui-selected': { backgroundImage: 'linear-gradient(180deg, #ECF4FC 0%, #D6E8FA 100%)', border: '1px solid #AEB2B5', borderBottom: 'none' } } } },
+};
+const macTabs: ThemeOptions['components'] = {
+  MuiTabs: { styleOverrides: { root: { minHeight: 30 }, indicator: { height: 2, borderRadius: 1 } } },
+  MuiTab: { styleOverrides: { root: { minHeight: 30, textTransform: 'none', fontSize: '0.8rem', fontWeight: 500, borderRadius: '6px 6px 0 0', padding: '4px 14px' } } },
+};
+const mac9Tabs: ThemeOptions['components'] = {
+  MuiTabs: { styleOverrides: { root: { minHeight: 26 }, indicator: { display: 'none' } } },
+  MuiTab: { styleOverrides: { root: { minHeight: 26, textTransform: 'none', fontSize: '0.75rem', fontWeight: 700, fontFamily: '"Lucida Grande", Geneva, sans-serif', padding: '2px 12px', borderRadius: '4px 4px 0 0', border: '1px solid #999', borderBottom: 'none', bgcolor: '#CCCCCC', '&.Mui-selected': { bgcolor: '#ECECEC' } } } },
+};
+const amigaTabs: ThemeOptions['components'] = {
+  MuiTabs: { styleOverrides: { root: { minHeight: 22 }, indicator: { display: 'none' } } },
+  MuiTab: { styleOverrides: { root: { minHeight: 22, textTransform: 'none', fontSize: '0.7rem', fontWeight: 700, fontFamily: '"Courier New", monospace', padding: '1px 10px', borderRadius: 0, border: '2px solid #000', bgcolor: '#AAAAAA', color: '#000', '&.Mui-selected': { bgcolor: '#FF8800', color: '#000' } } } },
+};
+const c64Tabs: ThemeOptions['components'] = {
+  MuiTabs: { styleOverrides: { root: { minHeight: 22 }, indicator: { display: 'none' } } },
+  MuiTab: { styleOverrides: { root: { minHeight: 22, textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 700, fontFamily: '"Courier New", monospace', padding: '1px 10px', borderRadius: 0, border: '2px solid #A8A8FF', color: '#A8A8FF', '&.Mui-selected': { bgcolor: '#A8A8FF', color: '#40318D' } } } },
+};
+const dosTabs: ThemeOptions['components'] = {
+  MuiTabs: { styleOverrides: { root: { minHeight: 22 }, indicator: { display: 'none' } } },
+  MuiTab: { styleOverrides: { root: { minHeight: 22, textTransform: 'uppercase', fontSize: '0.8rem', fontWeight: 400, fontFamily: '"Fixedsys Excelsior", "Courier New", monospace', padding: '1px 10px', borderRadius: 0, border: '1px solid #555', color: '#AAA', '&.Mui-selected': { bgcolor: '#222', color: '#FFF', borderColor: '#AAA' } } } },
+};
+const terminalTabs: ThemeOptions['components'] = {
+  MuiTabs: { styleOverrides: { root: { minHeight: 22 }, indicator: { bgcolor: '#00FF00', height: 2 } } },
+  MuiTab: { styleOverrides: { root: { minHeight: 22, textTransform: 'uppercase', fontSize: '0.8rem', fontWeight: 400, fontFamily: '"Fira Code", "Roboto Mono", monospace', padding: '1px 10px', borderRadius: 0, color: '#009900', '&.Mui-selected': { color: '#00FF00' } } } },
+};
+const beosTabs: ThemeOptions['components'] = {
+  MuiTabs: { styleOverrides: { root: { minHeight: 24 }, indicator: { display: 'none' } } },
+  MuiTab: { styleOverrides: { root: { minHeight: 24, textTransform: 'none', fontSize: '0.75rem', fontWeight: 600, padding: '2px 12px', borderRadius: 0, border: '1px solid #999', borderBottom: 'none', bgcolor: '#D4D4D4', '&.Mui-selected': { bgcolor: '#CCCC00', color: '#000', borderColor: '#999' } } } },
+};
+const nextstepTabs: ThemeOptions['components'] = {
+  MuiTabs: { styleOverrides: { root: { minHeight: 24 }, indicator: { display: 'none' } } },
+  MuiTab: { styleOverrides: { root: { minHeight: 24, textTransform: 'none', fontSize: '0.75rem', fontWeight: 600, fontFamily: '"Helvetica Neue", Helvetica, sans-serif', padding: '2px 12px', borderRadius: 0, border: '2px solid #000', bgcolor: '#888', color: '#000', boxShadow: 'inset -1px -1px 0 #555, inset 1px 1px 0 #BBB', '&.Mui-selected': { bgcolor: '#AAA' } } } },
+};
+const irixTabs: ThemeOptions['components'] = {
+  MuiTabs: { styleOverrides: { root: { minHeight: 24 }, indicator: { display: 'none' } } },
+  MuiTab: { styleOverrides: { root: { minHeight: 24, textTransform: 'none', fontSize: '0.75rem', fontWeight: 600, padding: '2px 12px', borderRadius: 0, border: '1px solid #8A7AAA', bgcolor: '#C0B8D0', boxShadow: 'inset -1px -1px 0 #6A5A8A, inset 1px 1px 0 #E0D8F0', '&.Mui-selected': { bgcolor: '#D8D0E8' } } } },
+};
+const os2Tabs: ThemeOptions['components'] = {
+  MuiTabs: { styleOverrides: { root: { minHeight: 24 }, indicator: { display: 'none' } } },
+  MuiTab: { styleOverrides: { root: { minHeight: 24, textTransform: 'none', fontSize: '0.75rem', fontWeight: 600, padding: '2px 12px', borderRadius: 0, border: '1px solid #808080', bgcolor: '#D4D4D4', boxShadow: 'inset -1px -1px 0 #404040, inset 1px 1px 0 #fff', '&.Mui-selected': { bgcolor: '#E0E0E0' } } } },
+};
+const palmTabs: ThemeOptions['components'] = {
+  MuiTabs: { styleOverrides: { root: { minHeight: 20 }, indicator: { bgcolor: '#336699', height: 2 } } },
+  MuiTab: { styleOverrides: { root: { minHeight: 20, textTransform: 'none', fontSize: '0.7rem', fontWeight: 700, fontFamily: '"Geneva", "Helvetica Neue", sans-serif', padding: '1px 8px' } } },
+};
+const fluentTabs: ThemeOptions['components'] = {
+  MuiTabs: { styleOverrides: { root: { minHeight: 32 }, indicator: { height: 3, borderRadius: 1.5 } } },
+  MuiTab: { styleOverrides: { root: { minHeight: 32, textTransform: 'none', fontSize: '0.85rem', fontWeight: 600, padding: '4px 14px', borderRadius: '4px 4px 0 0', transition: 'background 100ms ease-out', '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' } } } },
+};
+const cyberpunkTabs: ThemeOptions['components'] = {
+  MuiTabs: { styleOverrides: { root: { minHeight: 26 }, indicator: { bgcolor: '#00FFFF', height: 2, boxShadow: '0 0 6px #00FFFF' } } },
+  MuiTab: { styleOverrides: { root: { minHeight: 26, textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', fontFamily: '"Rajdhani", "Roboto", sans-serif', color: '#8888CC', '&.Mui-selected': { color: '#00FFFF' } } } },
+};
+const synthwaveTabs: ThemeOptions['components'] = {
+  MuiTabs: { styleOverrides: { root: { minHeight: 26 }, indicator: { bgcolor: '#FF7EDB', height: 2, boxShadow: '0 0 6px #FF7EDB' } } },
+  MuiTab: { styleOverrides: { root: { minHeight: 26, textTransform: 'none', fontSize: '0.75rem', fontWeight: 600, fontFamily: '"Orbitron", "Rajdhani", sans-serif', color: '#B4A5CC', '&.Mui-selected': { color: '#FF7EDB' } } } },
+};
+const vaporwaveTabs: ThemeOptions['components'] = {
+  MuiTabs: { styleOverrides: { root: { minHeight: 26 }, indicator: { bgcolor: '#FF71CE', height: 2, boxShadow: '0 0 6px #FF71CE' } } },
+  MuiTab: { styleOverrides: { root: { minHeight: 26, textTransform: 'none', fontSize: '0.75rem', fontWeight: 600, color: '#B967FF', '&.Mui-selected': { color: '#FF71CE' } } } },
+};
+
 // === 1. REDGATE ===
 const redgateLight = createTheme({
   palette: {
@@ -839,6 +909,22 @@ const paperDark = createTheme({ palette: { mode: 'dark', primary: { main: '#CCCC
 const vaporwaveLight = createTheme({ palette: { mode: 'dark', primary: { main: '#FF71CE' }, secondary: { main: '#01CDFE' }, error: { main: '#FF0066' }, warning: { main: '#FFFB96' }, success: { main: '#05FFA1' }, background: { default: '#2D1B69', paper: '#3D2B79' }, text: { primary: '#FF71CE', secondary: '#B967FF' } }, typography: { fontFamily: '"Rajdhani", "Roboto", sans-serif', h1: { fontWeight: 700, letterSpacing: '0.05em' }, h2: { fontWeight: 700 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600, letterSpacing: '0.05em' }, button: { fontWeight: 600 } }, shape: { borderRadius: 4 }, components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 4, border: '1px solid #B967FF40', boxShadow: '0 0 10px rgba(185,103,255,0.1)', backgroundColor: '#3D2B79' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 4, border: '1px solid #FF71CE30', backgroundColor: '#3D2B79' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 4, border: '1px solid #FF71CE50', '&:hover': { boxShadow: '0 0 12px rgba(255,113,206,0.3)' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 4 } } }, MuiTableCell: { styleOverrides: { root: { padding: '6px 10px', borderColor: '#B967FF20' } } }, MuiTooltip: { defaultProps: { arrow: false } } } });
 const vaporwaveDark = createTheme({ palette: { mode: 'dark', primary: { main: '#FF71CE' }, secondary: { main: '#01CDFE' }, error: { main: '#FF0066' }, warning: { main: '#FFFB96' }, success: { main: '#05FFA1' }, background: { default: '#1A0A40', paper: '#2A1A55' }, text: { primary: '#FF71CE', secondary: '#9955DD' } }, typography: { fontFamily: '"Rajdhani", "Roboto", sans-serif', h1: { fontWeight: 700, letterSpacing: '0.05em' }, h2: { fontWeight: 700 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600, letterSpacing: '0.05em' }, button: { fontWeight: 600 } }, shape: { borderRadius: 4 }, components: { ...baseComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 4, border: '1px solid #B967FF30', boxShadow: '0 0 8px rgba(185,103,255,0.08)', backgroundColor: '#2A1A55' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 4, border: '1px solid #FF71CE25', backgroundColor: '#2A1A55' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 4, border: '1px solid #FF71CE40', '&:hover': { boxShadow: '0 0 12px rgba(255,113,206,0.25)' } } } }, MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 4 } } }, MuiTableCell: { styleOverrides: { root: { padding: '6px 10px', borderColor: '#B967FF15' } } }, MuiTooltip: { defaultProps: { arrow: false } } } });
 
+// Apply tab overrides to a theme
+function applyTabs(theme: Theme, tabs: ThemeOptions['components']): Theme {
+  if (!tabs) return theme;
+  return createTheme(theme, { components: tabs });
+}
+
+// Map theme names to their tab presets
+const tabPresets: Partial<Record<ThemeName, ThemeOptions['components']>> = {
+  win95: win9xTabs, win31: win9xTabs, winxp: winxpTabs, vista: winxpTabs,
+  fluent: fluentTabs, macos9: mac9Tabs, aqua: macTabs, sonoma: macTabs, ios: macTabs,
+  amiga: amigaTabs, c64: c64Tabs, msdos: dosTabs, terminal: terminalTabs,
+  beos: beosTabs, nextstep: nextstepTabs, irix: irixTabs, os2: os2Tabs, palmos: palmTabs,
+  cyberpunk: cyberpunkTabs, synthwave: synthwaveTabs, vaporwave: vaporwaveTabs,
+  gnome: macTabs, ubuntu: macTabs, android: macTabs, chromeos: macTabs,
+};
+
 // === Registry ===
 export const THEMES: Record<ThemeName, AppThemeDef> = {
   // ── Redgate (always first, ungrouped) ──
@@ -891,6 +977,15 @@ export const THEMES: Record<ThemeName, AppThemeDef> = {
   terminal: { name: 'terminal', label: 'Vibe - Terminal', description: 'Green on black hacker aesthetic', light: terminalLight, dark: terminalDark, custom: { headerBg: () => '#0A0A0A', headerColor: '#00FF00', brandBlockBg: '#003300', brandBlockColor: '#00FF00', sidebarBg: () => 'transparent', cardBorderRadius: 0 } },
   vaporwave: { name: 'vaporwave', label: 'Vibe - Vaporwave', description: 'Pink/purple retro aesthetic', light: vaporwaveLight, dark: vaporwaveDark, custom: { headerBg: () => '#2D1B69', headerColor: '#FF71CE', brandBlockBg: '#FF71CE', brandBlockColor: '#2D1B69', sidebarBg: () => 'transparent', cardBorderRadius: 4 } },
 };
+
+// Apply tab presets to all themes
+for (const [name, preset] of Object.entries(tabPresets)) {
+  const theme = THEMES[name as ThemeName];
+  if (theme && preset) {
+    theme.light = applyTabs(theme.light, preset);
+    theme.dark = applyTabs(theme.dark, preset);
+  }
+}
 
 /** Ordered theme list: Redgate first, then groups alphabetically */
 export const THEME_NAMES: ThemeName[] = [
