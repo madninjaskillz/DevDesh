@@ -61,7 +61,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
         <Tab label="GitHub" />
         <Tab label="Thresholds" />
       </Tabs>
-      <DialogContent sx={{ pt: 2.5 }}>
+      <DialogContent sx={{ pt: 2.5, minHeight: 420 }}>
 
         {/* === VISUAL TAB === */}
         {tab === 0 && (
