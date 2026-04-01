@@ -22,8 +22,11 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useRepoConfig } from '../../hooks/useRepoConfig';
 import { useSettings } from '../../hooks/useSettings';
 import { useAuth } from '../../hooks/useAuth';
-import { THEMES, THEME_NAMES, type ThemeName } from '../../theme/themes';
-import { getBackgroundsForTheme } from '../../theme/backgrounds';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import { THEMES, THEME_NAMES } from '../../theme/themes';
+import { BACKGROUNDS, THEME_DEFAULT_BACKGROUND } from '../../theme/backgrounds';
+import { useThemeMode } from '../../theme/ThemeProvider';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -33,6 +36,7 @@ interface SettingsDialogProps {
 export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   const { repos, addRepo, removeRepo, isValidating, error } = useRepoConfig();
   const { settings, updateSettings } = useSettings();
+  const { mode, toggleTheme } = useThemeMode();
   const { token, login, isLoading: authLoading, error: authError } = useAuth();
   const [owner, setOwner] = useState('');
   const [repo, setRepo] = useState('');
@@ -51,6 +55,31 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Settings</DialogTitle>
       <DialogContent>
+        {/* Appearance: mode toggle */}
+        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+          Appearance
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+          <Button
+            variant={mode === 'light' ? 'contained' : 'outlined'}
+            size="small"
+            startIcon={<LightModeIcon />}
+            onClick={() => { if (mode !== 'light') toggleTheme(); }}
+          >
+            Light
+          </Button>
+          <Button
+            variant={mode === 'dark' ? 'contained' : 'outlined'}
+            size="small"
+            startIcon={<DarkModeIcon />}
+            onClick={() => { if (mode !== 'dark') toggleTheme(); }}
+          >
+            Dark
+          </Button>
+        </Box>
+
+        <Divider sx={{ my: 2 }} />
+
         <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
           Theme
         </Typography>
@@ -60,7 +89,10 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
             return (
               <Box
                 key={name}
-                onClick={() => updateSettings({ themeName: name })}
+                onClick={() => {
+                  const defaultBg = THEME_DEFAULT_BACKGROUND[name] ?? '';
+                  updateSettings({ themeName: name, backgroundId: defaultBg });
+                }}
                 sx={{
                   p: 1.5,
                   borderRadius: 1,
@@ -89,7 +121,6 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
           Background
         </Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 1, mb: 2 }}>
-          {/* No background option */}
           <Box
             onClick={() => updateSettings({ backgroundId: '' })}
             sx={{
@@ -108,7 +139,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
           >
             <Typography variant="caption" color="text.secondary">None</Typography>
           </Box>
-          {getBackgroundsForTheme((settings.themeName as ThemeName) || 'redgate').map((bg) => {
+          {BACKGROUNDS.map((bg) => {
             const selected = settings.backgroundId === bg.id;
             return (
               <Tooltip key={bg.id} title={bg.label}>
