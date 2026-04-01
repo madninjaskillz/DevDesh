@@ -34,7 +34,7 @@ export const BACKGROUNDS: BackgroundDef[] = [
   { id: 'terminal-matrix', label: 'Matrix', file: `${BASE}terminal-matrix.jpg` },
   { id: 'amiga-workbench', label: 'Amiga', file: `${BASE}amiga-workbench.jpg` },
   { id: 'beos-desktop', label: 'BeOS', file: `${BASE}beos-desktop.jpg` },
-  { id: 'ubuntu-warty', label: 'Ubuntu', file: `${BASE}ubuntu-warty.jpg` },
+  { id: 'ubuntu-warty', label: 'Ubuntu Warty', file: `${BASE}ubuntu-warty.png` },
   { id: 'ios-gradient', label: 'iOS Gradient', file: `${BASE}ios-gradient.jpg` },
   { id: 'android-material', label: 'Material', file: `${BASE}android-material.jpg` },
   { id: 'chromeos-blue', label: 'Chrome Blue', file: `${BASE}chromeos-blue.jpg` },
