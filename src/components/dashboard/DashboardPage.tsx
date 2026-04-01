@@ -152,7 +152,13 @@ export function DashboardPage() {
   };
 
   return (
-    <Box sx={{ display: 'flex', gap: 3, fontSize: settings.compactMode ? '0.85rem' : undefined }}>
+    <Box sx={{
+      display: 'flex',
+      gap: 3,
+      fontSize: settings.compactMode ? '0.85rem' : undefined,
+      // Text shadow for readability when a background image is active
+      ...(settings.backgroundId ? { '& > * > .MuiTypography-h5, & > * > .MuiTypography-h6, & > * > .MuiTypography-body1': { textShadow: '0 1px 3px rgba(0,0,0,0.15)' } } : {}),
+    }}>
       <Sidebar badges={sidebarBadges} />
       <Box sx={{ flex: 1, minWidth: 0, '& .MuiTableCell-root': settings.compactMode ? { py: 0.25, px: 0.75, fontSize: '0.8rem' } : undefined }}>
       {/* Header */}

@@ -1,12 +1,22 @@
 import type { ReactNode } from 'react';
 import Box from '@mui/material/Box';
+import { useTheme } from '@mui/material/styles';
 import { AppHeader } from './AppHeader';
 import { useSettings } from '../../hooks/useSettings';
+import { useThemeMode } from '../../theme/ThemeProvider';
 import { getBackgroundById } from '../../theme/backgrounds';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { settings } = useSettings();
+  const { themeDef } = useThemeMode();
+  const theme = useTheme();
   const bg = settings.backgroundId ? getBackgroundById(settings.backgroundId) : null;
+  const isDark = theme.palette.mode === 'dark';
+
+  // Translucent themes (glass, fluent) already have blurred surfaces,
+  // so they need a lighter scrim. Opaque themes need more.
+  const isTranslucentTheme = themeDef.name === 'glass' || themeDef.name === 'fluent';
+  const scrimOpacity = isTranslucentTheme ? 0.25 : 0.5;
 
   return (
     <Box
@@ -24,7 +34,18 @@ export function AppLayout({ children }: { children: ReactNode }) {
     >
       <AppHeader />
       <Box sx={{ height: 44 }} />
-      <Box sx={{ flex: 1, py: 3, px: 3 }}>
+      <Box
+        sx={{
+          flex: 1,
+          py: 3,
+          px: 3,
+          ...(bg ? {
+            backgroundColor: isDark
+              ? `rgba(0,0,0,${scrimOpacity})`
+              : `rgba(255,255,255,${scrimOpacity})`,
+          } : {}),
+        }}
+      >
         {children}
       </Box>
     </Box>
