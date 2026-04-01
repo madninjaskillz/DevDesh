@@ -81,12 +81,18 @@ export function Sidebar({ badges = {} }: SidebarProps) {
         width,
         flexShrink: 0,
         position: 'sticky',
-        top: 56, // 44px header + 12px padding
+        top: 56,
         alignSelf: 'flex-start',
         maxHeight: 'calc(100vh - 56px)',
         overflow: 'auto',
         display: { xs: 'none', lg: 'block' },
         transition: 'width 0.2s ease',
+        bgcolor: 'background.paper',
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: 'divider',
+        py: 1,
+        px: collapsed ? 0.5 : 1,
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: collapsed ? 'center' : 'flex-end', mb: 0.5 }}>
