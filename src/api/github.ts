@@ -327,8 +327,8 @@ export async function getIssueLinkedPRs(
   repo: string,
   issueNumbers: number[],
   token: string,
-): Promise<Map<number, LinkedPR[]>> {
-  if (issueNumbers.length === 0) return new Map();
+): Promise<Record<number, LinkedPR[]>> {
+  if (issueNumbers.length === 0) return {};
 
   const issueFragments = issueNumbers.map(
     (num, i) => `issue${i}: issue(number: ${num}) {
@@ -386,14 +386,14 @@ export async function getIssueLinkedPRs(
   const json = await res.json();
   // Don't throw on partial errors — extract what we can
   const repoData = json.data?.repository;
-  if (!repoData) return new Map();
+  if (!repoData) return {};
 
-  const result = new Map<number, LinkedPR[]>();
+  const result: Record<number, LinkedPR[]> = {};
 
   issueNumbers.forEach((num, i) => {
     const issueData = repoData[`issue${i}`];
     if (!issueData) {
-      result.set(num, []);
+      result[num] = [];
       return;
     }
 
@@ -413,7 +413,7 @@ export async function getIssueLinkedPRs(
       }
     }
 
-    result.set(num, prs);
+    result[num] = prs;
   });
 
   return result;
@@ -424,8 +424,8 @@ export async function getIssueProjectStatuses(
   repo: string,
   issueNumbers: number[],
   token: string,
-): Promise<Map<number, { name: string; color: string } | null>> {
-  if (issueNumbers.length === 0) return new Map();
+): Promise<Record<number, { name: string; color: string } | null>> {
+  if (issueNumbers.length === 0) return {};
 
   const issueFragments = issueNumbers.map(
     (num, i) => `issue${i}: issue(number: ${num}) {
@@ -456,18 +456,18 @@ export async function getIssueProjectStatuses(
       body: JSON.stringify({ query, variables: { owner, repo } }),
     });
 
-    if (!res.ok) return new Map();
+    if (!res.ok) return {};
 
     const json = await res.json();
     const repoData = json.data?.repository;
-    if (!repoData) return new Map();
+    if (!repoData) return {};
 
-    const result = new Map<number, { name: string; color: string } | null>();
+    const result: Record<number, { name: string; color: string } | null> = {};
 
     issueNumbers.forEach((num, i) => {
       const issueData = repoData[`issue${i}`];
       if (!issueData?.projectItems?.nodes) {
-        result.set(num, null);
+        result[num] = null;
         return;
       }
 
@@ -479,13 +479,13 @@ export async function getIssueProjectStatuses(
           break;
         }
       }
-      result.set(num, status);
+      result[num] = status;
     });
 
     return result;
   } catch {
     // Project status is non-critical — fail silently
-    return new Map();
+    return {};
   }
 }
 

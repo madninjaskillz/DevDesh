@@ -70,8 +70,8 @@ export function useAssignedIssues() {
   const issues: DashboardIssue[] = useMemo(() => {
     return queries
       .flatMap((q, idx) => {
-        const linkedPRMap = linkedPRQueries[idx]?.data as Map<number, import('../types/github').LinkedPR[]> | undefined;
-        const statusMap = projectStatusQueries[idx]?.data as Map<number, { name: string; color: string } | null> | undefined;
+        const linkedPRMap = linkedPRQueries[idx]?.data as Record<number, import('../types/github').LinkedPR[]> | undefined;
+        const statusMap = projectStatusQueries[idx]?.data as Record<number, { name: string; color: string } | null> | undefined;
         return (q.data ?? []).map((issue) => ({
           number: issue.number,
           title: issue.title,
@@ -82,8 +82,8 @@ export function useAssignedIssues() {
           repoName: repos[idx].repo,
           repoFullName: `${repos[idx].owner}/${repos[idx].repo}`,
           updatedAt: issue.updated_at,
-          linkedPRs: linkedPRMap?.get(issue.number) ?? [],
-          projectStatus: statusMap?.get(issue.number) ?? null,
+          linkedPRs: recordGet(linkedPRMap, issue.number) ?? [],
+          projectStatus: recordGet(statusMap, issue.number) ?? null,
           assignees: issue.assignees ?? [],
         }));
       })
@@ -510,6 +510,12 @@ export function useRecentCommits() {
   }, [queries.map((q) => q.dataUpdatedAt).join(','), repos]);
 
   return { commits, isLoading };
+}
+
+/** Get from a Record<number, V> — keys may be numbers or strings after JSON round-trip */
+function recordGet<V>(obj: Record<number, V> | undefined, key: number): V | undefined {
+  if (!obj) return undefined;
+  return obj[key] ?? obj[String(key) as any];
 }
 
 function dedup<T>(items: T[], key: (item: T) => string): T[] {
