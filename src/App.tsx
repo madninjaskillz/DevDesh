@@ -19,7 +19,15 @@ const TEN_MINUTES = 10 * 60 * 1000;
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
+      retry: (failureCount, error) => {
+        // Retry up to 3 times for transient server errors (5xx, network/CORS)
+        if (failureCount >= 3) return false;
+        const status = (error as any)?.status;
+        if (status === 0 || (status >= 500 && status < 600)) return true;
+        // Don't retry client errors (401, 403, 404, etc.)
+        return false;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
       refetchOnWindowFocus: true,
       gcTime: TEN_MINUTES,
       staleTime: 5 * 60 * 1000,
