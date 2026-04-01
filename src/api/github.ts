@@ -33,8 +33,18 @@ function headers(token: string) {
   };
 }
 
+async function safeFetch(url: string, init: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch (err) {
+    // CORS errors and network failures throw TypeError before we get a Response.
+    // Wrap them as a GitHubApiError so callers handle them uniformly.
+    throw new GitHubApiError(0, `Network/CORS error: ${err instanceof Error ? err.message : 'fetch failed'}`, new Headers());
+  }
+}
+
 async function fetchJSON<T>(url: string, token: string): Promise<T> {
-  const res = await fetch(url, { headers: headers(token) });
+  const res = await safeFetch(url, { headers: headers(token) });
   trackRateLimit(res);
   if (!res.ok) {
     const body = await res.text().catch(() => '');
@@ -48,7 +58,7 @@ async function fetchAllPages<T>(url: string, token: string): Promise<T[]> {
   let nextUrl: string | null = `${url}${url.includes('?') ? '&' : '?'}per_page=100`;
 
   while (nextUrl) {
-    const res = await fetch(nextUrl, { headers: headers(token) });
+    const res = await safeFetch(nextUrl, { headers: headers(token) });
     trackRateLimit(res);
     if (!res.ok) {
       const body = await res.text().catch(() => '');
@@ -245,7 +255,7 @@ export async function getPRGraphQLData(
     }
   `;
 
-  const res = await fetch(GRAPHQL_URL, {
+  const res = await safeFetch(GRAPHQL_URL, {
     method: 'POST',
     headers: headers(token),
     body: JSON.stringify({
@@ -362,7 +372,7 @@ export async function getIssueLinkedPRs(
     }
   }`;
 
-  const res = await fetch(GRAPHQL_URL, {
+  const res = await safeFetch(GRAPHQL_URL, {
     method: 'POST',
     headers: headers(token),
     body: JSON.stringify({ query, variables: { owner, repo } }),
@@ -440,7 +450,7 @@ export async function getIssueProjectStatuses(
   }`;
 
   try {
-    const res = await fetch(GRAPHQL_URL, {
+    const res = await safeFetch(GRAPHQL_URL, {
       method: 'POST',
       headers: headers(token),
       body: JSON.stringify({ query, variables: { owner, repo } }),
@@ -567,7 +577,7 @@ export async function updatePRBody(
   body: string,
   token: string,
 ): Promise<void> {
-  const res = await fetch(`${API_BASE}/repos/${owner}/${repo}/pulls/${prNumber}`, {
+  const res = await safeFetch(`${API_BASE}/repos/${owner}/${repo}/pulls/${prNumber}`, {
     method: 'PATCH',
     headers: { ...headers(token), 'Content-Type': 'application/json' },
     body: JSON.stringify({ body }),
@@ -613,7 +623,7 @@ export async function mergePR(
   prNumber: number,
   token: string,
 ): Promise<void> {
-  const res = await fetch(`${API_BASE}/repos/${owner}/${repo}/pulls/${prNumber}/merge`, {
+  const res = await safeFetch(`${API_BASE}/repos/${owner}/${repo}/pulls/${prNumber}/merge`, {
     method: 'PUT',
     headers: { ...headers(token), 'Content-Type': 'application/json' },
     body: JSON.stringify({ merge_method: 'squash' }),
