@@ -772,217 +772,54 @@ const msdosDark = createTheme({
 
 // === Registry ===
 export const THEMES: Record<ThemeName, AppThemeDef> = {
-  redgate: {
-    name: 'redgate', label: 'Redgate', description: 'Official Redgate product styling',
-    light: redgateLight, dark: redgateDark,
-    custom: {
-      headerBg: () => colors.gray[7],
-      headerColor: colors.white,
-      brandBlockBg: colors.red.brand,
-      brandBlockColor: colors.white,
-      sidebarBg: () => 'transparent',
-      cardBorderRadius: 4,
-    },
-  },
-  glass: {
-    name: 'glass', label: 'Apple Glass', description: 'Translucent glass with blur effects',
-    light: glassLight, dark: glassDark,
-    custom: {
-      headerBg: (m) => m === 'dark' ? 'rgba(30,30,30,0.8)' : 'rgba(255,255,255,0.7)',
-      headerColor: '',  // uses theme default
-      brandBlockBg: '#007AFF',
-      brandBlockColor: '#fff',
-      sidebarBg: () => 'transparent',
-      cardBorderRadius: 16,
-      globalCss: () => 'body { backdrop-filter: none; } .MuiAppBar-root { backdrop-filter: blur(20px) saturate(180%); }',
-    },
-  },
-  metro: {
-    name: 'metro', label: 'Metro', description: 'Bold, flat Windows Phone style',
-    light: metroLight, dark: metroDark,
-    custom: {
-      headerBg: () => '#0078D7',
-      headerColor: '#fff',
-      brandBlockBg: '#005A9E',
-      brandBlockColor: '#fff',
-      sidebarBg: () => 'transparent',
-      cardBorderRadius: 0,
-    },
-  },
-  fluent: {
-    name: 'fluent', label: 'Fluent', description: 'Windows 11 Fluent Design System',
-    light: fluentLight, dark: fluentDark,
-    custom: {
-      headerBg: (m) => m === 'dark' ? 'rgba(28,28,28,0.8)' : 'rgba(249,249,249,0.8)',
-      headerColor: '',
-      brandBlockBg: '#0078D4',
-      brandBlockColor: '#fff',
-      sidebarBg: () => 'transparent',
-      cardBorderRadius: 8,
-    },
-  },
-  win95: {
-    name: 'win95', label: 'Win95', description: 'Classic Windows 95 retro look',
-    light: win95Light, dark: win95Dark,
-    custom: {
-      headerBg: () => '#000080',
-      headerColor: '#fff',
-      brandBlockBg: '#C0C0C0',
-      brandBlockColor: '#000',
-      sidebarBg: () => 'transparent',
-      cardBorderRadius: 0,
-    },
-  },
-  winxp: {
-    name: 'winxp', label: 'Windows XP', description: 'Luna blue theme with gradient buttons',
-    light: winxpLight, dark: winxpDark,
-    custom: {
-      headerBg: (m) => m === 'dark' ? 'linear-gradient(180deg, #1E3A5F 0%, #0F2744 100%)' : 'linear-gradient(180deg, #0A246A 0%, #3A6EA5 50%, #0A246A 100%)',
-      headerColor: '#fff',
-      brandBlockBg: '#2A8E2A',
-      brandBlockColor: '#fff',
-      sidebarBg: () => 'transparent',
-      cardBorderRadius: 8,
-    },
-  },
-  macos9: {
-    name: 'macos9', label: 'Mac OS 9', description: 'Classic Platinum grey with rounded buttons',
-    light: macos9Light, dark: macos9Dark,
-    custom: {
-      headerBg: () => 'linear-gradient(180deg, #CCCCDD 0%, #AAAABB 100%)',
-      headerColor: '#000',
-      brandBlockBg: '#6699CC',
-      brandBlockColor: '#fff',
-      sidebarBg: () => 'transparent',
-      cardBorderRadius: 4,
-    },
-  },
-  aqua: {
-    name: 'aqua', label: 'macOS Aqua', description: 'Glossy gel buttons and translucent blue',
-    light: aquaLight, dark: aquaDark,
-    custom: {
-      headerBg: (m) => m === 'dark' ? 'rgba(20,20,30,0.8)' : 'linear-gradient(180deg, rgba(200,220,255,0.9) 0%, rgba(160,190,240,0.85) 100%)',
-      headerColor: '',
-      brandBlockBg: '#2680EB',
-      brandBlockColor: '#fff',
-      sidebarBg: () => 'transparent',
-      cardBorderRadius: 10,
-    },
-  },
-  vista: {
-    name: 'vista', label: 'Windows Vista', description: 'Aero Glass with blur and glow effects',
-    light: vistaLight, dark: vistaDark,
-    custom: {
-      headerBg: (m) => m === 'dark' ? 'rgba(15,20,30,0.75)' : 'rgba(200,220,240,0.65)',
-      headerColor: '',
-      brandBlockBg: '#1B5FA0',
-      brandBlockColor: '#fff',
-      sidebarBg: () => 'transparent',
-      cardBorderRadius: 6,
-    },
-  },
-  cyberpunk: {
-    name: 'cyberpunk', label: 'Cyberpunk', description: 'Neon glow on dark with sharp edges',
-    light: cyberLight, dark: cyberDark,
-    custom: {
-      headerBg: () => 'rgba(8,5,15,0.9)',
-      headerColor: '#00FFFF',
-      brandBlockBg: '#FF00FF',
-      brandBlockColor: '#000',
-      sidebarBg: () => 'transparent',
-      cardBorderRadius: 2,
-    },
-  },
-  nord: {
-    name: 'nord', label: 'Nord', description: 'Arctic blue-grey, calm and clean',
-    light: nordLight, dark: nordDark,
-    custom: { headerBg: (m) => m === 'dark' ? '#2E3440' : '#D8DEE9', headerColor: '', brandBlockBg: '#5E81AC', brandBlockColor: '#ECEFF4', sidebarBg: () => 'transparent', cardBorderRadius: 8 },
-  },
-  dracula: {
-    name: 'dracula', label: 'Dracula', description: 'Iconic purple/pink dark theme',
-    light: draculaLight, dark: draculaDark,
-    custom: { headerBg: (m) => m === 'dark' ? '#282A36' : '#F8F8F2', headerColor: '', brandBlockBg: '#BD93F9', brandBlockColor: '#282A36', sidebarBg: () => 'transparent', cardBorderRadius: 8 },
-  },
-  solarized: {
-    name: 'solarized', label: 'Solarized', description: 'Precision colours for readability',
-    light: solarizedLight, dark: solarizedDark,
-    custom: { headerBg: (m) => m === 'dark' ? '#002B36' : '#FDF6E3', headerColor: '', brandBlockBg: '#268BD2', brandBlockColor: '#FDF6E3', sidebarBg: () => 'transparent', cardBorderRadius: 6 },
-  },
-  catppuccin: {
-    name: 'catppuccin', label: 'Catppuccin', description: 'Warm pastel tones, cozy and soft',
-    light: catppuccinLight, dark: catppuccinDark,
-    custom: { headerBg: (m) => m === 'dark' ? '#1E1E2E' : '#EFF1F5', headerColor: '', brandBlockBg: '#CBA6F7', brandBlockColor: '#1E1E2E', sidebarBg: () => 'transparent', cardBorderRadius: 12 },
-  },
-  synthwave: {
-    name: 'synthwave', label: 'Synthwave', description: '80s retro sunset with neon pink',
-    light: synthwaveLight, dark: synthwaveDark,
-    custom: { headerBg: () => '#1A1328', headerColor: '#FF7EDB', brandBlockBg: '#FF7EDB', brandBlockColor: '#1A1328', sidebarBg: () => 'transparent', cardBorderRadius: 4 },
-  },
-  terminal: {
-    name: 'terminal', label: 'Terminal', description: 'Green on black hacker aesthetic',
-    light: terminalLight, dark: terminalDark,
-    custom: { headerBg: () => '#0A0A0A', headerColor: '#00FF00', brandBlockBg: '#003300', brandBlockColor: '#00FF00', sidebarBg: () => 'transparent', cardBorderRadius: 0 },
-  },
-  amiga: {
-    name: 'amiga', label: 'Amiga Workbench', description: 'Orange/blue 4-colour Commodore classic',
-    light: amigaLight, dark: amigaDark,
-    custom: { headerBg: () => '#FF8800', headerColor: '#000', brandBlockBg: '#0055AA', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 0 },
-  },
-  beos: {
-    name: 'beos', label: 'BeOS', description: 'Clean grey with yellow tab accents',
-    light: beosLight, dark: beosDark,
-    custom: { headerBg: (m) => m === 'dark' ? '#2A2A2A' : '#CCCC00', headerColor: '#000', brandBlockBg: '#336698', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 0 },
-  },
-  ubuntu: {
-    name: 'ubuntu', label: 'Ubuntu', description: 'Aubergine and orange Yaru theme',
-    light: ubuntuLight, dark: ubuntuDark,
-    custom: { headerBg: (m) => m === 'dark' ? '#2C2828' : '#77216F', headerColor: '#fff', brandBlockBg: '#E95420', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 10 },
-  },
-  ios: {
-    name: 'ios', label: 'iOS', description: 'Clean Apple system design',
-    light: iosLight, dark: iosDark,
-    custom: { headerBg: (m) => m === 'dark' ? 'rgba(28,28,30,0.9)' : 'rgba(242,242,247,0.9)', headerColor: '', brandBlockBg: '#007AFF', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 12 },
-  },
-  android: {
-    name: 'android', label: 'Android', description: 'Material You / Material Design 3',
-    light: androidLight, dark: androidDark,
-    custom: { headerBg: (m) => m === 'dark' ? '#1C1B1F' : '#FFFBFE', headerColor: '', brandBlockBg: '#6750A4', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 16 },
-  },
-  chromeos: {
-    name: 'chromeos', label: 'Chrome OS', description: 'Google clean with pill buttons',
-    light: chromeosLight, dark: chromeosDark,
-    custom: { headerBg: (m) => m === 'dark' ? '#202124' : '#FFFFFF', headerColor: '', brandBlockBg: '#1A73E8', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 8 },
-  },
-  nextstep: {
-    name: 'nextstep', label: 'NeXTSTEP', description: 'Dark grey with black borders, Steve Jobs era',
-    light: nextstepLight, dark: nextstepDark,
-    custom: { headerBg: () => '#333333', headerColor: '#fff', brandBlockBg: '#000', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 2 },
-  },
-  os2: {
-    name: 'os2', label: 'OS/2 Warp', description: 'IBM teal/blue Workplace Shell',
-    light: os2Light, dark: os2Dark,
-    custom: { headerBg: () => '#004080', headerColor: '#fff', brandBlockBg: '#008080', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 0 },
-  },
-  irix: {
-    name: 'irix', label: 'SGI IRIX', description: 'Purple/indigo Silicon Graphics workstation',
-    light: irixLight, dark: irixDark,
-    custom: { headerBg: (m) => m === 'dark' ? '#1A0A2E' : 'linear-gradient(180deg, #6A4A9A 0%, #4A2A7A 100%)', headerColor: '#fff', brandBlockBg: '#5C2D91', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 2 },
-  },
-  palmos: {
-    name: 'palmos', label: 'Palm OS', description: 'Green-grey LCD handheld PDA look',
-    light: palmosLight, dark: palmosDark,
-    custom: { headerBg: (m) => m === 'dark' ? '#1A2018' : '#8A9A7A', headerColor: '#000', brandBlockBg: '#336699', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 2 },
-  },
-  c64: {
-    name: 'c64', label: 'Commodore 64', description: 'Blue/light blue 8-bit BASIC screen',
-    light: c64Light, dark: c64Dark,
-    custom: { headerBg: () => '#40318D', headerColor: '#A8A8FF', brandBlockBg: '#A8A8FF', brandBlockColor: '#40318D', sidebarBg: () => 'transparent', cardBorderRadius: 0 },
-  },
-  msdos: {
-    name: 'msdos', label: 'MS-DOS', description: 'Grey text on black command line',
-    light: msdosLight, dark: msdosDark,
-    custom: { headerBg: () => '#000000', headerColor: '#AAAAAA', brandBlockBg: '#0000AA', brandBlockColor: '#AAA', sidebarBg: () => 'transparent', cardBorderRadius: 0 },
-  },
+  // ── Redgate (always first, ungrouped) ──
+  redgate: { name: 'redgate', label: 'Redgate', description: 'Official Redgate product styling', light: redgateLight, dark: redgateDark, custom: { headerBg: () => colors.gray[7], headerColor: colors.white, brandBlockBg: colors.red.brand, brandBlockColor: colors.white, sidebarBg: () => 'transparent', cardBorderRadius: 4 } },
+
+  // ── Design Systems ──
+  fluent: { name: 'fluent', label: 'Design System - Fluent', description: 'Windows 11 Fluent Design System', light: fluentLight, dark: fluentDark, custom: { headerBg: (m) => m === 'dark' ? 'rgba(28,28,28,0.8)' : 'rgba(249,249,249,0.8)', headerColor: '', brandBlockBg: '#0078D4', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 8 } },
+  glass: { name: 'glass', label: 'Design System - Liquid Glass', description: 'Translucent glass with blur effects', light: glassLight, dark: glassDark, custom: { headerBg: (m) => m === 'dark' ? 'rgba(30,30,30,0.8)' : 'rgba(255,255,255,0.7)', headerColor: '', brandBlockBg: '#007AFF', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 16, globalCss: () => 'body { backdrop-filter: none; } .MuiAppBar-root { backdrop-filter: blur(20px) saturate(180%); }' } },
+  metro: { name: 'metro', label: 'Design System - Metro', description: 'Bold, flat Windows Phone style', light: metroLight, dark: metroDark, custom: { headerBg: () => '#0078D7', headerColor: '#fff', brandBlockBg: '#005A9E', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 0 } },
+
+  // ── Editor Themes (alphabetical) ──
+  catppuccin: { name: 'catppuccin', label: 'Editor - Catppuccin', description: 'Warm pastel tones, cozy and soft', light: catppuccinLight, dark: catppuccinDark, custom: { headerBg: (m) => m === 'dark' ? '#1E1E2E' : '#EFF1F5', headerColor: '', brandBlockBg: '#CBA6F7', brandBlockColor: '#1E1E2E', sidebarBg: () => 'transparent', cardBorderRadius: 12 } },
+  dracula: { name: 'dracula', label: 'Editor - Dracula', description: 'Iconic purple/pink dark theme', light: draculaLight, dark: draculaDark, custom: { headerBg: (m) => m === 'dark' ? '#282A36' : '#F8F8F2', headerColor: '', brandBlockBg: '#BD93F9', brandBlockColor: '#282A36', sidebarBg: () => 'transparent', cardBorderRadius: 8 } },
+  nord: { name: 'nord', label: 'Editor - Nord', description: 'Arctic blue-grey, calm and clean', light: nordLight, dark: nordDark, custom: { headerBg: (m) => m === 'dark' ? '#2E3440' : '#D8DEE9', headerColor: '', brandBlockBg: '#5E81AC', brandBlockColor: '#ECEFF4', sidebarBg: () => 'transparent', cardBorderRadius: 8 } },
+  solarized: { name: 'solarized', label: 'Editor - Solarized', description: 'Precision colours for readability', light: solarizedLight, dark: solarizedDark, custom: { headerBg: (m) => m === 'dark' ? '#002B36' : '#FDF6E3', headerColor: '', brandBlockBg: '#268BD2', brandBlockColor: '#FDF6E3', sidebarBg: () => 'transparent', cardBorderRadius: 6 } },
+
+  // ── OS themes (alphabetical) ──
+  android: { name: 'android', label: 'OS - Android', description: 'Material You / Material Design 3', light: androidLight, dark: androidDark, custom: { headerBg: (m) => m === 'dark' ? '#1C1B1F' : '#FFFBFE', headerColor: '', brandBlockBg: '#6750A4', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 16 } },
+  amiga: { name: 'amiga', label: 'OS - Amiga Workbench', description: 'Orange/blue 4-colour Commodore classic', light: amigaLight, dark: amigaDark, custom: { headerBg: () => '#FF8800', headerColor: '#000', brandBlockBg: '#0055AA', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 0 } },
+  beos: { name: 'beos', label: 'OS - BeOS', description: 'Clean grey with yellow tab accents', light: beosLight, dark: beosDark, custom: { headerBg: (m) => m === 'dark' ? '#2A2A2A' : '#CCCC00', headerColor: '#000', brandBlockBg: '#336698', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 0 } },
+  chromeos: { name: 'chromeos', label: 'OS - Chrome OS', description: 'Google clean with pill buttons', light: chromeosLight, dark: chromeosDark, custom: { headerBg: (m) => m === 'dark' ? '#202124' : '#FFFFFF', headerColor: '', brandBlockBg: '#1A73E8', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 8 } },
+  c64: { name: 'c64', label: 'OS - Commodore 64', description: 'Blue/light blue 8-bit BASIC screen', light: c64Light, dark: c64Dark, custom: { headerBg: () => '#40318D', headerColor: '#A8A8FF', brandBlockBg: '#A8A8FF', brandBlockColor: '#40318D', sidebarBg: () => 'transparent', cardBorderRadius: 0 } },
+  ios: { name: 'ios', label: 'OS - iOS', description: 'Clean Apple system design', light: iosLight, dark: iosDark, custom: { headerBg: (m) => m === 'dark' ? 'rgba(28,28,30,0.9)' : 'rgba(242,242,247,0.9)', headerColor: '', brandBlockBg: '#007AFF', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 12 } },
+  aqua: { name: 'aqua', label: 'OS - macOS Aqua', description: 'Glossy gel buttons and translucent blue', light: aquaLight, dark: aquaDark, custom: { headerBg: (m) => m === 'dark' ? 'rgba(20,20,30,0.8)' : 'linear-gradient(180deg, rgba(200,220,255,0.9) 0%, rgba(160,190,240,0.85) 100%)', headerColor: '', brandBlockBg: '#2680EB', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 10 } },
+  macos9: { name: 'macos9', label: 'OS - Mac OS 9', description: 'Classic Platinum grey with rounded buttons', light: macos9Light, dark: macos9Dark, custom: { headerBg: () => 'linear-gradient(180deg, #CCCCDD 0%, #AAAABB 100%)', headerColor: '#000', brandBlockBg: '#6699CC', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 4 } },
+  msdos: { name: 'msdos', label: 'OS - MS-DOS', description: 'Grey text on black command line', light: msdosLight, dark: msdosDark, custom: { headerBg: () => '#000000', headerColor: '#AAAAAA', brandBlockBg: '#0000AA', brandBlockColor: '#AAA', sidebarBg: () => 'transparent', cardBorderRadius: 0 } },
+  nextstep: { name: 'nextstep', label: 'OS - NeXTSTEP', description: 'Dark grey with black borders, Steve Jobs era', light: nextstepLight, dark: nextstepDark, custom: { headerBg: () => '#333333', headerColor: '#fff', brandBlockBg: '#000', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 2 } },
+  os2: { name: 'os2', label: 'OS - OS/2 Warp', description: 'IBM teal/blue Workplace Shell', light: os2Light, dark: os2Dark, custom: { headerBg: () => '#004080', headerColor: '#fff', brandBlockBg: '#008080', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 0 } },
+  palmos: { name: 'palmos', label: 'OS - Palm OS', description: 'Green-grey LCD handheld PDA look', light: palmosLight, dark: palmosDark, custom: { headerBg: (m) => m === 'dark' ? '#1A2018' : '#8A9A7A', headerColor: '#000', brandBlockBg: '#336699', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 2 } },
+  irix: { name: 'irix', label: 'OS - SGI IRIX', description: 'Purple/indigo Silicon Graphics workstation', light: irixLight, dark: irixDark, custom: { headerBg: (m) => m === 'dark' ? '#1A0A2E' : 'linear-gradient(180deg, #6A4A9A 0%, #4A2A7A 100%)', headerColor: '#fff', brandBlockBg: '#5C2D91', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 2 } },
+  ubuntu: { name: 'ubuntu', label: 'OS - Ubuntu', description: 'Aubergine and orange Yaru theme', light: ubuntuLight, dark: ubuntuDark, custom: { headerBg: (m) => m === 'dark' ? '#2C2828' : '#77216F', headerColor: '#fff', brandBlockBg: '#E95420', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 10 } },
+  win95: { name: 'win95', label: 'OS - Windows 95', description: 'Classic beveled grey retro look', light: win95Light, dark: win95Dark, custom: { headerBg: () => '#000080', headerColor: '#fff', brandBlockBg: '#C0C0C0', brandBlockColor: '#000', sidebarBg: () => 'transparent', cardBorderRadius: 0 } },
+  vista: { name: 'vista', label: 'OS - Windows Vista', description: 'Aero Glass with blur and glow effects', light: vistaLight, dark: vistaDark, custom: { headerBg: (m) => m === 'dark' ? 'rgba(15,20,30,0.75)' : 'rgba(200,220,240,0.65)', headerColor: '', brandBlockBg: '#1B5FA0', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 6 } },
+  winxp: { name: 'winxp', label: 'OS - Windows XP', description: 'Luna blue theme with gradient buttons', light: winxpLight, dark: winxpDark, custom: { headerBg: (m) => m === 'dark' ? 'linear-gradient(180deg, #1E3A5F 0%, #0F2744 100%)' : 'linear-gradient(180deg, #0A246A 0%, #3A6EA5 50%, #0A246A 100%)', headerColor: '#fff', brandBlockBg: '#2A8E2A', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 8 } },
+
+  // ── Vibes (alphabetical) ──
+  cyberpunk: { name: 'cyberpunk', label: 'Vibe - Cyberpunk', description: 'Neon glow on dark with sharp edges', light: cyberLight, dark: cyberDark, custom: { headerBg: () => 'rgba(8,5,15,0.9)', headerColor: '#00FFFF', brandBlockBg: '#FF00FF', brandBlockColor: '#000', sidebarBg: () => 'transparent', cardBorderRadius: 2 } },
+  synthwave: { name: 'synthwave', label: 'Vibe - Synthwave', description: '80s retro sunset with neon pink', light: synthwaveLight, dark: synthwaveDark, custom: { headerBg: () => '#1A1328', headerColor: '#FF7EDB', brandBlockBg: '#FF7EDB', brandBlockColor: '#1A1328', sidebarBg: () => 'transparent', cardBorderRadius: 4 } },
+  terminal: { name: 'terminal', label: 'Vibe - Terminal', description: 'Green on black hacker aesthetic', light: terminalLight, dark: terminalDark, custom: { headerBg: () => '#0A0A0A', headerColor: '#00FF00', brandBlockBg: '#003300', brandBlockColor: '#00FF00', sidebarBg: () => 'transparent', cardBorderRadius: 0 } },
 };
 
-export const THEME_NAMES = Object.keys(THEMES) as ThemeName[];
+/** Ordered theme list: Redgate first, then groups alphabetically */
+export const THEME_NAMES: ThemeName[] = [
+  'redgate',
+  // Design Systems
+  'fluent', 'glass', 'metro',
+  // Editor Themes
+  'catppuccin', 'dracula', 'nord', 'solarized',
+  // OS
+  'android', 'amiga', 'beos', 'chromeos', 'c64', 'ios', 'aqua', 'macos9', 'msdos', 'nextstep', 'os2', 'palmos', 'irix', 'ubuntu', 'win95', 'vista', 'winxp',
+  // Vibes
+  'cyberpunk', 'synthwave', 'terminal',
+];
