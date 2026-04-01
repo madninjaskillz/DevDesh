@@ -70,7 +70,7 @@ export function AppHeader() {
         sx={{
           background: headerBg,
           color: headerColor,
-          backdropFilter: (themeDef.name === 'glass' || themeDef.name === 'fluent') ? 'blur(20px) saturate(180%)' : undefined,
+          backdropFilter: (['glass', 'fluent', 'aqua', 'vista'].includes(themeDef.name)) ? 'blur(20px) saturate(180%)' : undefined,
         }}
       >
         <Toolbar variant="dense" sx={{ minHeight: 44, px: '0 !important', gap: 0 }}>

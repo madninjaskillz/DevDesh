@@ -22,6 +22,10 @@ export const BACKGROUNDS: BackgroundDef[] = [
   { id: 'win95-vaporwave', label: 'Vaporwave', file: `${BASE}win95-vaporwave.jpg` },
   { id: 'winxp-bliss', label: 'Bliss', file: `${BASE}winxp-bliss.jpg` },
   { id: 'general-mountain', label: 'Mountain Landscape', file: `${BASE}general-mountain-landscape.jpg` },
+  { id: 'macos9-classic', label: 'Mac OS 9', file: `${BASE}macos9-classic.jpg` },
+  { id: 'aqua-blue', label: 'Aqua Blue', file: `${BASE}aqua-blue.jpg` },
+  { id: 'vista-aurora', label: 'Vista Aurora', file: `${BASE}vista-aurora.jpg` },
+  { id: 'cyberpunk-neon', label: 'Neon City', file: `${BASE}cyberpunk-neon.jpg` },
   { id: 'general-space', label: 'Space Galaxy', file: `${BASE}general-space-galaxy.jpg` },
   { id: 'general-minimalist', label: 'Minimalist Gradient', file: `${BASE}general-minimalist-gradient.jpg` },
 ];
@@ -34,6 +38,10 @@ export const THEME_DEFAULT_BACKGROUND: Record<ThemeName, string> = {
   fluent: 'fluent-bloom',
   win95: 'win95-clouds',
   winxp: 'winxp-bliss',
+  macos9: 'macos9-classic',
+  aqua: 'aqua-blue',
+  vista: 'vista-aurora',
+  cyberpunk: 'cyberpunk-neon',
 };
 
 export function getBackgroundById(id: string): BackgroundDef | undefined {

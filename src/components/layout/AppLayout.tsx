@@ -15,7 +15,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   // Translucent themes (glass, fluent) already have blurred surfaces,
   // so they need a lighter scrim. Opaque themes need more.
-  const isTranslucentTheme = themeDef.name === 'glass' || themeDef.name === 'fluent';
+  const isTranslucentTheme = ['glass', 'fluent', 'aqua', 'vista'].includes(themeDef.name);
   const scrimOpacity = isTranslucentTheme ? 0.25 : 0.5;
 
   return (

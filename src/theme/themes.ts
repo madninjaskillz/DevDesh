@@ -1,7 +1,7 @@
 import { createTheme, type Theme, type ThemeOptions } from '@mui/material/styles';
 import { colors } from './colors';
 
-export type ThemeName = 'redgate' | 'glass' | 'metro' | 'fluent' | 'win95' | 'winxp';
+export type ThemeName = 'redgate' | 'glass' | 'metro' | 'fluent' | 'win95' | 'winxp' | 'macos9' | 'aqua' | 'vista' | 'cyberpunk';
 
 export interface AppThemeDef {
   name: ThemeName;
@@ -390,6 +390,110 @@ const winxpDark = createTheme({
   components: winxpDarkComponents,
 });
 
+// === 7. MAC OS 9 (Platinum) ===
+// Key: Chicago/Charcoal font, grayscale platinum surfaces, pinstripe texture feel,
+// small rounded buttons, classic Mac grey palette
+const macos9Font = '"Lucida Grande", "Geneva", "Helvetica Neue", sans-serif';
+const macos9Components: ThemeOptions['components'] = {
+  ...baseComponents,
+  MuiPaper: { styleOverrides: { root: { borderRadius: 4, border: '1px solid #999', boxShadow: '1px 1px 0 #666, -1px -1px 0 #fff' } } },
+  MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1.5), borderRadius: 4, border: '1px solid #999', boxShadow: '1px 1px 0 #666', backgroundColor: '#ECECEC' }) } },
+  MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 12, fontWeight: 400, fontSize: '0.8rem', border: '1px solid #888', backgroundImage: 'linear-gradient(180deg, #FFFFFF 0%, #DDDDDD 100%)', boxShadow: '0 1px 0 rgba(255,255,255,0.6) inset', '&:hover': { backgroundImage: 'linear-gradient(180deg, #EEEEFF 0%, #CCCCDD 100%)' } } } },
+  MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 10 } } },
+  MuiTableCell: { styleOverrides: { root: { padding: '4px 8px', borderColor: '#CCCCCC', fontSize: '0.8rem' } } },
+  MuiTooltip: { defaultProps: { arrow: false }, styleOverrides: { tooltip: { backgroundColor: '#FFFFCC', color: '#000', border: '1px solid #000', borderRadius: 2, fontSize: '0.75rem' } } },
+};
+const macos9Light = createTheme({
+  palette: { mode: 'light', primary: { main: '#3366CC' }, secondary: { main: '#888888' }, error: { main: '#CC0000' }, warning: { main: '#FF9900' }, success: { main: '#339933' }, background: { default: '#DDDDEE', paper: '#ECECEC' }, text: { primary: '#000000', secondary: '#555555' } },
+  typography: { fontFamily: macos9Font, fontSize: 12, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 700 }, h4: { fontWeight: 700 }, h5: { fontWeight: 700 }, h6: { fontWeight: 700, fontSize: '0.8rem' }, button: { fontWeight: 400 } },
+  shape: { borderRadius: 4 },
+  components: macos9Components,
+});
+const macos9Dark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#6699FF' }, secondary: { main: '#999999' }, error: { main: '#FF6666' }, warning: { main: '#FFBB33' }, success: { main: '#66CC66' }, background: { default: '#3A3A4A', paper: '#4A4A5A' }, text: { primary: '#EEEEEE', secondary: '#AAAAAA' } },
+  typography: { fontFamily: macos9Font, fontSize: 12, h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 700 }, h4: { fontWeight: 700 }, h5: { fontWeight: 700 }, h6: { fontWeight: 700, fontSize: '0.8rem' }, button: { fontWeight: 400 } },
+  shape: { borderRadius: 4 },
+  components: { ...macos9Components, MuiPaper: { styleOverrides: { root: { borderRadius: 4, border: '1px solid #666', boxShadow: '1px 1px 0 #333' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(1.5), borderRadius: 4, border: '1px solid #666', backgroundColor: '#4A4A5A' }) } } },
+});
+
+// === 8. MACOS AQUA ===
+// Key: Glossy gel buttons, pinstripes, brushed metal, bright saturated blue,
+// Lucida Grande font, heavy use of transparency and reflections
+const aquaComponents: ThemeOptions['components'] = {
+  ...baseComponents,
+  MuiPaper: { styleOverrides: { root: { borderRadius: 10, border: '1px solid rgba(0,0,0,0.15)', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', backdropFilter: 'blur(12px)', backgroundColor: 'rgba(255,255,255,0.85)' } } },
+  MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 10, border: '1px solid rgba(0,0,0,0.12)', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', backdropFilter: 'blur(12px)', backgroundColor: 'rgba(245,248,255,0.8)', backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(230,238,255,0.7) 100%)' }) } },
+  MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 14, fontWeight: 500, backgroundImage: 'linear-gradient(180deg, #7CB8FF 0%, #2680EB 50%, #1A5FBF 100%)', color: '#fff', border: '1px solid #1A5FBF', boxShadow: '0 1px 0 rgba(255,255,255,0.4) inset, 0 1px 2px rgba(0,0,0,0.2)', '&:hover': { backgroundImage: 'linear-gradient(180deg, #8EC5FF 0%, #3090FF 50%, #2070D0 100%)' } } } },
+  MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 14 } } },
+  MuiTableCell: { styleOverrides: { root: { padding: '6px 10px', borderColor: 'rgba(0,0,0,0.08)' } } },
+  MuiTooltip: { defaultProps: { arrow: true } },
+};
+const aquaLight = createTheme({
+  palette: { mode: 'light', primary: { main: '#2680EB' }, secondary: { main: '#8E8E93' }, error: { main: '#FF3B30' }, warning: { main: '#FF9500' }, success: { main: '#34C759' }, background: { default: 'transparent', paper: 'rgba(255,255,255,0.85)' }, text: { primary: '#1C1C1E', secondary: '#636366' } },
+  typography: { fontFamily: '"Lucida Grande", -apple-system, "Helvetica Neue", sans-serif', h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600 }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 10 },
+  components: aquaComponents,
+});
+const aquaDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#4DA3FF' }, secondary: { main: '#98989D' }, error: { main: '#FF453A' }, warning: { main: '#FF9F0A' }, success: { main: '#30D158' }, background: { default: 'transparent', paper: 'rgba(30,30,40,0.8)' }, text: { primary: '#FFFFFF', secondary: '#ABABAF' } },
+  typography: { fontFamily: '"Lucida Grande", -apple-system, "Helvetica Neue", sans-serif', h1: { fontWeight: 700 }, h2: { fontWeight: 700 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600 }, button: { fontWeight: 500 } },
+  shape: { borderRadius: 10 },
+  components: { ...aquaComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 16px rgba(0,0,0,0.3)', backdropFilter: 'blur(12px)', backgroundColor: 'rgba(30,30,40,0.75)' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', backgroundColor: 'rgba(30,30,40,0.7)' }) } }, MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 14, fontWeight: 500, backgroundImage: 'linear-gradient(180deg, #5599FF 0%, #2266CC 50%, #1A55AA 100%)', color: '#fff', border: '1px solid #1A55AA' } } } },
+});
+
+// === 9. WINDOWS VISTA (Aero) ===
+// Key: Glass/transparency (Aero Glass), heavy blur, glowing edges,
+// gradient title bars, Segoe UI font, translucent dark surfaces
+const vistaComponents: ThemeOptions['components'] = {
+  ...baseComponents,
+  MuiPaper: { styleOverrides: { root: { borderRadius: 6, border: '1px solid rgba(255,255,255,0.4)', boxShadow: '0 0 12px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1)', backdropFilter: 'blur(16px) saturate(120%)', backgroundColor: 'rgba(255,255,255,0.6)' } } },
+  MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 6, border: '1px solid rgba(255,255,255,0.35)', boxShadow: '0 0 8px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.08)', backdropFilter: 'blur(16px) saturate(120%)', backgroundColor: 'rgba(240,248,255,0.55)' }) } },
+  MuiButton: { styleOverrides: { root: { textTransform: 'none' as const, borderRadius: 4, fontWeight: 400, border: '1px solid rgba(0,0,0,0.2)', backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(220,230,240,0.8) 100%)', backdropFilter: 'blur(4px)', '&:hover': { backgroundImage: 'linear-gradient(180deg, rgba(220,235,255,0.9) 0%, rgba(180,210,240,0.8) 100%)' } } } },
+  MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 10 } } },
+  MuiTableCell: { styleOverrides: { root: { padding: '6px 10px', borderColor: 'rgba(0,0,0,0.08)' } } },
+  MuiTooltip: { defaultProps: { arrow: true } },
+};
+const vistaLight = createTheme({
+  palette: { mode: 'light', primary: { main: '#1B5FA0' }, secondary: { main: '#7A8A99' }, error: { main: '#C42B1C' }, warning: { main: '#F09609' }, success: { main: '#0F7B0F' }, background: { default: 'transparent', paper: 'rgba(255,255,255,0.6)' }, text: { primary: '#1A1A1A', secondary: '#555555' } },
+  typography: { fontFamily: '"Segoe UI", "Roboto", Arial, sans-serif', h1: { fontWeight: 600 }, h2: { fontWeight: 600 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600 }, button: { fontWeight: 400 } },
+  shape: { borderRadius: 6 },
+  components: vistaComponents,
+});
+const vistaDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#4DA8DA' }, secondary: { main: '#8899AA' }, error: { main: '#FF6B6B' }, warning: { main: '#FFB347' }, success: { main: '#77DD77' }, background: { default: 'transparent', paper: 'rgba(20,25,35,0.65)' }, text: { primary: '#F0F0F0', secondary: '#AABBCC' } },
+  typography: { fontFamily: '"Segoe UI", "Roboto", Arial, sans-serif', h1: { fontWeight: 600 }, h2: { fontWeight: 600 }, h3: { fontWeight: 600 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 600 }, button: { fontWeight: 400 } },
+  shape: { borderRadius: 6 },
+  components: { ...vistaComponents, MuiPaper: { styleOverrides: { root: { borderRadius: 6, border: '1px solid rgba(100,150,200,0.25)', boxShadow: '0 0 12px rgba(0,0,0,0.3)', backdropFilter: 'blur(16px) saturate(120%)', backgroundColor: 'rgba(20,25,35,0.6)' } } }, MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 6, border: '1px solid rgba(100,150,200,0.15)', backdropFilter: 'blur(16px) saturate(120%)', backgroundColor: 'rgba(20,25,35,0.5)' }) } } },
+});
+
+// === 10. CYBERPUNK ===
+// Key: Neon colors on dark backgrounds, glowing borders, sharp angles,
+// monospace/futuristic fonts, magenta/cyan/yellow neon palette
+const cyberFont = '"Rajdhani", "Orbitron", "Roboto Mono", "Roboto", monospace';
+const cyberComponents: ThemeOptions['components'] = {
+  ...baseComponents,
+  MuiPaper: { styleOverrides: { root: { borderRadius: 2, border: '1px solid #00FFFF40', boxShadow: '0 0 8px rgba(0,255,255,0.15), 0 4px 12px rgba(0,0,0,0.4)', backgroundColor: 'rgba(10,10,20,0.85)' } } },
+  MuiCard: { styleOverrides: { root: ({ theme }) => ({ padding: theme.spacing(2), borderRadius: 2, border: '1px solid #FF00FF30', boxShadow: '0 0 6px rgba(255,0,255,0.1), 0 2px 8px rgba(0,0,0,0.3)', backgroundColor: 'rgba(15,10,25,0.8)' }) } },
+  MuiButton: { styleOverrides: { root: { textTransform: 'uppercase' as const, borderRadius: 0, fontWeight: 700, letterSpacing: '0.1em', border: '1px solid #00FFFF', color: '#00FFFF', backgroundColor: 'transparent', boxShadow: '0 0 6px rgba(0,255,255,0.3)', '&:hover': { backgroundColor: 'rgba(0,255,255,0.1)', boxShadow: '0 0 12px rgba(0,255,255,0.5)' } } } },
+  MuiChip: { defaultProps: { size: 'small' }, styleOverrides: { root: { borderRadius: 2, fontFamily: cyberFont } } },
+  MuiTableCell: { styleOverrides: { root: { padding: '6px 10px', borderColor: '#FF00FF25' } } },
+  MuiTableRow: { styleOverrides: { root: { '&:hover': { backgroundColor: 'rgba(0,255,255,0.05)' } } } },
+  MuiTooltip: { defaultProps: { arrow: false }, styleOverrides: { tooltip: { backgroundColor: '#0A0A14', color: '#00FFFF', border: '1px solid #00FFFF40', borderRadius: 0 } } },
+};
+const cyberLight = createTheme({
+  palette: { mode: 'dark', primary: { main: '#00FFFF' }, secondary: { main: '#FF00FF' }, error: { main: '#FF0040' }, warning: { main: '#FFE600' }, success: { main: '#00FF88' }, background: { default: '#0A0A14', paper: 'rgba(10,10,20,0.85)' }, text: { primary: '#E0E0FF', secondary: '#8888CC' } },
+  typography: { fontFamily: cyberFont, fontSize: 13, h1: { fontWeight: 700, letterSpacing: '0.05em' }, h2: { fontWeight: 700 }, h3: { fontWeight: 700 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 700, letterSpacing: '0.08em', fontSize: '0.85rem' }, button: { fontWeight: 700 } },
+  shape: { borderRadius: 2 },
+  components: cyberComponents,
+});
+// Cyberpunk is inherently dark — "light" mode is slightly lighter dark
+const cyberDark = createTheme({
+  palette: { mode: 'dark', primary: { main: '#00FFFF' }, secondary: { main: '#FF00FF' }, error: { main: '#FF0040' }, warning: { main: '#FFE600' }, success: { main: '#00FF88' }, background: { default: '#050508', paper: 'rgba(8,5,15,0.9)' }, text: { primary: '#E0E0FF', secondary: '#7777BB' } },
+  typography: { fontFamily: cyberFont, fontSize: 13, h1: { fontWeight: 700, letterSpacing: '0.05em' }, h2: { fontWeight: 700 }, h3: { fontWeight: 700 }, h4: { fontWeight: 600 }, h5: { fontWeight: 600 }, h6: { fontWeight: 700, letterSpacing: '0.08em', fontSize: '0.85rem' }, button: { fontWeight: 700 } },
+  shape: { borderRadius: 2 },
+  components: cyberComponents,
+});
+
 // === Registry ===
 export const THEMES: Record<ThemeName, AppThemeDef> = {
   redgate: {
@@ -463,6 +567,54 @@ export const THEMES: Record<ThemeName, AppThemeDef> = {
       brandBlockColor: '#fff',
       sidebarBg: () => 'transparent',
       cardBorderRadius: 8,
+    },
+  },
+  macos9: {
+    name: 'macos9', label: 'Mac OS 9', description: 'Classic Platinum grey with rounded buttons',
+    light: macos9Light, dark: macos9Dark,
+    custom: {
+      headerBg: () => 'linear-gradient(180deg, #CCCCDD 0%, #AAAABB 100%)',
+      headerColor: '#000',
+      brandBlockBg: '#6699CC',
+      brandBlockColor: '#fff',
+      sidebarBg: () => 'transparent',
+      cardBorderRadius: 4,
+    },
+  },
+  aqua: {
+    name: 'aqua', label: 'macOS Aqua', description: 'Glossy gel buttons and translucent blue',
+    light: aquaLight, dark: aquaDark,
+    custom: {
+      headerBg: (m) => m === 'dark' ? 'rgba(20,20,30,0.8)' : 'linear-gradient(180deg, rgba(200,220,255,0.9) 0%, rgba(160,190,240,0.85) 100%)',
+      headerColor: '',
+      brandBlockBg: '#2680EB',
+      brandBlockColor: '#fff',
+      sidebarBg: () => 'transparent',
+      cardBorderRadius: 10,
+    },
+  },
+  vista: {
+    name: 'vista', label: 'Windows Vista', description: 'Aero Glass with blur and glow effects',
+    light: vistaLight, dark: vistaDark,
+    custom: {
+      headerBg: (m) => m === 'dark' ? 'rgba(15,20,30,0.75)' : 'rgba(200,220,240,0.65)',
+      headerColor: '',
+      brandBlockBg: '#1B5FA0',
+      brandBlockColor: '#fff',
+      sidebarBg: () => 'transparent',
+      cardBorderRadius: 6,
+    },
+  },
+  cyberpunk: {
+    name: 'cyberpunk', label: 'Cyberpunk', description: 'Neon glow on dark with sharp edges',
+    light: cyberLight, dark: cyberDark,
+    custom: {
+      headerBg: () => 'rgba(8,5,15,0.9)',
+      headerColor: '#00FFFF',
+      brandBlockBg: '#FF00FF',
+      brandBlockColor: '#000',
+      sidebarBg: () => 'transparent',
+      cardBorderRadius: 2,
     },
   },
 };
