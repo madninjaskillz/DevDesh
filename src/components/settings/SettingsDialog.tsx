@@ -16,10 +16,11 @@ import Slider from '@mui/material/Slider';
 import Tooltip from '@mui/material/Tooltip';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
+import InputAdornment from '@mui/material/InputAdornment';
+import Collapse from '@mui/material/Collapse';
+import SearchIcon from '@mui/icons-material/Search';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import Link from '@mui/material/Link';
@@ -95,39 +96,14 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
             <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
               Theme
             </Typography>
-            <FormControl fullWidth size="small" sx={{ mb: 1 }}>
-              <InputLabel>Theme</InputLabel>
-              <Select
-                value={settings.themeName || 'redgate'}
-                label="Theme"
-                onChange={(e) => {
-                  const name = e.target.value as typeof THEME_NAMES[number];
-                  const defaultBg = THEME_DEFAULT_BACKGROUND[name] ?? '';
-                  updateSettings({ themeName: name, backgroundId: defaultBg });
-                }}
-              >
-                {THEME_NAMES.map((name) => (
-                  <MenuItem key={name} value={name}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
-                      {/* Color preview swatch */}
-                      <Box sx={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
-                        <Box sx={{ width: 14, height: 14, borderRadius: '2px', bgcolor: THEMES[name].custom.brandBlockBg }} />
-                        <Box sx={{ width: 14, height: 14, borderRadius: '2px', bgcolor: THEMES[name].custom.headerBg(mode), border: '1px solid rgba(128,128,128,0.3)' }} />
-                        <Box sx={{ width: 14, height: 14, borderRadius: '2px', bgcolor: mode === 'dark' ? THEMES[name].dark.palette?.background?.paper : THEMES[name].light.palette?.background?.paper, border: '1px solid rgba(128,128,128,0.3)' }} />
-                      </Box>
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {THEMES[name].label}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                          {THEMES[name].description}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <ThemePicker
+              currentTheme={(settings.themeName || 'redgate') as any}
+              mode={mode}
+              onSelect={(name) => {
+                const defaultBg = THEME_DEFAULT_BACKGROUND[name] ?? '';
+                updateSettings({ themeName: name, backgroundId: defaultBg });
+              }}
+            />
 
             <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
               Background
@@ -346,6 +322,117 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
 
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Theme groups for the picker
+import type { ThemeName } from '../../theme/themes';
+
+interface ThemeGroup {
+  label: string;
+  themes: ThemeName[];
+}
+
+const THEME_GROUPS: ThemeGroup[] = [
+  { label: 'Featured', themes: ['redgate'] },
+  { label: 'Design Systems', themes: ['ant', 'carbon', 'fluent', 'hig', 'glass', 'metro'] },
+  { label: 'Editor Themes', themes: ['catppuccin', 'dracula', 'gruvbox', 'monokai', 'nord', 'onedark', 'solarized'] },
+  { label: 'Operating Systems', themes: ['android', 'amiga', 'beos', 'chromeos', 'c64', 'gnome', 'ios', 'aqua', 'macos9', 'sonoma', 'msdos', 'nextstep', 'os2', 'palmos', 'irix', 'ubuntu', 'win31', 'win95', 'vista', 'winxp'] },
+  { label: 'Vibes', themes: ['cyberpunk', 'highcontrast', 'paper', 'synthwave', 'terminal', 'vaporwave'] },
+];
+
+function ThemeItem({ name, mode, selected, onSelect }: { name: ThemeName; mode: 'light' | 'dark'; selected: boolean; onSelect: () => void }) {
+  const t = THEMES[name];
+  // Strip group prefix from label for display
+  const displayLabel = t.label.replace(/^(Design System|Editor|OS|Vibe) - /, '');
+  return (
+    <Box
+      onClick={onSelect}
+      sx={{
+        display: 'flex', alignItems: 'center', gap: 1.5, py: 0.75, px: 1.5, cursor: 'pointer',
+        borderRadius: 1, border: '2px solid', borderColor: selected ? 'primary.main' : 'transparent',
+        bgcolor: selected ? 'action.selected' : 'transparent',
+        '&:hover': { bgcolor: 'action.hover' }, transition: 'all 0.1s',
+      }}
+    >
+      <Box sx={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
+        <Box sx={{ width: 12, height: 12, borderRadius: '2px', bgcolor: t.custom.brandBlockBg }} />
+        <Box sx={{ width: 12, height: 12, borderRadius: '2px', bgcolor: t.custom.headerBg(mode), border: '1px solid rgba(128,128,128,0.3)' }} />
+        <Box sx={{ width: 12, height: 12, borderRadius: '2px', bgcolor: mode === 'dark' ? t.dark.palette?.background?.paper : t.light.palette?.background?.paper, border: '1px solid rgba(128,128,128,0.3)' }} />
+      </Box>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography variant="body2" sx={{ fontWeight: selected ? 700 : 500, fontSize: '0.8rem' }} noWrap>
+          {displayLabel}
+        </Typography>
+      </Box>
+    </Box>
+  );
+}
+
+function ThemePicker({ currentTheme, mode, onSelect }: { currentTheme: ThemeName; mode: 'light' | 'dark'; onSelect: (name: ThemeName) => void }) {
+  const [search, setSearch] = useState('');
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+
+  const toggleGroup = (label: string) => {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(label)) next.delete(label); else next.add(label);
+      return next;
+    });
+  };
+
+  const query = search.trim().toLowerCase();
+  const isSearching = query.length > 0;
+
+  return (
+    <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, mb: 2, maxHeight: 320, overflow: 'auto' }}>
+      {/* Search */}
+      <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', position: 'sticky', top: 0, bgcolor: 'background.paper', zIndex: 1 }}>
+        <TextField
+          size="small" fullWidth placeholder="Search themes..."
+          value={search} onChange={(e) => setSearch(e.target.value)}
+          slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18 }} /></InputAdornment> } }}
+          sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.85rem' } }}
+        />
+      </Box>
+
+      {isSearching ? (
+        // Flat filtered list
+        <Box sx={{ p: 0.5 }}>
+          {THEME_NAMES.filter((name) => {
+            const t = THEMES[name];
+            return t.label.toLowerCase().includes(query) || t.description.toLowerCase().includes(query);
+          }).map((name) => (
+            <ThemeItem key={name} name={name} mode={mode} selected={name === currentTheme} onSelect={() => onSelect(name)} />
+          ))}
+        </Box>
+      ) : (
+        // Grouped with collapsible headers
+        <Box sx={{ p: 0.5 }}>
+          {THEME_GROUPS.map((group) => (
+            <Box key={group.label}>
+              <Box
+                onClick={() => toggleGroup(group.label)}
+                sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', py: 0.5, px: 1, userSelect: 'none', '&:hover': { bgcolor: 'action.hover' }, borderRadius: 1 }}
+              >
+                {collapsed.has(group.label) ? <ExpandMoreIcon sx={{ fontSize: 18, mr: 0.5 }} /> : <ExpandLessIcon sx={{ fontSize: 18, mr: 0.5 }} />}
+                <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary', fontSize: '0.7rem' }}>
+                  {group.label}
+                </Typography>
+                <Typography variant="caption" sx={{ ml: 0.5, color: 'text.secondary', fontSize: '0.65rem' }}>
+                  ({group.themes.length})
+                </Typography>
+              </Box>
+              <Collapse in={!collapsed.has(group.label)}>
+                {group.themes.map((name) => (
+                  <ThemeItem key={name} name={name} mode={mode} selected={name === currentTheme} onSelect={() => onSelect(name)} />
+                ))}
+              </Collapse>
+            </Box>
+          ))}
+        </Box>
+      )}
+    </Box>
   );
 }
 
