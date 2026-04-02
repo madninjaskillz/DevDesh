@@ -24,6 +24,7 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import type { DashboardIssue } from '../../types/github';
 import type { GroupBy } from './LabelFilter';
 import { NoteChip } from './NoteChip';
+import { OverflowChips } from './OverflowChips';
 import { formatAge, getAgeColor } from '../../utils/dates';
 
 type SortField = 'title' | 'repoName' | 'ageDays';
@@ -209,57 +210,20 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
                 </AvatarGroup>
               </TableCell>
               <TableCell>
-                {issue.labels.length <= 2 ? (
-                  issue.labels.map((label) => (
-                    <Chip
-                      key={label.id}
-                      label={label.name}
-                      size="small"
-                      sx={{
-                        mr: 0.5,
-                        mb: 0.5,
+                <OverflowChips
+                  maxVisible={2}
+                  items={issue.labels.map((label) => ({
+                    key: String(label.id),
+                    label: label.name,
+                    chipProps: {
+                      variant: 'filled' as const,
+                      sx: {
                         bgcolor: `#${label.color}`,
                         color: isLightColor(label.color) ? '#000' : '#fff',
-                      }}
-                    />
-                  ))
-                ) : (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
-                    <Chip
-                      label={issue.labels[0].name}
-                      size="small"
-                      sx={{
-                        bgcolor: `#${issue.labels[0].color}`,
-                        color: isLightColor(issue.labels[0].color) ? '#000' : '#fff',
-                      }}
-                    />
-                    <Tooltip
-                      title={
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, p: 0.5 }}>
-                          {issue.labels.slice(1).map((label) => (
-                            <Chip
-                              key={label.id}
-                              label={label.name}
-                              size="small"
-                              sx={{
-                                bgcolor: `#${label.color}`,
-                                color: isLightColor(label.color) ? '#000' : '#fff',
-                              }}
-                            />
-                          ))}
-                        </Box>
-                      }
-                      slotProps={{ tooltip: { sx: { bgcolor: 'background.paper', boxShadow: 3, maxWidth: 300 } } }}
-                    >
-                      <Chip
-                        label={`+${issue.labels.length - 1} more`}
-                        size="small"
-                        variant="outlined"
-                        sx={{ cursor: 'default', fontSize: '0.7rem' }}
-                      />
-                    </Tooltip>
-                  </Box>
-                )}
+                      },
+                    },
+                  }))}
+                />
               </TableCell>
               <TableCell>
                 {issue.projectStatus ? (
@@ -278,23 +242,17 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
               </TableCell>
               <TableCell>
                 {issue.linkedPRs.length > 0 ? (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {issue.linkedPRs.map((pr) => (
-                      <Chip
-                        key={pr.url}
-                        label={`#${pr.number}`}
-                        size="small"
-                        component="a"
-                        href={pr.url}
-                        target="_blank"
-                        rel="noopener"
-                        clickable
-                        variant="outlined"
-                        color={pr.state === 'MERGED' ? 'success' : pr.state === 'OPEN' ? 'primary' : 'default'}
-                        title={pr.title}
-                      />
-                    ))}
-                  </Box>
+                  <OverflowChips
+                    maxVisible={2}
+                    items={issue.linkedPRs.map((pr) => ({
+                      key: pr.url,
+                      label: `#${pr.number} ${pr.title}`,
+                      href: pr.url,
+                      chipProps: {
+                        color: pr.state === 'MERGED' ? 'success' as const : pr.state === 'OPEN' ? 'primary' as const : 'default' as const,
+                      },
+                    }))}
+                  />
                 ) : (
                   <Typography variant="body2" color="text.secondary">--</Typography>
                 )}

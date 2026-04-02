@@ -34,6 +34,7 @@ import { colors } from '../../theme/colors';
 import { getPRBody, updatePRBody, mergePR } from '../../api/github';
 import { useAuth } from '../../hooks/useAuth';
 import { NoteChip } from './NoteChip';
+import { OverflowChips } from './OverflowChips';
 
 type SortField = 'title' | 'repoName' | 'ageDays' | 'status' | 'unresolvedThreadCount';
 type SortDir = 'asc' | 'desc';
@@ -312,20 +313,16 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
                 <TableCell>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center' }}>
                     {/* Properly linked issues */}
-                    {pr.linkedIssues.map((issue) => (
-                      <Chip
-                        key={issue.url}
-                        label={`#${issue.number}`}
-                        size="small"
-                        component="a"
-                        href={issue.url}
-                        target="_blank"
-                        rel="noopener"
-                        clickable
-                        variant="outlined"
-                        title={issue.title}
+                    {pr.linkedIssues.length > 0 && (
+                      <OverflowChips
+                        maxVisible={2}
+                        items={pr.linkedIssues.map((issue) => ({
+                          key: issue.url,
+                          label: `#${issue.number} ${issue.title}`,
+                          href: issue.url,
+                        }))}
                       />
-                    ))}
+                    )}
                     {/* Issues that reference this PR but PR doesn't link back */}
                     {pr.missingIssueLinks.map((missing) => (
                       <Tooltip
