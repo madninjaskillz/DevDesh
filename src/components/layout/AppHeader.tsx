@@ -18,7 +18,6 @@ import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import DensitySmallIcon from '@mui/icons-material/DensitySmall';
 import DensityMediumIcon from '@mui/icons-material/DensityMedium';
-import DashboardIcon from '@mui/icons-material/Dashboard';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '@mui/material/styles';
 import { useThemeMode } from '../../theme/ThemeProvider';
@@ -85,7 +84,7 @@ export function AppHeader() {
               gap: 1,
             }}
           >
-            <DashboardIcon sx={{ color: brandColor, fontSize: 22 }} />
+            <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="DevDash" style={{ height: 26 }} />
           </Box>
 
           {/* Product name */}
