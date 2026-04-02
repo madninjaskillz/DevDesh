@@ -110,20 +110,20 @@ export function AppHeader() {
           backdropFilter: (['glass', 'fluent', 'aqua', 'vista', 'sonoma'].includes(themeDef.name)) ? 'blur(20px) saturate(180%)' : undefined,
         }}
       >
-        <Toolbar variant="dense" sx={{ minHeight: 44, px: '0 !important', gap: 0 }}>
-          {/* Brand block — colored background like Flyway Desktop */}
+        <Toolbar sx={{ minHeight: '56px !important', px: '0 !important', gap: 0 }}>
+          {/* Brand block with logo */}
           <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
               bgcolor: brandBg,
-              px: 2,
+              px: 2.5,
               alignSelf: 'stretch',
-              gap: 1,
+              gap: 1.5,
             }}
           >
             <LogoIcon
-              size={34}
+              size={44}
               badgeColor={isReddish(brandBg) ? '#FFFFFF' : '#E30613'}
               lineColor={isReddish(brandBg) ? '#E30613' : '#FFFFFF'}
             />
@@ -135,8 +135,9 @@ export function AppHeader() {
             sx={{
               fontWeight: 700,
               color: headerColor,
-              fontSize: '0.95rem',
-              px: 2,
+              fontSize: '1.1rem',
+              pl: 2.5,
+              pr: 2,
               letterSpacing: '0.02em',
             }}
           >
@@ -210,7 +211,7 @@ export function AppHeader() {
               {/* User */}
               {user && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mx: 1 }}>
-                  <Avatar src={user.avatar_url} alt={user.login} sx={{ width: 24, height: 24 }} />
+                  <Avatar src={user.avatar_url} alt={user.login} sx={{ width: 28, height: 28 }} />
                   <Typography variant="body2" sx={{ color: headerColor, fontSize: '0.8rem' }} noWrap>
                     {user.login}
                   </Typography>
@@ -237,12 +238,12 @@ export function AppHeader() {
             sx={{
               display: 'flex',
               alignItems: 'center',
-              px: 2,
+              px: 2.5,
               alignSelf: 'stretch',
-              borderLeft: '1px solid rgba(255,255,255,0.1)',
+              borderLeft: '1px solid rgba(255,255,255,0.12)',
             }}
           >
-            <svg viewBox="0 0 850.4 203.2" height="18" fill="rgba(255,255,255,0.55)">
+            <svg viewBox="0 0 850.4 203.2" height="22" fill="rgba(255,255,255,0.65)">
               <g>
                 <g>
                   <polygon points="115.9,92.3 58.9,90.9 78.7,111.8 115.9,110.9" />

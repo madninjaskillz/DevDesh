@@ -33,7 +33,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       }}
     >
       <AppHeader />
-      <Box sx={{ height: 44 }} />
+      <Box sx={{ height: 56 }} />
       <Box
         sx={{
           flex: 1,
