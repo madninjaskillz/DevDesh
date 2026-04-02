@@ -18,7 +18,7 @@ import { DetailDrawer, type DrawerItem } from './DetailDrawer';
 import { ShortcutsDialog } from './ShortcutsDialog';
 import { CollapsibleSection } from './CollapsibleSection';
 import { SectionErrorBoundary } from './ErrorBoundary';
-import { LabelFilter, type GroupBy } from './LabelFilter';
+import { LabelFilter, FilterDropdown, type GroupBy } from './LabelFilter';
 import { SearchBar } from './SearchBar';
 import { ExportButton } from './ExportButton';
 import { StatusSummary } from './StatusSummary';
@@ -41,6 +41,7 @@ import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useThemeMode } from '../../theme/ThemeProvider';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import FilterListIcon from '@mui/icons-material/FilterList';
 import { useSettings } from '../../hooks/useSettings';
 import { useNotes } from '../../hooks/useNotes';
 import { useRepoConfig } from '../../hooks/useRepoConfig';
@@ -149,6 +150,13 @@ export function DashboardPage() {
     }
     return result;
   }, [issues, excludedLabels, excludedStatuses]);
+
+  // PR status filtering (draft excluded by default)
+  const [excludedPRStatuses, setExcludedPRStatuses] = useState<string[]>(['draft']);
+  const filteredPRs = useMemo(() => {
+    if (excludedPRStatuses.length === 0) return prsWithMissingLinks;
+    return prsWithMissingLinks.filter((pr) => !excludedPRStatuses.includes(pr.status));
+  }, [prsWithMissingLinks, excludedPRStatuses]);
 
   // State
   const [drawerItem, setDrawerItem] = useState<DrawerItem | null>(null);
@@ -334,14 +342,32 @@ export function DashboardPage() {
                 </CollapsibleSection>
               </SectionErrorBoundary>
             );
-          case 'section-prs':
+          case 'section-prs': {
+            const prStatusItems = [
+              { name: 'draft', color: '#656d76', count: prsWithMissingLinks.filter((p) => p.status === 'draft').length },
+              { name: 'review_pending', color: '#bf8700', count: prsWithMissingLinks.filter((p) => p.status === 'review_pending').length },
+              { name: 'changes_requested', color: '#cf222e', count: prsWithMissingLinks.filter((p) => p.status === 'changes_requested').length },
+              { name: 'approved', color: '#2da44e', count: prsWithMissingLinks.filter((p) => p.status === 'approved').length },
+            ].filter((s) => s.count > 0);
             return (
               <SectionErrorBoundary key={sectionId} section="Pull Requests">
                 <CollapsibleSection id="section-prs" title={teamMode ? 'Pull Requests' : 'My Pull Requests'} badge={prs.length} icon={<MergeIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
-                  <PRsTable prs={prsWithMissingLinks} isLoading={prsLoading} onItemClick={(o, r, n) => handleItemClick(o, r, n, 'pr')} notes={notes} />
+                  {prStatusItems.length > 1 && (
+                    <Box sx={{ mb: 1.5 }}>
+                      <FilterDropdown
+                        label="Status"
+                        icon={<FilterListIcon sx={{ fontSize: 16 }} />}
+                        items={prStatusItems}
+                        excluded={excludedPRStatuses}
+                        onChange={setExcludedPRStatuses}
+                      />
+                    </Box>
+                  )}
+                  <PRsTable prs={filteredPRs} isLoading={prsLoading} onItemClick={(o, r, n) => handleItemClick(o, r, n, 'pr')} notes={notes} />
                 </CollapsibleSection>
               </SectionErrorBoundary>
             );
+          }
           case 'section-reviews':
             return (
               <SectionErrorBoundary key={sectionId} section="Reviews">

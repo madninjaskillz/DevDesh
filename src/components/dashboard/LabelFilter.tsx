@@ -29,19 +29,12 @@ interface LabelFilterProps {
   onGroupByChange: (g: GroupBy) => void;
 }
 
-function isLightColor(hex: string): boolean {
-  const r = parseInt(hex.slice(0, 2), 16);
-  const g = parseInt(hex.slice(2, 4), 16);
-  const b = parseInt(hex.slice(4, 6), 16);
-  return (r * 299 + g * 587 + b * 114) / 1000 > 128;
-}
-
-const STATUS_COLORS: Record<string, string> = {
+export const STATUS_COLORS: Record<string, string> = {
   GREEN: '#2da44e', RED: '#cf222e', YELLOW: '#bf8700', ORANGE: '#bc4c00',
   PURPLE: '#8250df', BLUE: '#0969da', PINK: '#bf3989', GRAY: '#656d76',
 };
 
-interface FilterDropdownProps {
+export interface FilterDropdownProps {
   label: string;
   icon: React.ReactNode;
   items: { name: string; color: string; count: number }[];
@@ -49,7 +42,7 @@ interface FilterDropdownProps {
   onChange: (excluded: string[]) => void;
 }
 
-function FilterDropdown({ label, icon, items, excluded, onChange }: FilterDropdownProps) {
+export function FilterDropdown({ label, icon, items, excluded, onChange }: FilterDropdownProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [search, setSearch] = useState('');
 
