@@ -40,10 +40,11 @@ interface StatCardProps {
   value: string;
   icon: React.ReactNode;
   trafficLight: TrafficLight;
+  thresholdLabel: string;
   isLoading: boolean;
 }
 
-function StatCard({ title, value, icon, trafficLight, isLoading }: StatCardProps) {
+function StatCard({ title, value, icon, trafficLight, thresholdLabel, isLoading }: StatCardProps) {
   const tc = TRAFFIC_COLORS[trafficLight];
   return (
     <Card elevation={1} sx={{ bgcolor: isLoading ? undefined : tc.bg }}>
@@ -57,9 +58,14 @@ function StatCard({ title, value, icon, trafficLight, isLoading }: StatCardProps
         {isLoading ? (
           <Skeleton width={60} height={36} />
         ) : (
-          <Typography variant="h4" sx={{ fontWeight: 700, color: tc.text }}>
-            {value}
-          </Typography>
+          <>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: tc.text }}>
+              {value}
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem' }}>
+              {thresholdLabel}
+            </Typography>
+          </>
         )}
       </CardContent>
     </Card>
@@ -80,6 +86,7 @@ export function SummaryCards({ totalIssues, totalPRs, avgIssueAge, avgPRAge, isL
           value={String(totalIssues)}
           icon={<BugReportIcon sx={{ fontSize: 22 }} />}
           trafficLight={issueCountLight}
+          thresholdLabel={`target < 5 · alert \u2265 10`}
           isLoading={isLoading}
         />
       </Grid>
@@ -89,6 +96,7 @@ export function SummaryCards({ totalIssues, totalPRs, avgIssueAge, avgPRAge, isL
           value={String(totalPRs)}
           icon={<MergeIcon sx={{ fontSize: 22 }} />}
           trafficLight={prCountLight}
+          thresholdLabel={`target < 5 · alert \u2265 10`}
           isLoading={isLoading}
         />
       </Grid>
@@ -98,6 +106,7 @@ export function SummaryCards({ totalIssues, totalPRs, avgIssueAge, avgPRAge, isL
           value={formatAge(avgIssueAge)}
           icon={<ScheduleIcon sx={{ fontSize: 22 }} />}
           trafficLight={issueAgeLight}
+          thresholdLabel={`target < ${staleIssueDays}d · alert \u2265 ${staleIssueDays * 2}d`}
           isLoading={isLoading}
         />
       </Grid>
@@ -107,6 +116,7 @@ export function SummaryCards({ totalIssues, totalPRs, avgIssueAge, avgPRAge, isL
           value={formatAge(avgPRAge)}
           icon={<ScheduleIcon sx={{ fontSize: 22 }} />}
           trafficLight={prAgeLight}
+          thresholdLabel={`target < ${stalePRDays}d · alert \u2265 ${stalePRDays * 2}d`}
           isLoading={isLoading}
         />
       </Grid>
