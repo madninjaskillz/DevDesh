@@ -30,6 +30,45 @@ function HeaderDivider() {
   return <Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(255,255,255,0.15)', mx: 0.5 }} />;
 }
 
+function LogoIcon({ size = 34, badgeColor = '#E30613', lineColor = '#FFFFFF' }: { size?: number; badgeColor?: string; lineColor?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+      <path d="M256 160 Q512 100 768 160 L768 768 Q512 828 256 768 Z" fill={badgeColor} />
+      <path d="M320 330 H478 H638 C720 330 736 432 668 466 H550 H382 C286 466 286 602 382 602 H478 H638 H728"
+        fill="none" stroke={lineColor} strokeWidth="34" strokeLinecap="round" strokeLinejoin="round" />
+      <g fill={badgeColor} stroke={lineColor} strokeWidth="34">
+        <circle cx="478" cy="330" r="34" />
+        <circle cx="638" cy="330" r="34" />
+        <circle cx="382" cy="466" r="34" />
+        <circle cx="550" cy="466" r="34" />
+        <circle cx="478" cy="602" r="34" />
+        <circle cx="638" cy="602" r="34" />
+      </g>
+    </svg>
+  );
+}
+
+/** Check if a hex color is close to red (hue 0-30 or 330-360, high saturation) */
+function isReddish(hex: string): boolean {
+  const m = hex.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+  if (!m) return false;
+  const r = parseInt(m[1], 16) / 255;
+  const g = parseInt(m[2], 16) / 255;
+  const b = parseInt(m[3], 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const delta = max - min;
+  if (delta < 0.2 || max < 0.3) return false; // too grey or too dark
+  let h = 0;
+  if (delta > 0) {
+    if (max === r) h = ((g - b) / delta) % 6;
+    else if (max === g) h = (b - r) / delta + 2;
+    else h = (r - g) / delta + 4;
+    h = Math.round(h * 60);
+    if (h < 0) h += 360;
+  }
+  return (h <= 30 || h >= 330);
+}
+
 export function AppHeader() {
   const { mode, toggleTheme, themeDef } = useThemeMode();
   const muiTheme = useTheme();
@@ -83,7 +122,11 @@ export function AppHeader() {
               gap: 1,
             }}
           >
-            <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="DevDash" style={{ height: 26 }} />
+            <LogoIcon
+              size={34}
+              badgeColor={isReddish(brandBg) ? '#FFFFFF' : '#E30613'}
+              lineColor={isReddish(brandBg) ? '#E30613' : '#FFFFFF'}
+            />
           </Box>
 
           {/* Product name */}
