@@ -135,20 +135,20 @@ export function DashboardPage() {
     [prsWithMissingLinks, issues, reviewRequests, settings],
   );
 
-  // Label + board status filtering
-  const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  // Label + board status filtering (exclude-based: all shown by default, uncheck to hide)
+  const [excludedLabels, setExcludedLabels] = useState<string[]>([]);
+  const [excludedStatuses, setExcludedStatuses] = useState<string[]>([]);
   const [groupBy, setGroupBy] = useState<GroupBy>('none');
   const filteredIssues = useMemo(() => {
     let result = issues;
-    if (selectedLabels.length > 0) {
-      result = result.filter((issue) => issue.labels.some((l) => selectedLabels.includes(l.name)));
+    if (excludedLabels.length > 0) {
+      result = result.filter((issue) => !issue.labels.every((l) => excludedLabels.includes(l.name)));
     }
-    if (selectedStatuses.length > 0) {
-      result = result.filter((issue) => issue.projectStatus && selectedStatuses.includes(issue.projectStatus.name));
+    if (excludedStatuses.length > 0) {
+      result = result.filter((issue) => !issue.projectStatus || !excludedStatuses.includes(issue.projectStatus.name));
     }
     return result;
-  }, [issues, selectedLabels, selectedStatuses]);
+  }, [issues, excludedLabels, excludedStatuses]);
 
   // State
   const [drawerItem, setDrawerItem] = useState<DrawerItem | null>(null);
@@ -317,10 +317,10 @@ export function DashboardPage() {
                 <CollapsibleSection id="section-issues" title={teamMode ? 'Issues' : 'My Issues'} badge={issues.length} icon={<BugReportIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
                   <LabelFilter
                     issues={issues}
-                    selectedLabels={selectedLabels}
-                    onLabelsChange={setSelectedLabels}
-                    selectedStatuses={selectedStatuses}
-                    onStatusesChange={setSelectedStatuses}
+                    excludedLabels={excludedLabels}
+                    onExcludedLabelsChange={setExcludedLabels}
+                    excludedStatuses={excludedStatuses}
+                    onExcludedStatusesChange={setExcludedStatuses}
                     groupBy={groupBy}
                     onGroupByChange={setGroupBy}
                   />

@@ -21,10 +21,10 @@ export type GroupBy = 'none' | 'label' | 'repo';
 
 interface LabelFilterProps {
   issues: DashboardIssue[];
-  selectedLabels: string[];
-  onLabelsChange: (labels: string[]) => void;
-  selectedStatuses: string[];
-  onStatusesChange: (statuses: string[]) => void;
+  excludedLabels: string[];
+  onExcludedLabelsChange: (excluded: string[]) => void;
+  excludedStatuses: string[];
+  onExcludedStatusesChange: (excluded: string[]) => void;
   groupBy: GroupBy;
   onGroupByChange: (g: GroupBy) => void;
 }
@@ -45,11 +45,11 @@ interface FilterDropdownProps {
   label: string;
   icon: React.ReactNode;
   items: { name: string; color: string; count: number }[];
-  selected: string[];
-  onChange: (selected: string[]) => void;
+  excluded: string[];
+  onChange: (excluded: string[]) => void;
 }
 
-function FilterDropdown({ label, icon, items, selected, onChange }: FilterDropdownProps) {
+function FilterDropdown({ label, icon, items, excluded, onChange }: FilterDropdownProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [search, setSearch] = useState('');
 
@@ -60,25 +60,26 @@ function FilterDropdown({ label, icon, items, selected, onChange }: FilterDropdo
   }, [items, search]);
 
   const toggle = (name: string) => {
-    if (selected.includes(name)) {
-      onChange(selected.filter((s) => s !== name));
+    if (excluded.includes(name)) {
+      onChange(excluded.filter((s) => s !== name));
     } else {
-      onChange([...selected, name]);
+      onChange([...excluded, name]);
     }
   };
 
   const open = Boolean(anchorEl);
+  const hiddenCount = excluded.length;
 
   return (
     <>
       <Button
         size="small"
-        variant={selected.length > 0 ? 'contained' : 'outlined'}
+        variant={hiddenCount > 0 ? 'contained' : 'outlined'}
         startIcon={icon}
         onClick={(e) => setAnchorEl(e.currentTarget)}
         sx={{ textTransform: 'none', fontSize: '0.75rem' }}
       >
-        {label}{selected.length > 0 ? ` (${selected.length})` : ''}
+        {label}{hiddenCount > 0 ? ` (${items.length - hiddenCount}/${items.length})` : ''}
       </Button>
       <Popover
         open={open}
@@ -106,36 +107,39 @@ function FilterDropdown({ label, icon, items, selected, onChange }: FilterDropdo
               No matches
             </Typography>
           )}
-          {filtered.map((item) => (
-            <FormControlLabel
-              key={item.name}
-              control={
-                <Checkbox
-                  size="small"
-                  checked={selected.includes(item.name)}
-                  onChange={() => toggle(item.name)}
-                  sx={{ py: 0.25 }}
-                />
-              }
-              label={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
-                  <Box sx={{ width: 10, height: 10, borderRadius: '2px', bgcolor: item.color.startsWith('#') ? item.color : `#${item.color}`, flexShrink: 0 }} />
-                  <Typography variant="body2" sx={{ fontSize: '0.8rem', flex: 1 }} noWrap>
-                    {item.name}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
-                    {item.count}
-                  </Typography>
-                </Box>
-              }
-              sx={{ display: 'flex', mx: 0, width: '100%', '& .MuiFormControlLabel-label': { flex: 1, minWidth: 0 } }}
-            />
-          ))}
+          {filtered.map((item) => {
+            const checked = !excluded.includes(item.name);
+            return (
+              <FormControlLabel
+                key={item.name}
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={checked}
+                    onChange={() => toggle(item.name)}
+                    sx={{ py: 0.25 }}
+                  />
+                }
+                label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0, opacity: checked ? 1 : 0.5 }}>
+                    <Box sx={{ width: 10, height: 10, borderRadius: '2px', bgcolor: item.color.startsWith('#') ? item.color : `#${item.color}`, flexShrink: 0 }} />
+                    <Typography variant="body2" sx={{ fontSize: '0.8rem', flex: 1 }} noWrap>
+                      {item.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
+                      {item.count}
+                    </Typography>
+                  </Box>
+                }
+                sx={{ display: 'flex', mx: 0, width: '100%', '& .MuiFormControlLabel-label': { flex: 1, minWidth: 0 } }}
+              />
+            );
+          })}
         </Box>
-        {selected.length > 0 && (
+        {hiddenCount > 0 && (
           <Box sx={{ p: 0.75, borderTop: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'flex-end' }}>
             <Button size="small" onClick={() => onChange([])} sx={{ fontSize: '0.7rem', textTransform: 'none' }}>
-              Clear all
+              Show all
             </Button>
           </Box>
         )}
@@ -144,7 +148,7 @@ function FilterDropdown({ label, icon, items, selected, onChange }: FilterDropdo
   );
 }
 
-export function LabelFilter({ issues, selectedLabels, onLabelsChange, selectedStatuses, onStatusesChange, groupBy, onGroupByChange }: LabelFilterProps) {
+export function LabelFilter({ issues, excludedLabels, onExcludedLabelsChange, excludedStatuses, onExcludedStatusesChange, groupBy, onGroupByChange }: LabelFilterProps) {
   const allLabels = useMemo(() => {
     const map = new Map<string, { name: string; color: string; count: number }>();
     for (const issue of issues) {
@@ -172,7 +176,7 @@ export function LabelFilter({ issues, selectedLabels, onLabelsChange, selectedSt
     return [...map.values()].sort((a, b) => b.count - a.count);
   }, [issues]);
 
-  const hasFilters = selectedLabels.length > 0 || selectedStatuses.length > 0;
+  const hasFilters = excludedLabels.length > 0 || excludedStatuses.length > 0;
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
@@ -181,8 +185,8 @@ export function LabelFilter({ issues, selectedLabels, onLabelsChange, selectedSt
           label="Labels"
           icon={<LabelIcon sx={{ fontSize: 16 }} />}
           items={allLabels}
-          selected={selectedLabels}
-          onChange={onLabelsChange}
+          excluded={excludedLabels}
+          onChange={onExcludedLabelsChange}
         />
       )}
       {allStatuses.length > 0 && (
@@ -190,43 +194,50 @@ export function LabelFilter({ issues, selectedLabels, onLabelsChange, selectedSt
           label="Board"
           icon={<ViewColumnIcon sx={{ fontSize: 16 }} />}
           items={allStatuses}
-          selected={selectedStatuses}
-          onChange={onStatusesChange}
+          excluded={excludedStatuses}
+          onChange={onExcludedStatusesChange}
         />
       )}
 
-      {/* Active filter chips */}
-      {selectedLabels.map((name) => {
+      {/* Chips showing what's hidden */}
+      {excludedLabels.map((name) => {
         const label = allLabels.find((l) => l.name === name);
         return (
           <Chip
             key={`l-${name}`}
             label={name}
             size="small"
-            onDelete={() => onLabelsChange(selectedLabels.filter((l) => l !== name))}
+            variant="outlined"
+            onDelete={() => onExcludedLabelsChange(excludedLabels.filter((l) => l !== name))}
             sx={{
-              bgcolor: label?.color,
-              color: label ? (isLightColor(label.color.replace('#', '')) ? '#000' : '#fff') : undefined,
-              fontWeight: 600,
+              borderColor: label?.color,
+              color: 'text.secondary',
+              textDecoration: 'line-through',
               fontSize: '0.7rem',
             }}
           />
         );
       })}
-      {selectedStatuses.map((name) => {
+      {excludedStatuses.map((name) => {
         const status = allStatuses.find((s) => s.name === name);
         return (
           <Chip
             key={`s-${name}`}
             label={name}
             size="small"
-            onDelete={() => onStatusesChange(selectedStatuses.filter((s) => s !== name))}
-            sx={{ bgcolor: status?.color, color: '#fff', fontWeight: 600, fontSize: '0.7rem' }}
+            variant="outlined"
+            onDelete={() => onExcludedStatusesChange(excludedStatuses.filter((s) => s !== name))}
+            sx={{
+              borderColor: status?.color,
+              color: 'text.secondary',
+              textDecoration: 'line-through',
+              fontSize: '0.7rem',
+            }}
           />
         );
       })}
       {hasFilters && (
-        <Chip label="Clear all" size="small" variant="outlined" onClick={() => { onLabelsChange([]); onStatusesChange([]); }} sx={{ fontSize: '0.7rem' }} />
+        <Chip label="Show all" size="small" variant="outlined" onClick={() => { onExcludedLabelsChange([]); onExcludedStatusesChange([]); }} sx={{ fontSize: '0.7rem' }} />
       )}
 
       <Box sx={{ flex: 1 }} />
