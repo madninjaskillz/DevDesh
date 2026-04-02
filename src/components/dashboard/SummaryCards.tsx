@@ -16,19 +16,37 @@ interface SummaryCardsProps {
   avgIssueAge: number;
   avgPRAge: number;
   isLoading: boolean;
+  staleIssueDays?: number;
+  stalePRDays?: number;
 }
+
+type TrafficLight = 'green' | 'amber' | 'red';
+
+function getTrafficLight(value: number, threshold: number): TrafficLight {
+  if (value <= 0) return 'green';
+  if (value >= threshold * 2) return 'red';
+  if (value >= threshold) return 'amber';
+  return 'green';
+}
+
+const TRAFFIC_COLORS: Record<TrafficLight, { bg: string; text: string }> = {
+  green: { bg: 'rgba(52, 199, 89, 0.12)', text: colors.green[5] },
+  amber: { bg: 'rgba(255, 149, 0, 0.12)', text: colors.orange[5] },
+  red: { bg: 'rgba(255, 59, 48, 0.12)', text: colors.red.brand },
+};
 
 interface StatCardProps {
   title: string;
   value: string;
   icon: React.ReactNode;
-  color: string;
+  trafficLight: TrafficLight;
   isLoading: boolean;
 }
 
-function StatCard({ title, value, icon, color, isLoading }: StatCardProps) {
+function StatCard({ title, value, icon, trafficLight, isLoading }: StatCardProps) {
+  const tc = TRAFFIC_COLORS[trafficLight];
   return (
-    <Card elevation={1}>
+    <Card elevation={1} sx={{ bgcolor: isLoading ? undefined : tc.bg }}>
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1 }}>
           {icon}
@@ -39,7 +57,7 @@ function StatCard({ title, value, icon, color, isLoading }: StatCardProps) {
         {isLoading ? (
           <Skeleton width={60} height={36} />
         ) : (
-          <Typography variant="h4" sx={{ fontWeight: 700, color }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, color: tc.text }}>
             {value}
           </Typography>
         )}
@@ -48,15 +66,20 @@ function StatCard({ title, value, icon, color, isLoading }: StatCardProps) {
   );
 }
 
-export function SummaryCards({ totalIssues, totalPRs, avgIssueAge, avgPRAge, isLoading }: SummaryCardsProps) {
+export function SummaryCards({ totalIssues, totalPRs, avgIssueAge, avgPRAge, isLoading, staleIssueDays = 7, stalePRDays = 1 }: SummaryCardsProps) {
+  const issueCountLight = getTrafficLight(totalIssues, 5);
+  const prCountLight = getTrafficLight(totalPRs, 5);
+  const issueAgeLight = getTrafficLight(avgIssueAge, staleIssueDays);
+  const prAgeLight = getTrafficLight(avgPRAge, stalePRDays);
+
   return (
     <Grid container spacing={2} sx={{ mb: 3 }}>
       <Grid size={{ xs: 12, sm: 6, md: 3 }}>
         <StatCard
           title="Open Issues"
           value={String(totalIssues)}
-          icon={<BugReportIcon sx={{ color: colors.red.brand, fontSize: 22 }} />}
-          color={colors.red.brand}
+          icon={<BugReportIcon sx={{ fontSize: 22 }} />}
+          trafficLight={issueCountLight}
           isLoading={isLoading}
         />
       </Grid>
@@ -64,8 +87,8 @@ export function SummaryCards({ totalIssues, totalPRs, avgIssueAge, avgPRAge, isL
         <StatCard
           title="Open PRs"
           value={String(totalPRs)}
-          icon={<MergeIcon sx={{ color: colors.blue[6], fontSize: 22 }} />}
-          color={colors.blue[6]}
+          icon={<MergeIcon sx={{ fontSize: 22 }} />}
+          trafficLight={prCountLight}
           isLoading={isLoading}
         />
       </Grid>
@@ -73,8 +96,8 @@ export function SummaryCards({ totalIssues, totalPRs, avgIssueAge, avgPRAge, isL
         <StatCard
           title="Avg Issue Age"
           value={formatAge(avgIssueAge)}
-          icon={<ScheduleIcon sx={{ color: colors.orange[5], fontSize: 22 }} />}
-          color={colors.orange[5]}
+          icon={<ScheduleIcon sx={{ fontSize: 22 }} />}
+          trafficLight={issueAgeLight}
           isLoading={isLoading}
         />
       </Grid>
@@ -82,8 +105,8 @@ export function SummaryCards({ totalIssues, totalPRs, avgIssueAge, avgPRAge, isL
         <StatCard
           title="Avg PR Age"
           value={formatAge(avgPRAge)}
-          icon={<ScheduleIcon sx={{ color: colors.green[5], fontSize: 22 }} />}
-          color={colors.green[5]}
+          icon={<ScheduleIcon sx={{ fontSize: 22 }} />}
+          trafficLight={prAgeLight}
           isLoading={isLoading}
         />
       </Grid>

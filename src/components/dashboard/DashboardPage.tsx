@@ -214,7 +214,7 @@ export function DashboardPage() {
 
       {/* Summary Cards */}
       <SectionErrorBoundary section="Summary Cards">
-        <SummaryCards {...summary} isLoading={isLoading} />
+        <SummaryCards {...summary} isLoading={isLoading} staleIssueDays={settings.staleIssueDays} stalePRDays={settings.stalePRApprovedDays} />
       </SectionErrorBoundary>
 
       {/* Stale Alerts */}
