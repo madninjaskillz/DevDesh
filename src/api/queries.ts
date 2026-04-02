@@ -503,6 +503,7 @@ export function useRecentCommits() {
           message: c.commit?.message ?? '',
           url: c.html_url,
           repoName: repos[idx].repo,
+          repoFullName: `${repos[idx].owner}/${repos[idx].repo}`,
           date: c.commit?.author?.date ?? c.commit?.committer?.date ?? '',
         })),
       )

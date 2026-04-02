@@ -39,8 +39,11 @@ import { computeActionItems } from '../../utils/actions';
 import { useNotifications } from '../../hooks/useNotifications';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useThemeMode } from '../../theme/ThemeProvider';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import { useSettings } from '../../hooks/useSettings';
 import { useNotes } from '../../hooks/useNotes';
+import { useRepoConfig } from '../../hooks/useRepoConfig';
 import { Sidebar, type SidebarBadges } from '../layout/Sidebar';
 import type { DashboardPR, MissingIssueLink } from '../../types/github';
 
@@ -52,13 +55,47 @@ export function DashboardPage() {
   const queryClient = useQueryClient();
   const { settings, updateSettings } = useSettings();
   const teamMode = settings.teamMode;
-  const { issues, isLoading: issuesLoading, isError: issuesError, error: issuesErr } = useAssignedIssues(teamMode);
-  const { prs, isLoading: prsLoading, isError: prsError, error: prsErr } = useOpenPRs(teamMode);
-  const { requests: reviewRequests, isLoading: reviewsLoading } = useReviewRequests();
-  const { awaitingReview, isLoading: awaitingLoading } = useAwaitingReview();
+  const { issues: allIssues, isLoading: issuesLoading, isError: issuesError, error: issuesErr } = useAssignedIssues(teamMode);
+  const { prs: allPrs, isLoading: prsLoading, isError: prsError, error: prsErr } = useOpenPRs(teamMode);
+  const { requests: allReviewRequests, isLoading: reviewsLoading } = useReviewRequests();
+  const { awaitingReview: allAwaitingReview, isLoading: awaitingLoading } = useAwaitingReview();
   const { trendData, isLoading: trendLoading } = useTrendData();
-  const { commits, isLoading: commitsLoading } = useRecentCommits();
+  const { commits: allCommits, isLoading: commitsLoading } = useRecentCommits();
   const notes = useNotes();
+  const { repos } = useRepoConfig();
+
+  // Repo filter — all checked by default
+  const [disabledRepos, setDisabledRepos] = useState<Set<string>>(() => new Set());
+  const toggleRepo = (fullName: string) => {
+    setDisabledRepos((prev) => {
+      const next = new Set(prev);
+      if (next.has(fullName)) next.delete(fullName); else next.add(fullName);
+      return next;
+    });
+  };
+  const isRepoActive = (fullName: string) => !disabledRepos.has(fullName);
+
+  // Filter all data by active repos
+  const issues = useMemo(
+    () => allIssues.filter((i) => isRepoActive(i.repoFullName)),
+    [allIssues, disabledRepos],
+  );
+  const prs = useMemo(
+    () => allPrs.filter((p) => isRepoActive(p.repoFullName)),
+    [allPrs, disabledRepos],
+  );
+  const reviewRequests = useMemo(
+    () => allReviewRequests.filter((r) => isRepoActive(r.repoFullName)),
+    [allReviewRequests, disabledRepos],
+  );
+  const awaitingReview = useMemo(
+    () => allAwaitingReview.filter((a) => isRepoActive(a.repoFullName)),
+    [allAwaitingReview, disabledRepos],
+  );
+  const commits = useMemo(
+    () => allCommits.filter((c) => isRepoActive(c.repoFullName)),
+    [allCommits, disabledRepos],
+  );
 
   const isLoading = issuesLoading || prsLoading;
   const summary = useDashboardSummary(issues, prs);
@@ -192,6 +229,31 @@ export function DashboardPage() {
         )}
         <ExportButton issues={issues} prs={prsWithMissingLinks} reviewRequests={reviewRequests} actionItems={actionItems} />
       </Box>
+
+      {/* Repo filter */}
+      {repos.length > 1 && (
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0, mb: 0.5 }}>
+          {repos.map((r) => {
+            const fullName = `${r.owner}/${r.repo}`;
+            return (
+              <FormControlLabel
+                key={fullName}
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={isRepoActive(fullName)}
+                    onChange={() => toggleRepo(fullName)}
+                    sx={{ py: 0, px: 0.5 }}
+                  />
+                }
+                label={r.repo}
+                slotProps={{ typography: { variant: 'caption', sx: { fontSize: '0.75rem', color: 'text.secondary' } } }}
+                sx={{ mr: 2, ml: 0 }}
+              />
+            );
+          })}
+        </Box>
+      )}
 
       {/* Search */}
       <SearchBar issues={issues} prs={prsWithMissingLinks} onItemClick={handleItemClick} />

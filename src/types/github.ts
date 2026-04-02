@@ -151,6 +151,7 @@ export interface DashboardCommit {
   message: string;
   url: string;
   repoName: string;
+  repoFullName: string;
   date: string;
 }
 
