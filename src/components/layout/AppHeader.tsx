@@ -36,7 +36,6 @@ export function AppHeader() {
   const headerBg = themeDef.custom.headerBg(mode);
   const headerColor = themeDef.custom.headerColor || muiTheme.palette.text.primary;
   const brandBg = themeDef.custom.brandBlockBg;
-  const brandColor = themeDef.custom.brandBlockColor;
   const { user, isAuthenticated, logout } = useAuth();
   const { settings, updateSettings } = useSettings();
   const queryClient = useQueryClient();
