@@ -2,6 +2,18 @@ import { createContext, useContext, useCallback, useState } from 'react';
 
 const STORAGE_KEY = 'devdash-settings';
 
+export const DEFAULT_SECTION_ORDER = [
+  'section-actions',
+  'section-issues',
+  'section-prs',
+  'section-reviews',
+  'section-awaiting',
+  'section-trends',
+  'section-commits',
+] as const;
+
+export type SectionId = (typeof DEFAULT_SECTION_ORDER)[number];
+
 export interface AppSettings {
   themeName: string;
   backgroundId: string;
@@ -13,6 +25,7 @@ export interface AppSettings {
   quietMode: boolean;
   autoCollapseEmpty: boolean;
   compactMode: boolean;
+  sectionOrder: string[];
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -26,6 +39,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   quietMode: false,
   autoCollapseEmpty: true,
   compactMode: false,
+  sectionOrder: [...DEFAULT_SECTION_ORDER],
 };
 
 interface SettingsContextValue {

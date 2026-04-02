@@ -23,12 +23,21 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import Link from '@mui/material/Link';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
+import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
+import BugReportIcon from '@mui/icons-material/BugReport';
+import MergeIcon from '@mui/icons-material/CallMerge';
+import ReviewsIcon from '@mui/icons-material/Reviews';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import CommitIcon from '@mui/icons-material/Commit';
 import { useRepoConfig } from '../../hooks/useRepoConfig';
-import { useSettings } from '../../hooks/useSettings';
+import { useSettings, DEFAULT_SECTION_ORDER } from '../../hooks/useSettings';
 import { useAuth } from '../../hooks/useAuth';
 import { THEMES, THEME_NAMES } from '../../theme/themes';
 import { BACKGROUNDS, THEME_DEFAULT_BACKGROUND } from '../../theme/backgrounds';
@@ -59,10 +68,11 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ pb: 0 }}>Settings</DialogTitle>
       <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 3, borderBottom: 1, borderColor: 'divider' }}>
         <Tab label="Visual" />
+        <Tab label="Layout" />
         <Tab label="GitHub" />
         <Tab label="Thresholds" />
       </Tabs>
@@ -153,8 +163,13 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
           </>
         )}
 
-        {/* === GITHUB TAB === */}
+        {/* === LAYOUT TAB === */}
         {tab === 1 && (
+          <SectionOrderEditor />
+        )}
+
+        {/* === GITHUB TAB === */}
+        {tab === 2 && (
           <>
             <Typography variant="subtitle2" sx={{ mb: 1 }}>
               Monitored Repositories
@@ -280,7 +295,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
         )}
 
         {/* === THRESHOLDS TAB === */}
-        {tab === 2 && (
+        {tab === 3 && (
           <>
             <Typography variant="subtitle2" sx={{ mb: 2 }}>
               Stale Thresholds
@@ -341,31 +356,90 @@ const THEME_GROUPS: ThemeGroup[] = [
   { label: 'Vibes', themes: ['cyberpunk', 'highcontrast', 'paper', 'synthwave', 'terminal', 'vaporwave'] },
 ];
 
-function ThemeItem({ name, mode, selected, onSelect }: { name: ThemeName; mode: 'light' | 'dark'; selected: boolean; onSelect: () => void }) {
+function ThemePreviewCard({ name, mode, selected, onSelect, size = 'small' }: { name: ThemeName; mode: 'light' | 'dark'; selected: boolean; onSelect: () => void; size?: 'small' | 'large' }) {
   const t = THEMES[name];
-  // Strip group prefix from label for display
   const displayLabel = t.label.replace(/^(Design System|Editor|OS|Vibe) - /, '');
+  const palette = mode === 'dark' ? t.dark.palette : t.light.palette;
+  const bg = palette?.background?.default ?? '#fff';
+  const paper = palette?.background?.paper ?? '#fff';
+  const primary = palette?.primary?.main ?? '#1976d2';
+  const textPrimary = palette?.text?.primary ?? '#000';
+  const textSecondary = palette?.text?.secondary ?? '#666';
+  const headerBg = t.custom.headerBg(mode);
+  const brandBg = t.custom.brandBlockBg;
+  const isLarge = size === 'large';
+  const h = isLarge ? 100 : 72;
+
   return (
-    <Box
-      onClick={onSelect}
-      sx={{
-        display: 'flex', alignItems: 'center', gap: 1.5, py: 0.75, px: 1.5, cursor: 'pointer',
-        borderRadius: 1, border: '2px solid', borderColor: selected ? 'primary.main' : 'transparent',
-        bgcolor: selected ? 'action.selected' : 'transparent',
-        '&:hover': { bgcolor: 'action.hover' }, transition: 'all 0.1s',
-      }}
-    >
-      <Box sx={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
-        <Box sx={{ width: 12, height: 12, borderRadius: '2px', bgcolor: t.custom.brandBlockBg }} />
-        <Box sx={{ width: 12, height: 12, borderRadius: '2px', bgcolor: t.custom.headerBg(mode), border: '1px solid rgba(128,128,128,0.3)' }} />
-        <Box sx={{ width: 12, height: 12, borderRadius: '2px', bgcolor: mode === 'dark' ? t.dark.palette?.background?.paper : t.light.palette?.background?.paper, border: '1px solid rgba(128,128,128,0.3)' }} />
+    <Tooltip title={t.description} placement="top" enterDelay={400}>
+      <Box
+        onClick={onSelect}
+        sx={{
+          cursor: 'pointer',
+          borderRadius: 1.5,
+          border: '2px solid',
+          borderColor: selected ? 'primary.main' : 'divider',
+          overflow: 'hidden',
+          transition: 'all 0.15s',
+          boxShadow: selected ? 3 : 0,
+          transform: selected ? 'scale(1.02)' : 'scale(1)',
+          '&:hover': { borderColor: selected ? 'primary.main' : 'primary.light', transform: 'scale(1.04)', boxShadow: 2 },
+        }}
+      >
+        {/* Mini dashboard preview */}
+        <Box sx={{ height: h, bgcolor: bg, position: 'relative', overflow: 'hidden' }}>
+          {/* Header bar */}
+          <Box sx={{ height: isLarge ? 14 : 10, bgcolor: headerBg, display: 'flex', alignItems: 'center', px: 0.5, gap: '2px' }}>
+            <Box sx={{ width: isLarge ? 16 : 10, height: isLarge ? 5 : 3, borderRadius: 0.5, bgcolor: brandBg }} />
+            <Box sx={{ flex: 1 }} />
+            <Box sx={{ width: isLarge ? 4 : 3, height: isLarge ? 4 : 3, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.4)' }} />
+          </Box>
+          {/* Body */}
+          <Box sx={{ display: 'flex', p: isLarge ? 0.75 : 0.5, gap: isLarge ? 0.75 : 0.5, height: `calc(100% - ${isLarge ? 14 : 10}px)` }}>
+            {/* Sidebar */}
+            <Box sx={{ width: isLarge ? 18 : 12, bgcolor: paper, borderRadius: `${Math.min(t.custom.cardBorderRadius, 4)}px`, display: 'flex', flexDirection: 'column', gap: '2px', p: '2px' }}>
+              {[primary, textSecondary, textSecondary].map((c, i) => (
+                <Box key={i} sx={{ height: isLarge ? 4 : 3, borderRadius: 0.5, bgcolor: c, opacity: i === 0 ? 0.9 : 0.25 }} />
+              ))}
+            </Box>
+            {/* Main content */}
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: isLarge ? 0.5 : '3px' }}>
+              {/* Summary cards row */}
+              <Box sx={{ display: 'flex', gap: '3px' }}>
+                {[primary, brandBg, textSecondary].map((c, i) => (
+                  <Box key={i} sx={{ flex: 1, height: isLarge ? 14 : 10, bgcolor: paper, borderRadius: `${Math.min(t.custom.cardBorderRadius, 4)}px`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Box sx={{ width: '60%', height: isLarge ? 4 : 3, borderRadius: 0.5, bgcolor: c, opacity: 0.7 }} />
+                  </Box>
+                ))}
+              </Box>
+              {/* Content cards */}
+              {[0.9, 0.5].map((opacity, i) => (
+                <Box key={i} sx={{ flex: 1, bgcolor: paper, borderRadius: `${Math.min(t.custom.cardBorderRadius, 4)}px`, p: '3px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <Box sx={{ width: '50%', height: 3, borderRadius: 0.5, bgcolor: primary, opacity }} />
+                  <Box sx={{ width: '80%', height: 2, borderRadius: 0.5, bgcolor: textPrimary, opacity: 0.15 }} />
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        </Box>
+        {/* Label */}
+        <Box sx={{ px: 1, py: 0.5, bgcolor: selected ? 'primary.main' : 'background.paper', transition: 'background-color 0.15s' }}>
+          <Typography
+            variant="caption"
+            noWrap
+            sx={{
+              display: 'block',
+              fontWeight: selected ? 700 : 500,
+              fontSize: isLarge ? '0.8rem' : '0.7rem',
+              color: selected ? 'primary.contrastText' : 'text.primary',
+              textAlign: 'center',
+            }}
+          >
+            {displayLabel}
+          </Typography>
+        </Box>
       </Box>
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography variant="body2" sx={{ fontWeight: selected ? 700 : 500, fontSize: '0.8rem' }} noWrap>
-          {displayLabel}
-        </Typography>
-      </Box>
-    </Box>
+    </Tooltip>
   );
 }
 
@@ -385,54 +459,200 @@ function ThemePicker({ currentTheme, mode, onSelect }: { currentTheme: ThemeName
   const isSearching = query.length > 0;
 
   return (
-    <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, mb: 2, maxHeight: 320, overflow: 'auto' }}>
-      {/* Search */}
-      <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', position: 'sticky', top: 0, bgcolor: 'background.paper', zIndex: 1 }}>
-        <TextField
-          size="small" fullWidth placeholder="Search themes..."
-          value={search} onChange={(e) => setSearch(e.target.value)}
-          slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18 }} /></InputAdornment> } }}
-          sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.85rem' } }}
-        />
+    <Box sx={{ mb: 2 }}>
+      {/* Current theme preview */}
+      <Box sx={{ mb: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
+        <Box sx={{ width: 140, flexShrink: 0 }}>
+          <ThemePreviewCard name={currentTheme} mode={mode} selected size="large" onSelect={() => {}} />
+        </Box>
+        <Box>
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem', mb: 0.25 }}>
+            Current theme
+          </Typography>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+            {THEMES[currentTheme].label.replace(/^(Design System|Editor|OS|Vibe) - /, '')}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
+            {THEMES[currentTheme].description}
+          </Typography>
+        </Box>
       </Box>
 
-      {isSearching ? (
-        // Flat filtered list
-        <Box sx={{ p: 0.5 }}>
-          {THEME_NAMES.filter((name) => {
-            const t = THEMES[name];
-            return t.label.toLowerCase().includes(query) || t.description.toLowerCase().includes(query);
-          }).map((name) => (
-            <ThemeItem key={name} name={name} mode={mode} selected={name === currentTheme} onSelect={() => onSelect(name)} />
-          ))}
-        </Box>
-      ) : (
-        // Grouped with collapsible headers
-        <Box sx={{ p: 0.5 }}>
-          {THEME_GROUPS.map((group) => (
-            <Box key={group.label}>
-              <Box
-                onClick={() => toggleGroup(group.label)}
-                sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', py: 0.5, px: 1, userSelect: 'none', '&:hover': { bgcolor: 'action.hover' }, borderRadius: 1 }}
-              >
-                {collapsed.has(group.label) ? <ExpandMoreIcon sx={{ fontSize: 18, mr: 0.5 }} /> : <ExpandLessIcon sx={{ fontSize: 18, mr: 0.5 }} />}
-                <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary', fontSize: '0.7rem' }}>
-                  {group.label}
-                </Typography>
-                <Typography variant="caption" sx={{ ml: 0.5, color: 'text.secondary', fontSize: '0.65rem' }}>
-                  ({group.themes.length})
-                </Typography>
+      {/* Search */}
+      <TextField
+        size="small" fullWidth placeholder="Search themes..."
+        value={search} onChange={(e) => setSearch(e.target.value)}
+        slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18 }} /></InputAdornment> } }}
+        sx={{ mb: 1.5, '& .MuiOutlinedInput-root': { fontSize: '0.85rem' } }}
+      />
+
+      {/* Theme grid */}
+      <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, maxHeight: 360, overflow: 'auto' }}>
+        {isSearching ? (
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 1, p: 1 }}>
+            {THEME_NAMES.filter((name) => {
+              const t = THEMES[name];
+              return t.label.toLowerCase().includes(query) || t.description.toLowerCase().includes(query);
+            }).map((name) => (
+              <ThemePreviewCard key={name} name={name} mode={mode} selected={name === currentTheme} onSelect={() => onSelect(name)} />
+            ))}
+          </Box>
+        ) : (
+          <Box sx={{ p: 1 }}>
+            {THEME_GROUPS.map((group) => (
+              <Box key={group.label} sx={{ mb: 1.5, '&:last-child': { mb: 0 } }}>
+                <Box
+                  onClick={() => toggleGroup(group.label)}
+                  sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', py: 0.5, px: 0.5, userSelect: 'none', '&:hover': { bgcolor: 'action.hover' }, borderRadius: 1, mb: 0.75 }}
+                >
+                  {collapsed.has(group.label) ? <ExpandMoreIcon sx={{ fontSize: 18, mr: 0.5 }} /> : <ExpandLessIcon sx={{ fontSize: 18, mr: 0.5 }} />}
+                  <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary', fontSize: '0.7rem' }}>
+                    {group.label}
+                  </Typography>
+                  <Typography variant="caption" sx={{ ml: 0.5, color: 'text.secondary', fontSize: '0.65rem' }}>
+                    ({group.themes.length})
+                  </Typography>
+                </Box>
+                <Collapse in={!collapsed.has(group.label)}>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 1 }}>
+                    {group.themes.map((name) => (
+                      <ThemePreviewCard key={name} name={name} mode={mode} selected={name === currentTheme} onSelect={() => onSelect(name)} />
+                    ))}
+                  </Box>
+                </Collapse>
               </Box>
-              <Collapse in={!collapsed.has(group.label)}>
-                {group.themes.map((name) => (
-                  <ThemeItem key={name} name={name} mode={mode} selected={name === currentTheme} onSelect={() => onSelect(name)} />
-                ))}
-              </Collapse>
-            </Box>
-          ))}
-        </Box>
-      )}
+            ))}
+          </Box>
+        )}
+      </Box>
     </Box>
+  );
+}
+
+const SECTION_META: Record<string, { label: string; icon: React.ReactNode }> = {
+  'section-actions': { label: 'What should I do next?', icon: <PriorityHighIcon fontSize="small" /> },
+  'section-issues': { label: 'My Issues', icon: <BugReportIcon fontSize="small" /> },
+  'section-prs': { label: 'My Pull Requests', icon: <MergeIcon fontSize="small" /> },
+  'section-reviews': { label: 'Reviews Requested', icon: <ReviewsIcon fontSize="small" /> },
+  'section-awaiting': { label: 'PRs Awaiting Review', icon: <VisibilityIcon fontSize="small" /> },
+  'section-trends': { label: 'Trends', icon: <TrendingUpIcon fontSize="small" /> },
+  'section-commits': { label: 'My Recent Commits', icon: <CommitIcon fontSize="small" /> },
+};
+
+function SectionOrderEditor() {
+  const { settings, updateSettings } = useSettings();
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+
+  const order = settings.sectionOrder;
+  const isDefault = order.every((id, i) => id === DEFAULT_SECTION_ORDER[i]) && order.length === DEFAULT_SECTION_ORDER.length;
+
+  const handleDragStart = (index: number) => (e: React.DragEvent) => {
+    setDragIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (index: number) => (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setOverIndex(index);
+  };
+
+  const handleDrop = (dropIndex: number) => (e: React.DragEvent) => {
+    e.preventDefault();
+    if (dragIndex === null || dragIndex === dropIndex) {
+      setDragIndex(null);
+      setOverIndex(null);
+      return;
+    }
+    const next = [...order];
+    const [moved] = next.splice(dragIndex, 1);
+    next.splice(dropIndex, 0, moved);
+    updateSettings({ sectionOrder: next });
+    setDragIndex(null);
+    setOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDragIndex(null);
+    setOverIndex(null);
+  };
+
+  const moveItem = (from: number, to: number) => {
+    if (to < 0 || to >= order.length) return;
+    const next = [...order];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    updateSettings({ sectionOrder: next });
+  };
+
+  return (
+    <>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+        <Typography variant="subtitle2">Section Order</Typography>
+        <Button
+          size="small"
+          startIcon={<RestartAltIcon />}
+          disabled={isDefault}
+          onClick={() => updateSettings({ sectionOrder: [...DEFAULT_SECTION_ORDER] })}
+        >
+          Reset
+        </Button>
+      </Box>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+        Drag sections to reorder them on the dashboard. Number key shortcuts will update to match.
+      </Typography>
+      <List dense sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+        {order.map((id, index) => {
+          const meta = SECTION_META[id];
+          if (!meta) return null;
+          const isDragging = dragIndex === index;
+          const isOver = overIndex === index && dragIndex !== index;
+          return (
+            <ListItem
+              key={id}
+              draggable
+              onDragStart={handleDragStart(index)}
+              onDragOver={handleDragOver(index)}
+              onDrop={handleDrop(index)}
+              onDragEnd={handleDragEnd}
+              secondaryAction={
+                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                  <IconButton size="small" disabled={index === 0} onClick={() => moveItem(index, index - 1)}>
+                    <ExpandLessIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton size="small" disabled={index === order.length - 1} onClick={() => moveItem(index, index + 1)}>
+                    <ExpandMoreIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+              }
+              sx={{
+                opacity: isDragging ? 0.4 : 1,
+                borderTop: isOver ? '2px solid' : '2px solid transparent',
+                borderColor: isOver ? 'primary.main' : 'transparent',
+                cursor: 'grab',
+                '&:active': { cursor: 'grabbing' },
+                transition: 'all 0.1s',
+                userSelect: 'none',
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 28, color: 'text.secondary' }}>
+                <DragIndicatorIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemIcon sx={{ minWidth: 32 }}>
+                {meta.icon}
+              </ListItemIcon>
+              <ListItemText
+                primary={meta.label}
+                primaryTypographyProps={{ variant: 'body2', fontSize: '0.85rem' }}
+                secondary={`Key: ${index + 1}`}
+                secondaryTypographyProps={{ variant: 'caption', fontSize: '0.7rem' }}
+              />
+            </ListItem>
+          );
+        })}
+      </List>
+    </>
   );
 }
 

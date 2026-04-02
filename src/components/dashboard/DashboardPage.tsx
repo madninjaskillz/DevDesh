@@ -119,16 +119,29 @@ export function DashboardPage() {
   // Notifications
   useNotifications(prsWithMissingLinks, issues, reviewRequests, isLoading || reviewsLoading);
 
-  // Keyboard shortcuts
+  // Section label lookup for keyboard shortcuts
+  const sectionLabels: Record<string, string> = {
+    'section-actions': 'Actions',
+    'section-issues': 'Issues',
+    'section-prs': 'PRs',
+    'section-reviews': 'Reviews',
+    'section-awaiting': 'Awaiting Review',
+    'section-trends': 'Trends',
+    'section-commits': 'Commits',
+  };
+
+  // Keyboard shortcuts — number keys follow section order
+  const sectionShortcuts = settings.sectionOrder
+    .slice(0, 9)
+    .map((id, i) => ({
+      key: String(i + 1),
+      description: `Jump to ${sectionLabels[id] ?? id}`,
+      handler: () => scrollTo(id),
+    }));
+
   const shortcuts = useKeyboardShortcuts([
     { key: 'r', description: 'Refresh data', handler: () => queryClient.invalidateQueries() },
-    { key: '1', description: 'Jump to Actions', handler: () => scrollTo('section-actions') },
-    { key: '2', description: 'Jump to Issues', handler: () => scrollTo('section-issues') },
-    { key: '3', description: 'Jump to PRs', handler: () => scrollTo('section-prs') },
-    { key: '4', description: 'Jump to Reviews', handler: () => scrollTo('section-reviews') },
-    { key: '5', description: 'Jump to Awaiting Review', handler: () => scrollTo('section-awaiting') },
-    { key: '6', description: 'Jump to Trends', handler: () => scrollTo('section-trends') },
-    { key: '7', description: 'Jump to Commits', handler: () => scrollTo('section-commits') },
+    ...sectionShortcuts,
     { key: 'd', description: 'Toggle dark mode', handler: () => toggleTheme() },
     { key: 'f', description: 'Toggle focus mode', handler: () => toggleFocusMode() },
     { key: 'q', description: 'Toggle quiet mode', handler: () => toggleQuietMode() },
@@ -207,79 +220,90 @@ export function DashboardPage() {
       {/* Stale Alerts */}
       <StaleAlerts items={actionItems} />
 
-      {/* Action List */}
-      <SectionErrorBoundary section="Action List">
-        <CollapsibleSection id="section-actions" title="What should I do next?" badge={actionItems.length} icon={<PriorityHighIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
-          <ActionList items={actionItems} isLoading={isLoading || reviewsLoading} />
-        </CollapsibleSection>
-      </SectionErrorBoundary>
+      {/* Sections — rendered in user-configured order */}
+      {settings.sectionOrder.map((sectionId) => {
+        // Focus mode: only show actions
+        if (focusMode && sectionId !== 'section-actions') return null;
+        // Quiet mode: hide informational sections
+        const quietHidden = ['section-trends', 'section-commits'];
+        if (quietMode && quietHidden.includes(sectionId)) return null;
 
-      {/* Focus mode: hide everything below actions */}
-      {!focusMode && (
-        <>
-          {/* Issues */}
-          <SectionErrorBoundary section="Issues">
-            <CollapsibleSection id="section-issues" title="My Issues" badge={issues.length} icon={<BugReportIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
-              <LabelFilter
-                issues={issues}
-                selectedLabels={selectedLabels}
-                onLabelsChange={setSelectedLabels}
-                groupBy={groupBy}
-                onGroupByChange={setGroupBy}
-              />
-              <IssuesTable
-                issues={filteredIssues}
-                isLoading={issuesLoading}
-                onItemClick={(o, r, n) => handleItemClick(o, r, n, 'issue')}
-                groupBy={groupBy}
-                notes={notes}
-              />
-            </CollapsibleSection>
-          </SectionErrorBoundary>
-
-          {/* PRs */}
-          <SectionErrorBoundary section="Pull Requests">
-            <CollapsibleSection id="section-prs" title="My Pull Requests" badge={prs.length} icon={<MergeIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
-              <PRsTable prs={prsWithMissingLinks} isLoading={prsLoading} onItemClick={(o, r, n) => handleItemClick(o, r, n, 'pr')} notes={notes} />
-            </CollapsibleSection>
-          </SectionErrorBoundary>
-
-          {/* Reviews */}
-          <SectionErrorBoundary section="Reviews">
-            <CollapsibleSection id="section-reviews" title="Reviews Requested" badge={reviewRequests.length} icon={<ReviewsIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
-              <ReviewRequestsTable requests={reviewRequests} isLoading={reviewsLoading} />
-            </CollapsibleSection>
-          </SectionErrorBoundary>
-
-          {/* Awaiting Review — all PRs needing review */}
-          <SectionErrorBoundary section="Awaiting Review">
-            <CollapsibleSection id="section-awaiting" title="PRs Awaiting Review" badge={awaitingReview.length} icon={<VisibilityIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
-              <AwaitingReviewTable prs={awaitingReview} isLoading={awaitingLoading} />
-            </CollapsibleSection>
-          </SectionErrorBoundary>
-
-          {/* Quiet mode hides informational sections */}
-          {!quietMode && (
-            <>
-              {/* Trends */}
-              <SectionErrorBoundary section="Trends">
+        switch (sectionId) {
+          case 'section-actions':
+            return (
+              <SectionErrorBoundary key={sectionId} section="Action List">
+                <CollapsibleSection id="section-actions" title="What should I do next?" badge={actionItems.length} icon={<PriorityHighIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
+                  <ActionList items={actionItems} isLoading={isLoading || reviewsLoading} />
+                </CollapsibleSection>
+              </SectionErrorBoundary>
+            );
+          case 'section-issues':
+            return (
+              <SectionErrorBoundary key={sectionId} section="Issues">
+                <CollapsibleSection id="section-issues" title="My Issues" badge={issues.length} icon={<BugReportIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
+                  <LabelFilter
+                    issues={issues}
+                    selectedLabels={selectedLabels}
+                    onLabelsChange={setSelectedLabels}
+                    groupBy={groupBy}
+                    onGroupByChange={setGroupBy}
+                  />
+                  <IssuesTable
+                    issues={filteredIssues}
+                    isLoading={issuesLoading}
+                    onItemClick={(o, r, n) => handleItemClick(o, r, n, 'issue')}
+                    groupBy={groupBy}
+                    notes={notes}
+                  />
+                </CollapsibleSection>
+              </SectionErrorBoundary>
+            );
+          case 'section-prs':
+            return (
+              <SectionErrorBoundary key={sectionId} section="Pull Requests">
+                <CollapsibleSection id="section-prs" title="My Pull Requests" badge={prs.length} icon={<MergeIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
+                  <PRsTable prs={prsWithMissingLinks} isLoading={prsLoading} onItemClick={(o, r, n) => handleItemClick(o, r, n, 'pr')} notes={notes} />
+                </CollapsibleSection>
+              </SectionErrorBoundary>
+            );
+          case 'section-reviews':
+            return (
+              <SectionErrorBoundary key={sectionId} section="Reviews">
+                <CollapsibleSection id="section-reviews" title="Reviews Requested" badge={reviewRequests.length} icon={<ReviewsIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
+                  <ReviewRequestsTable requests={reviewRequests} isLoading={reviewsLoading} />
+                </CollapsibleSection>
+              </SectionErrorBoundary>
+            );
+          case 'section-awaiting':
+            return (
+              <SectionErrorBoundary key={sectionId} section="Awaiting Review">
+                <CollapsibleSection id="section-awaiting" title="PRs Awaiting Review" badge={awaitingReview.length} icon={<VisibilityIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
+                  <AwaitingReviewTable prs={awaitingReview} isLoading={awaitingLoading} />
+                </CollapsibleSection>
+              </SectionErrorBoundary>
+            );
+          case 'section-trends':
+            return (
+              <SectionErrorBoundary key={sectionId} section="Trends">
                 <CollapsibleSection id="section-trends" title="Trends" icon={<TrendingUpIcon fontSize="small" />}>
                   <WeeklySummary trendData={trendData} isLoading={trendLoading} />
                   <CalendarHeatmap trendData={trendData} isLoading={trendLoading} />
                   <TrendChart data={trendData} isLoading={trendLoading} />
                 </CollapsibleSection>
               </SectionErrorBoundary>
-
-              {/* Commits */}
-              <SectionErrorBoundary section="Commits">
+            );
+          case 'section-commits':
+            return (
+              <SectionErrorBoundary key={sectionId} section="Commits">
                 <CollapsibleSection id="section-commits" title="My Recent Commits" badge={commits.length} icon={<CommitIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
                   <CommitsSection commits={commits} isLoading={commitsLoading} />
                 </CollapsibleSection>
               </SectionErrorBoundary>
-            </>
-          )}
-        </>
-      )}
+            );
+          default:
+            return null;
+        }
+      })}
 
       <DetailDrawer open={!!drawerItem} onClose={() => setDrawerItem(null)} item={drawerItem} />
       <ShortcutsDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} shortcuts={shortcuts} />
