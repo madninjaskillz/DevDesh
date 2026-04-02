@@ -26,6 +26,26 @@ import { useSettings } from '../../hooks/useSettings';
 import { colors } from '../../theme/colors';
 import { SettingsDialog } from '../settings/SettingsDialog';
 
+// Load Redgate brand font
+const redgateFontLoaded = (() => {
+  if (typeof document === 'undefined') return false;
+  const id = 'redgate-font';
+  if (document.getElementById(id)) return true;
+  const style = document.createElement('style');
+  style.id = id;
+  style.textContent = `
+    @font-face {
+      font-family: 'Redgate';
+      src: url('https://cdn.red-gate.com/assets/fonts/redgate/redgate.woff?v=1.36') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+  `;
+  document.head.appendChild(style);
+  return true;
+})();
+
 function HeaderDivider() {
   return <Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(255,255,255,0.15)', mx: 0.5 }} />;
 }
@@ -111,13 +131,14 @@ export function AppHeader() {
         }}
       >
         <Toolbar sx={{ minHeight: '56px !important', px: '0 !important', gap: 0 }}>
-          {/* Brand block with logo */}
+          {/* Brand block with logo + product name */}
           <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
               bgcolor: brandBg,
               px: 2.5,
+              pr: 3,
               alignSelf: 'stretch',
               gap: 1.5,
             }}
@@ -127,22 +148,19 @@ export function AppHeader() {
               badgeColor={isReddish(brandBg) ? '#FFFFFF' : '#E30613'}
               lineColor={isReddish(brandBg) ? '#E30613' : '#FFFFFF'}
             />
+            <Typography
+              noWrap
+              sx={{
+                fontFamily: redgateFontLoaded ? '"Redgate", "Roboto", sans-serif' : '"Roboto", sans-serif',
+                fontWeight: 400,
+                color: isReddish(brandBg) ? '#FFFFFF' : brandBg,
+                fontSize: '1.25rem',
+                letterSpacing: '0.03em',
+              }}
+            >
+              DevDash
+            </Typography>
           </Box>
-
-          {/* Product name */}
-          <Typography
-            noWrap
-            sx={{
-              fontWeight: 700,
-              color: headerColor,
-              fontSize: '1.1rem',
-              pl: 2.5,
-              pr: 2,
-              letterSpacing: '0.02em',
-            }}
-          >
-            DevDash
-          </Typography>
 
           <HeaderDivider />
 
