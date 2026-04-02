@@ -28,10 +28,10 @@ import { colors } from '../../theme/colors';
 import { SettingsDialog } from '../settings/SettingsDialog';
 
 // Load Redgate brand fonts (served locally to avoid CORS issues)
-const redgateFontLoaded = (() => {
-  if (typeof document === 'undefined') return false;
+(() => {
+  if (typeof document === 'undefined') return;
   const id = 'redgate-font';
-  if (document.getElementById(id)) return true;
+  if (document.getElementById(id)) return;
   const base = import.meta.env.BASE_URL;
   const style = document.createElement('style');
   style.id = id;
@@ -52,7 +52,6 @@ const redgateFontLoaded = (() => {
     }
   `;
   document.head.appendChild(style);
-  return true;
 })();
 
 function LogoIcon({ size = 34, badgeColor = '#E30613', lineColor = '#FFFFFF' }: { size?: number; badgeColor?: string; lineColor?: string }) {
