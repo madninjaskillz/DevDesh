@@ -135,13 +135,20 @@ export function DashboardPage() {
     [prsWithMissingLinks, issues, reviewRequests, settings],
   );
 
-  // Label filtering
+  // Label + board status filtering
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [groupBy, setGroupBy] = useState<GroupBy>('none');
   const filteredIssues = useMemo(() => {
-    if (selectedLabels.length === 0) return issues;
-    return issues.filter((issue) => issue.labels.some((l) => selectedLabels.includes(l.name)));
-  }, [issues, selectedLabels]);
+    let result = issues;
+    if (selectedLabels.length > 0) {
+      result = result.filter((issue) => issue.labels.some((l) => selectedLabels.includes(l.name)));
+    }
+    if (selectedStatuses.length > 0) {
+      result = result.filter((issue) => issue.projectStatus && selectedStatuses.includes(issue.projectStatus.name));
+    }
+    return result;
+  }, [issues, selectedLabels, selectedStatuses]);
 
   // State
   const [drawerItem, setDrawerItem] = useState<DrawerItem | null>(null);
@@ -299,7 +306,7 @@ export function DashboardPage() {
           case 'section-actions':
             return (
               <SectionErrorBoundary key={sectionId} section="Action List">
-                <CollapsibleSection id="section-actions" title="What should I do next?" badge={actionItems.length} icon={<PriorityHighIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
+                <CollapsibleSection id="section-actions" title={teamMode ? 'Action Items' : 'What should I do next?'} badge={actionItems.length} icon={<PriorityHighIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
                   <ActionList items={actionItems} isLoading={isLoading || reviewsLoading} />
                 </CollapsibleSection>
               </SectionErrorBoundary>
@@ -307,11 +314,13 @@ export function DashboardPage() {
           case 'section-issues':
             return (
               <SectionErrorBoundary key={sectionId} section="Issues">
-                <CollapsibleSection id="section-issues" title="My Issues" badge={issues.length} icon={<BugReportIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
+                <CollapsibleSection id="section-issues" title={teamMode ? 'Issues' : 'My Issues'} badge={issues.length} icon={<BugReportIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
                   <LabelFilter
                     issues={issues}
                     selectedLabels={selectedLabels}
                     onLabelsChange={setSelectedLabels}
+                    selectedStatuses={selectedStatuses}
+                    onStatusesChange={setSelectedStatuses}
                     groupBy={groupBy}
                     onGroupByChange={setGroupBy}
                   />
@@ -328,7 +337,7 @@ export function DashboardPage() {
           case 'section-prs':
             return (
               <SectionErrorBoundary key={sectionId} section="Pull Requests">
-                <CollapsibleSection id="section-prs" title="My Pull Requests" badge={prs.length} icon={<MergeIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
+                <CollapsibleSection id="section-prs" title={teamMode ? 'Pull Requests' : 'My Pull Requests'} badge={prs.length} icon={<MergeIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
                   <PRsTable prs={prsWithMissingLinks} isLoading={prsLoading} onItemClick={(o, r, n) => handleItemClick(o, r, n, 'pr')} notes={notes} />
                 </CollapsibleSection>
               </SectionErrorBoundary>
@@ -362,7 +371,7 @@ export function DashboardPage() {
           case 'section-commits':
             return (
               <SectionErrorBoundary key={sectionId} section="Commits">
-                <CollapsibleSection id="section-commits" title="My Recent Commits" badge={commits.length} icon={<CommitIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
+                <CollapsibleSection id="section-commits" title={teamMode ? 'Recent Commits' : 'My Recent Commits'} badge={commits.length} icon={<CommitIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
                   <CommitsSection commits={commits} isLoading={commitsLoading} />
                 </CollapsibleSection>
               </SectionErrorBoundary>
