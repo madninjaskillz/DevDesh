@@ -84,21 +84,26 @@ export function Sidebar({ badges = {} }: SidebarProps) {
       sx={{
         width,
         flexShrink: 0,
-        position: 'sticky',
-        top: 56,
-        alignSelf: 'flex-start',
-        maxHeight: 'calc(100vh - 56px)',
-        overflow: 'auto',
         display: { xs: 'none', lg: 'block' },
         transition: 'width 0.2s ease',
-        bgcolor: 'background.paper',
-        borderRadius: 2,
-        border: '1px solid',
-        borderColor: 'divider',
-        py: 1,
-        px: collapsed ? 0.5 : 1,
       }}
     >
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 68,
+          width,
+          maxHeight: 'calc(100vh - 80px)',
+          overflow: 'auto',
+          bgcolor: 'background.paper',
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: 'divider',
+          py: 1,
+          px: collapsed ? 0.5 : 1,
+          transition: 'width 0.2s ease',
+        }}
+      >
       <Box sx={{ display: 'flex', justifyContent: collapsed ? 'center' : 'flex-end', mb: 0.5 }}>
         <IconButton onClick={toggle} size="small">
           {collapsed ? <ChevronRightIcon fontSize="small" /> : <ChevronLeftIcon fontSize="small" />}
@@ -164,6 +169,7 @@ export function Sidebar({ badges = {} }: SidebarProps) {
           );
         })}
       </List>
+      </Box>
     </Box>
   );
 }
