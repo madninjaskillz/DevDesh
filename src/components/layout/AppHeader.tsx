@@ -27,18 +27,26 @@ import { useSettings } from '../../hooks/useSettings';
 import { colors } from '../../theme/colors';
 import { SettingsDialog } from '../settings/SettingsDialog';
 
-// Load Redgate brand font
+// Load Redgate brand fonts (served locally to avoid CORS issues)
 const redgateFontLoaded = (() => {
   if (typeof document === 'undefined') return false;
   const id = 'redgate-font';
   if (document.getElementById(id)) return true;
+  const base = import.meta.env.BASE_URL;
   const style = document.createElement('style');
   style.id = id;
   style.textContent = `
     @font-face {
       font-family: 'Redgate';
-      src: url('https://cdn.red-gate.com/assets/fonts/redgate/redgate.woff?v=1.36') format('woff');
+      src: url('${base}fonts/redgate.woff') format('woff');
       font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Redgate Type';
+      src: url('${base}fonts/redgate-type-medium.woff') format('woff');
+      font-weight: 500;
       font-style: normal;
       font-display: swap;
     }
@@ -149,8 +157,8 @@ export function AppHeader() {
             <Typography
               noWrap
               sx={{
-                fontFamily: redgateFontLoaded ? '"Redgate", "Roboto", sans-serif' : '"Roboto", sans-serif',
-                fontWeight: 400,
+                fontFamily: redgateFontLoaded ? '"Redgate Type", "Redgate", "Roboto", sans-serif' : '"Roboto", sans-serif',
+                fontWeight: 500,
                 color: isReddish(brandBg) ? '#FFFFFF' : brandBg,
                 fontSize: '1.25rem',
                 letterSpacing: '0.03em',
