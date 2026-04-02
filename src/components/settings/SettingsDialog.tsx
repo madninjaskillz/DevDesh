@@ -352,9 +352,9 @@ interface ThemeGroup {
 const THEME_GROUPS: ThemeGroup[] = [
   { label: 'Featured', themes: ['redgate'] },
   { label: 'Design Systems', themes: ['ant', 'carbon', 'fluent', 'hig', 'glass', 'metro'] },
-  { label: 'Editor Themes', themes: ['catppuccin', 'dracula', 'gruvbox', 'monokai', 'nord', 'onedark', 'solarized'] },
-  { label: 'Operating Systems', themes: ['android', 'amiga', 'beos', 'chromeos', 'c64', 'gnome', 'ios', 'aqua', 'macos9', 'sonoma', 'msdos', 'nextstep', 'os2', 'palmos', 'irix', 'ubuntu', 'win31', 'win95', 'vista', 'winxp'] },
-  { label: 'Vibes', themes: ['cyberpunk', 'highcontrast', 'paper', 'synthwave', 'terminal', 'vaporwave'] },
+  { label: 'Editor Themes', themes: ['ayu', 'catppuccin', 'dracula', 'everforest', 'gruvbox', 'kanagawa', 'monokai', 'nord', 'onedark', 'rosepine', 'solarized', 'tokyonight'] },
+  { label: 'Operating Systems', themes: ['android', 'amiga', 'atari', 'beos', 'chromeos', 'c64', 'gnome', 'haiku', 'ios', 'kde', 'aqua', 'macos9', 'mint', 'sonoma', 'msdos', 'nextstep', 'os2', 'palmos', 'plan9', 'redhat', 'solaris', 'symbian', 'templeos', 'tos', 'irix', 'ubuntu', 'win10', 'win31', 'win95', 'vista', 'winxp', 'zxspectrum'] },
+  { label: 'Vibes', themes: ['brutalist', 'cottagecore', 'cyberpunk', 'highcontrast', 'paper', 'retrowave', 'synthwave', 'terminal', 'vaporwave'] },
 ];
 
 function ThemePreviewCard({ name, mode, selected, onSelect, size = 'small' }: { name: ThemeName; mode: 'light' | 'dark'; selected: boolean; onSelect: () => void; size?: 'small' | 'large' }) {
