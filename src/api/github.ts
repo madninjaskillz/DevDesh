@@ -126,11 +126,12 @@ export async function getUserTeamSlugs(token: string): Promise<string[]> {
 export async function getAssignedIssues(
   owner: string,
   repo: string,
-  username: string,
+  username: string | null,
   token: string,
 ): Promise<GitHubIssue[]> {
+  const assigneeParam = username ? `assignee=${username}&` : '';
   const issues = await fetchAllPages<GitHubIssue>(
-    `${API_BASE}/repos/${owner}/${repo}/issues?assignee=${username}&state=open&sort=created&direction=asc`,
+    `${API_BASE}/repos/${owner}/${repo}/issues?${assigneeParam}state=open&sort=created&direction=asc`,
     token,
   );
   // Filter out PRs (GitHub's issues endpoint includes PRs)

@@ -50,13 +50,14 @@ function scrollTo(id: string) {
 
 export function DashboardPage() {
   const queryClient = useQueryClient();
-  const { issues, isLoading: issuesLoading, isError: issuesError, error: issuesErr } = useAssignedIssues();
-  const { prs, isLoading: prsLoading, isError: prsError, error: prsErr } = useOpenPRs();
+  const { settings, updateSettings } = useSettings();
+  const teamMode = settings.teamMode;
+  const { issues, isLoading: issuesLoading, isError: issuesError, error: issuesErr } = useAssignedIssues(teamMode);
+  const { prs, isLoading: prsLoading, isError: prsError, error: prsErr } = useOpenPRs(teamMode);
   const { requests: reviewRequests, isLoading: reviewsLoading } = useReviewRequests();
   const { awaitingReview, isLoading: awaitingLoading } = useAwaitingReview();
   const { trendData, isLoading: trendLoading } = useTrendData();
   const { commits, isLoading: commitsLoading } = useRecentCommits();
-  const { settings, updateSettings } = useSettings();
   const notes = useNotes();
 
   const isLoading = issuesLoading || prsLoading;
@@ -145,6 +146,7 @@ export function DashboardPage() {
     { key: 'd', description: 'Toggle dark mode', handler: () => toggleTheme() },
     { key: 'f', description: 'Toggle focus mode', handler: () => toggleFocusMode() },
     { key: 'q', description: 'Toggle quiet mode', handler: () => toggleQuietMode() },
+    { key: 't', description: 'Toggle team view', handler: () => updateSettings({ teamMode: !teamMode }) },
     { key: '?', description: 'Show shortcuts', handler: () => setShortcutsOpen(true) },
   ]);
 
@@ -177,8 +179,11 @@ export function DashboardPage() {
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
         <Typography variant="h5" sx={{ fontWeight: 700, flex: 1 }}>
-          Dashboard
+          {teamMode ? 'Team Dashboard' : 'Dashboard'}
         </Typography>
+        {teamMode && (
+          <Chip label="Team" size="small" color="success" onDelete={() => updateSettings({ teamMode: false })} />
+        )}
         {focusMode && (
           <Chip label="Focus" size="small" color="primary" onDelete={toggleFocusMode} />
         )}

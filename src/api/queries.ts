@@ -24,14 +24,14 @@ import { subDays, formatISO } from 'date-fns';
 const STALE_TIME = 5 * 60 * 1000;
 const REFETCH_INTERVAL = 5 * 60 * 1000;
 
-export function useAssignedIssues() {
+export function useAssignedIssues(teamMode = false) {
   const { token, user } = useAuth();
   const { repos } = useRepoConfig();
 
   const queries = useQueries({
     queries: repos.map(({ owner, repo }) => ({
-      queryKey: ['issues', owner, repo, user?.login],
-      queryFn: () => getAssignedIssues(owner, repo, user!.login, token!),
+      queryKey: ['issues', owner, repo, teamMode ? '__all__' : user?.login],
+      queryFn: () => getAssignedIssues(owner, repo, teamMode ? null : user!.login, token!),
       enabled: !!token && !!user,
       staleTime: STALE_TIME,
       refetchInterval: REFETCH_INTERVAL,
@@ -93,7 +93,7 @@ export function useAssignedIssues() {
   return { issues, isLoading, isError, error };
 }
 
-export function useOpenPRs() {
+export function useOpenPRs(teamMode = false) {
   const { token, user } = useAuth();
   const { repos } = useRepoConfig();
 
@@ -110,10 +110,10 @@ export function useOpenPRs() {
   const allPRs = useMemo(() => {
     return prQueries.flatMap((q, idx) =>
       (q.data ?? [])
-        .filter((pr) => pr.user.login === user?.login)
+        .filter((pr) => teamMode || pr.user.login === user?.login)
         .map((pr) => ({ ...pr, repoIdx: idx })),
     );
-  }, [prQueries.map((q) => q.data).join(','), user?.login]);
+  }, [prQueries.map((q) => q.data).join(','), user?.login, teamMode]);
 
   const enrichmentQueries = useQueries({
     queries: allPRs.flatMap((pr) => {

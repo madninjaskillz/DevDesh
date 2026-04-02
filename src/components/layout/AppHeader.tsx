@@ -6,7 +6,6 @@ import IconButton from '@mui/material/IconButton';
 import Avatar from '@mui/material/Avatar';
 import Tooltip from '@mui/material/Tooltip';
 import Box from '@mui/material/Box';
-import Divider from '@mui/material/Divider';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -18,6 +17,8 @@ import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import DensitySmallIcon from '@mui/icons-material/DensitySmall';
 import DensityMediumIcon from '@mui/icons-material/DensityMedium';
+import PersonIcon from '@mui/icons-material/Person';
+import GroupsIcon from '@mui/icons-material/Groups';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '@mui/material/styles';
 import { useThemeMode } from '../../theme/ThemeProvider';
@@ -45,10 +46,6 @@ const redgateFontLoaded = (() => {
   document.head.appendChild(style);
   return true;
 })();
-
-function HeaderDivider() {
-  return <Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(255,255,255,0.15)', mx: 0.5 }} />;
-}
 
 function LogoIcon({ size = 34, badgeColor = '#E30613', lineColor = '#FFFFFF' }: { size?: number; badgeColor?: string; lineColor?: string }) {
   return (
@@ -117,6 +114,7 @@ export function AppHeader() {
   const toggleFocusMode = () => updateSettings({ focusMode: !settings.focusMode });
   const toggleQuietMode = () => updateSettings({ quietMode: !settings.quietMode });
   const toggleCompactMode = () => updateSettings({ compactMode: !settings.compactMode });
+  const toggleTeamMode = () => updateSettings({ teamMode: !settings.teamMode });
 
   return (
     <>
@@ -162,14 +160,25 @@ export function AppHeader() {
             </Typography>
           </Box>
 
-          <HeaderDivider />
-
+          
           {/* Spacer */}
           <Box sx={{ flex: 1 }} />
 
           {isAuthenticated && (
             <>
               {/* View modes */}
+              <Tooltip title={settings.teamMode ? 'Switch to My view (T)' : 'Switch to Team view (T)'}>
+                <IconButton
+                  onClick={toggleTeamMode}
+                  size="small"
+                  sx={{
+                    color: settings.teamMode ? colors.green[4] : headerColor,
+                    bgcolor: settings.teamMode ? 'rgba(52,199,89,0.2)' : 'transparent',
+                  }}
+                >
+                  {settings.teamMode ? <GroupsIcon sx={{ fontSize: 18 }} /> : <PersonIcon sx={{ fontSize: 18 }} />}
+                </IconButton>
+              </Tooltip>
               <Tooltip title="Refresh data (R)">
                 <IconButton onClick={handleRefresh} size="small" sx={{ color: headerColor }}>
                   <RefreshIcon sx={{ fontSize: 18 }} />
@@ -205,8 +214,7 @@ export function AppHeader() {
                 </IconButton>
               </Tooltip>
 
-              <HeaderDivider />
-
+              
               {/* Notifications & Settings */}
               <Tooltip title={notifEnabled ? 'Disable notifications' : 'Enable notifications'}>
                 <IconButton onClick={toggleNotifications} size="small" sx={{ color: headerColor }}>
@@ -224,8 +232,7 @@ export function AppHeader() {
                 </IconButton>
               </Tooltip>
 
-              <HeaderDivider />
-
+              
               {/* User */}
               {user && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mx: 1 }}>

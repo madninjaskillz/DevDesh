@@ -25,6 +25,7 @@ export interface AppSettings {
   quietMode: boolean;
   autoCollapseEmpty: boolean;
   compactMode: boolean;
+  teamMode: boolean;
   sectionOrder: string[];
 }
 
@@ -39,6 +40,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   quietMode: false,
   autoCollapseEmpty: true,
   compactMode: false,
+  teamMode: false,
   sectionOrder: [...DEFAULT_SECTION_ORDER],
 };
 
