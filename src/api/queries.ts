@@ -248,15 +248,16 @@ export function useDashboardSummary(issues: DashboardIssue[], prs: DashboardPR[]
   };
 }
 
-export function useTrendData() {
+export function useTrendData(teamMode = false) {
   const { token, user } = useAuth();
   const { repos } = useRepoConfig();
   const since = formatISO(subDays(new Date(), 30), { representation: 'date' });
+  const loginOrAll = teamMode ? null : user?.login ?? null;
 
   const openIssueQueries = useQueries({
     queries: repos.map(({ owner, repo }) => ({
-      queryKey: ['trend-open-issues', owner, repo, user?.login],
-      queryFn: () => getAssignedIssues(owner, repo, user!.login, token!),
+      queryKey: ['trend-open-issues', owner, repo, teamMode ? '__all__' : user?.login],
+      queryFn: () => getAssignedIssues(owner, repo, loginOrAll, token!),
       enabled: !!token && !!user,
       staleTime: STALE_TIME,
     })),
@@ -264,8 +265,8 @@ export function useTrendData() {
 
   const closedIssueQueries = useQueries({
     queries: repos.map(({ owner, repo }) => ({
-      queryKey: ['trend-closed-issues', owner, repo, user?.login, since],
-      queryFn: () => getRecentlyClosedIssues(owner, repo, user!.login, since, token!),
+      queryKey: ['trend-closed-issues', owner, repo, teamMode ? '__all__' : user?.login, since],
+      queryFn: () => getRecentlyClosedIssues(owner, repo, loginOrAll, since, token!),
       enabled: !!token && !!user,
       staleTime: STALE_TIME,
     })),
@@ -307,7 +308,7 @@ export function useTrendData() {
     const allPRs = [
       ...openPRQueries.flatMap((q) => q.data ?? []),
       ...closedPRQueries.flatMap((q) => q.data ?? []),
-    ].filter((pr) => pr.user.login === user?.login);
+    ].filter((pr) => teamMode || pr.user.login === user?.login);
 
     const uniqueIssues = dedup(allIssues, (i) => `${i.repository_url}-${i.number}`);
     const uniquePRs = dedup(allPRs, (p) => `${p.html_url}`);
@@ -324,6 +325,7 @@ export function useTrendData() {
     openPRQueries.map((q) => q.dataUpdatedAt).join(','),
     closedPRQueries.map((q) => q.dataUpdatedAt).join(','),
     user?.login,
+    teamMode,
   ]);
 
   return { trendData, isLoading };
@@ -479,15 +481,15 @@ export function useActivityFeed() {
   return { events, isLoading };
 }
 
-export function useRecentCommits() {
+export function useRecentCommits(teamMode = false) {
   const { token, user } = useAuth();
   const { repos } = useRepoConfig();
   const since = formatISO(subDays(new Date(), 30), { representation: 'date' });
 
   const queries = useQueries({
     queries: repos.map(({ owner, repo }) => ({
-      queryKey: ['commits', owner, repo, user?.login, since],
-      queryFn: () => getRecentCommits(owner, repo, user!.login, since, token!),
+      queryKey: ['commits', owner, repo, teamMode ? '__all__' : user?.login, since],
+      queryFn: () => getRecentCommits(owner, repo, teamMode ? null : user!.login, since, token!),
       enabled: !!token && !!user,
       staleTime: STALE_TIME,
     })),

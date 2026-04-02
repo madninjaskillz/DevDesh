@@ -152,12 +152,13 @@ export async function getOpenPRs(
 export async function getRecentlyClosedIssues(
   owner: string,
   repo: string,
-  username: string,
+  username: string | null,
   since: string,
   token: string,
 ): Promise<GitHubIssue[]> {
+  const assigneeParam = username ? `assignee=${username}&` : '';
   const issues = await fetchAllPages<GitHubIssue>(
-    `${API_BASE}/repos/${owner}/${repo}/issues?assignee=${username}&state=closed&since=${since}&sort=updated&direction=desc`,
+    `${API_BASE}/repos/${owner}/${repo}/issues?${assigneeParam}state=closed&since=${since}&sort=updated&direction=desc`,
     token,
   );
   return issues.filter((i) => !i.pull_request);
@@ -548,12 +549,13 @@ export async function getRepoEvents(
 export async function getRecentCommits(
   owner: string,
   repo: string,
-  username: string,
+  username: string | null,
   since: string,
   token: string,
 ): Promise<any[]> {
+  const authorParam = username ? `author=${username}&` : '';
   return fetchJSON<any[]>(
-    `${API_BASE}/repos/${owner}/${repo}/commits?author=${username}&since=${since}&per_page=50`,
+    `${API_BASE}/repos/${owner}/${repo}/commits?${authorParam}since=${since}&per_page=50`,
     token,
   );
 }

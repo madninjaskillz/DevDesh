@@ -59,8 +59,8 @@ export function DashboardPage() {
   const { prs: allPrs, isLoading: prsLoading, isError: prsError, error: prsErr } = useOpenPRs(teamMode);
   const { requests: allReviewRequests, isLoading: reviewsLoading } = useReviewRequests();
   const { awaitingReview: allAwaitingReview, isLoading: awaitingLoading } = useAwaitingReview();
-  const { trendData, isLoading: trendLoading } = useTrendData();
-  const { commits: allCommits, isLoading: commitsLoading } = useRecentCommits();
+  const { trendData, isLoading: trendLoading } = useTrendData(teamMode);
+  const { commits: allCommits, isLoading: commitsLoading } = useRecentCommits(teamMode);
   const notes = useNotes();
   const { repos } = useRepoConfig();
 
