@@ -65,12 +65,18 @@ export function DashboardPage() {
   const notes = useNotes();
   const { repos } = useRepoConfig();
 
-  // Repo filter — all checked by default
-  const [disabledRepos, setDisabledRepos] = useState<Set<string>>(() => new Set());
+  // Repo filter — all checked by default, persisted to localStorage
+  const [disabledRepos, setDisabledRepos] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem('devdash-disabled-repos');
+      return raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch { return new Set(); }
+  });
   const toggleRepo = (fullName: string) => {
     setDisabledRepos((prev) => {
       const next = new Set(prev);
       if (next.has(fullName)) next.delete(fullName); else next.add(fullName);
+      localStorage.setItem('devdash-disabled-repos', JSON.stringify([...next]));
       return next;
     });
   };
