@@ -150,16 +150,16 @@ export function AppHeader() {
             }}
           >
             <LogoIcon
-              size={44}
+              size={50}
               badgeColor={isReddish(brandBg) ? '#FFFFFF' : '#E30613'}
               lineColor={isReddish(brandBg) ? '#E30613' : '#FFFFFF'}
             />
             <Typography
               noWrap
               sx={{
-                fontFamily: redgateFontLoaded ? '"Redgate Type", "Redgate", "Roboto", sans-serif' : '"Roboto", sans-serif',
+                fontFamily: '"Redgate Type", "Redgate", "Roboto", sans-serif',
                 fontWeight: 500,
-                color: isReddish(brandBg) ? '#FFFFFF' : brandBg,
+                color: '#FFFFFF',
                 fontSize: '1.25rem',
                 letterSpacing: '0.03em',
               }}
