@@ -196,7 +196,7 @@ export function AppHeader() {
                   onClick={toggleFocusMode}
                   size="small"
                   sx={{
-                    color: settings.focusMode ? colors.red.brand : colors.white,
+                    color: settings.focusMode ? colors.red.brand : headerColor,
                     bgcolor: settings.focusMode ? 'rgba(204,0,0,0.2)' : 'transparent',
                   }}
                 >
@@ -208,7 +208,7 @@ export function AppHeader() {
                   onClick={toggleQuietMode}
                   size="small"
                   sx={{
-                    color: settings.quietMode ? colors.blue[4] : colors.white,
+                    color: settings.quietMode ? colors.blue[4] : headerColor,
                     bgcolor: settings.quietMode ? 'rgba(103,169,241,0.2)' : 'transparent',
                   }}
                 >
