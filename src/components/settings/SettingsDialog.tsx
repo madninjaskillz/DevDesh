@@ -355,6 +355,7 @@ const THEME_GROUPS: ThemeGroup[] = [
   { label: 'Editor Themes', themes: ['ayu', 'catppuccin', 'cobalt', 'dracula', 'everforest', 'gruvbox', 'kanagawa', 'material', 'monokai', 'nightowl', 'nord', 'onedark', 'palenight', 'rosepine', 'solarized', 'tokyonight', 'vitesse'] },
   { label: 'Operating Systems', themes: ['android', 'amiga', 'atari', 'blackberry', 'beos', 'chromeos', 'c64', 'gnome', 'haiku', 'hpux', 'ios', 'kde', 'aqua', 'macos9', 'mint', 'morphos', 'msdos', 'nextstep', 'openstep', 'os2', 'palmos', 'plan9', 'reactos', 'redhat', 'riscos', 'sailfish', 'solaris', 'symbian', 'templeos', 'tizen', 'tos', 'irix', 'ubuntu', 'webos', 'win10', 'win31', 'win95', 'vista', 'windowsphone', 'winxp', 'zxspectrum'] },
   { label: 'Vibes', themes: ['brutalist', 'cottagecore', 'cyberpunk', 'highcontrast', 'noir', 'paper', 'pastel', 'retrowave', 'solarpunk', 'steampunk', 'synthwave', 'terminal', 'vaporwave', 'y2k'] },
+  { label: 'Web Sites', themes: ['amazon', 'discord', 'ebay', 'facebook', 'github_theme', 'linkedin', 'netflix', 'reddit', 'slack', 'spotify', 'stackoverflow', 'twitch', 'twitter', 'wikipedia', 'youtube'] },
 ];
 
 function ThemePreviewCard({ name, mode, selected, onSelect, size = 'small' }: { name: ThemeName; mode: 'light' | 'dark'; selected: boolean; onSelect: () => void; size?: 'small' | 'large' }) {

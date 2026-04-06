@@ -160,6 +160,21 @@ export const THEME_DEFAULT_BACKGROUND: Record<ThemeName, string> = {
   noir: '',
   pastel: '',
   steampunk: '',
+  facebook: '',
+  youtube: '',
+  netflix: '',
+  ebay: '',
+  amazon: '',
+  spotify: '',
+  twitter: '',
+  reddit: '',
+  github_theme: '',
+  stackoverflow: '',
+  twitch: '',
+  discord: '',
+  slack: '',
+  linkedin: '',
+  wikipedia: '',
 };
 
 export function getBackgroundById(id: string): BackgroundDef | undefined {
