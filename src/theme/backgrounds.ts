@@ -66,6 +66,16 @@ export const BACKGROUNDS: BackgroundDef[] = [
   { id: 'zxspectrum-rainbow', label: 'ZX Rainbow', file: `${BASE}zxspectrum-rainbow.svg` },
   { id: 'atari-gem', label: 'Atari GEM', file: `${BASE}atari-gem.svg` },
   { id: 'symbian-blue', label: 'Symbian', file: `${BASE}symbian-blue.svg` },
+  { id: 'riscos-cream', label: 'RISC OS', file: `${BASE}riscos-cream.svg` },
+  { id: 'webos-cards', label: 'webOS', file: `${BASE}webos-cards.svg` },
+  { id: 'windowsphone-tiles', label: 'Windows Phone', file: `${BASE}windowsphone-tiles.svg` },
+  { id: 'blackberry-dark', label: 'BlackBerry', file: `${BASE}blackberry-dark.svg` },
+  { id: 'tizen-blue', label: 'Tizen', file: `${BASE}tizen-blue.svg` },
+  { id: 'sailfish-amber', label: 'Sailfish', file: `${BASE}sailfish-amber.svg` },
+  { id: 'openstep-grey', label: 'OpenStep', file: `${BASE}openstep-grey.svg` },
+  { id: 'morphos-blue', label: 'MorphOS', file: `${BASE}morphos-blue.svg` },
+  { id: 'reactos-silver', label: 'ReactOS', file: `${BASE}reactos-silver.svg` },
+  { id: 'hpux-tan', label: 'HP-UX CDE', file: `${BASE}hpux-tan.svg` },
 ];
 
 /** Default background for each theme (applied when switching themes) */
@@ -130,6 +140,26 @@ export const THEME_DEFAULT_BACKGROUND: Record<ThemeName, string> = {
   retrowave: '',
   cottagecore: '',
   brutalist: '',
+  riscos: 'riscos-cream',
+  webos: 'webos-cards',
+  windowsphone: 'windowsphone-tiles',
+  blackberry: 'blackberry-dark',
+  tizen: 'tizen-blue',
+  sailfish: 'sailfish-amber',
+  openstep: 'openstep-grey',
+  morphos: 'morphos-blue',
+  reactos: 'reactos-silver',
+  hpux: 'hpux-tan',
+  material: '',
+  nightowl: '',
+  vitesse: '',
+  palenight: '',
+  cobalt: '',
+  solarpunk: '',
+  y2k: '',
+  noir: '',
+  pastel: '',
+  steampunk: '',
 };
 
 export function getBackgroundById(id: string): BackgroundDef | undefined {

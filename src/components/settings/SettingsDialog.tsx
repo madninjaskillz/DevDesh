@@ -352,9 +352,9 @@ interface ThemeGroup {
 const THEME_GROUPS: ThemeGroup[] = [
   { label: 'Featured', themes: ['redgate'] },
   { label: 'Design Systems', themes: ['ant', 'carbon', 'fluent', 'hig', 'glass', 'metro'] },
-  { label: 'Editor Themes', themes: ['ayu', 'catppuccin', 'dracula', 'everforest', 'gruvbox', 'kanagawa', 'monokai', 'nord', 'onedark', 'rosepine', 'solarized', 'tokyonight'] },
-  { label: 'Operating Systems', themes: ['android', 'amiga', 'atari', 'beos', 'chromeos', 'c64', 'gnome', 'haiku', 'ios', 'kde', 'aqua', 'macos9', 'mint', 'sonoma', 'msdos', 'nextstep', 'os2', 'palmos', 'plan9', 'redhat', 'solaris', 'symbian', 'templeos', 'tos', 'irix', 'ubuntu', 'win10', 'win31', 'win95', 'vista', 'winxp', 'zxspectrum'] },
-  { label: 'Vibes', themes: ['brutalist', 'cottagecore', 'cyberpunk', 'highcontrast', 'paper', 'retrowave', 'synthwave', 'terminal', 'vaporwave'] },
+  { label: 'Editor Themes', themes: ['ayu', 'catppuccin', 'cobalt', 'dracula', 'everforest', 'gruvbox', 'kanagawa', 'material', 'monokai', 'nightowl', 'nord', 'onedark', 'palenight', 'rosepine', 'solarized', 'tokyonight', 'vitesse'] },
+  { label: 'Operating Systems', themes: ['android', 'amiga', 'atari', 'blackberry', 'beos', 'chromeos', 'c64', 'gnome', 'haiku', 'hpux', 'ios', 'kde', 'aqua', 'macos9', 'mint', 'morphos', 'msdos', 'nextstep', 'openstep', 'os2', 'palmos', 'plan9', 'reactos', 'redhat', 'riscos', 'sailfish', 'solaris', 'symbian', 'templeos', 'tizen', 'tos', 'irix', 'ubuntu', 'webos', 'win10', 'win31', 'win95', 'vista', 'windowsphone', 'winxp', 'zxspectrum'] },
+  { label: 'Vibes', themes: ['brutalist', 'cottagecore', 'cyberpunk', 'highcontrast', 'noir', 'paper', 'pastel', 'retrowave', 'solarpunk', 'steampunk', 'synthwave', 'terminal', 'vaporwave', 'y2k'] },
 ];
 
 function ThemePreviewCard({ name, mode, selected, onSelect, size = 'small' }: { name: ThemeName; mode: 'light' | 'dark'; selected: boolean; onSelect: () => void; size?: 'small' | 'large' }) {
