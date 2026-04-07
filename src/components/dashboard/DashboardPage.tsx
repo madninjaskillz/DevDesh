@@ -41,6 +41,8 @@ import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useThemeMode } from '../../theme/ThemeProvider';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { useSettings } from '../../hooks/useSettings';
 import { useNotes } from '../../hooks/useNotes';
@@ -243,14 +245,17 @@ export function DashboardPage() {
     }}>
       <Sidebar badges={sidebarBadges} />
       <Box sx={{ flex: 1, minWidth: 0, '& .MuiTableCell-root': settings.compactMode ? { py: 0.25, px: 0.75, fontSize: '0.8rem' } : undefined }}>
-      {/* Header */}
+      {/* Header with view tabs */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, flex: 1 }}>
-          {teamMode ? 'Team Dashboard' : 'Dashboard'}
-        </Typography>
-        {teamMode && (
-          <Chip label="Team" size="small" color="success" onDelete={() => updateSettings({ teamMode: false })} />
-        )}
+        <Tabs
+          value={teamMode ? 1 : 0}
+          onChange={(_, v) => updateSettings({ teamMode: v === 1 })}
+          sx={{ minHeight: 36, '& .MuiTab-root': { minHeight: 36, py: 0.5, textTransform: 'none', fontWeight: 700, fontSize: '1.1rem' } }}
+        >
+          <Tab label="Dashboard" />
+          <Tab label="Team" />
+        </Tabs>
+        <Box sx={{ flex: 1 }} />
         {focusMode && (
           <Chip label="Focus" size="small" color="primary" onDelete={toggleFocusMode} />
         )}

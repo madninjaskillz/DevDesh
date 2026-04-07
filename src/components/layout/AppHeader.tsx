@@ -11,8 +11,6 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import PersonIcon from '@mui/icons-material/Person';
-import GroupsIcon from '@mui/icons-material/Groups';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '@mui/material/styles';
 import { useThemeMode } from '../../theme/ThemeProvider';
@@ -101,7 +99,6 @@ export function AppHeader() {
     queryClient.invalidateQueries();
   };
 
-  const toggleTeamMode = () => updateSettings({ teamMode: !settings.teamMode });
 
   return (
     <>
@@ -154,18 +151,6 @@ export function AppHeader() {
           {isAuthenticated && (
             <>
               {/* Left group: view toggles */}
-              <Tooltip title={settings.teamMode ? 'Switch to My view (T)' : 'Switch to Team view (T)'}>
-                <IconButton
-                  onClick={toggleTeamMode}
-                  size="small"
-                  sx={{
-                    color: settings.teamMode ? colors.green[4] : headerColor,
-                    bgcolor: settings.teamMode ? 'rgba(52,199,89,0.2)' : 'transparent',
-                  }}
-                >
-                  {settings.teamMode ? <GroupsIcon sx={{ fontSize: 18 }} /> : <PersonIcon sx={{ fontSize: 18 }} />}
-                </IconButton>
-              </Tooltip>
               <Tooltip title="Refresh data (R)">
                 <IconButton onClick={handleRefresh} size="small" sx={{ color: headerColor }}>
                   <RefreshIcon sx={{ fontSize: 18 }} />
