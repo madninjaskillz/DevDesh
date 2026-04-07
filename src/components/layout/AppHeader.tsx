@@ -13,10 +13,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import NotificationsOffIcon from '@mui/icons-material/NotificationsOff';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import DensitySmallIcon from '@mui/icons-material/DensitySmall';
-import DensityMediumIcon from '@mui/icons-material/DensityMedium';
 import PersonIcon from '@mui/icons-material/Person';
 import GroupsIcon from '@mui/icons-material/Groups';
 import { useQueryClient } from '@tanstack/react-query';
@@ -118,9 +115,7 @@ export function AppHeader() {
     queryClient.invalidateQueries();
   };
 
-  const toggleFocusMode = () => updateSettings({ focusMode: !settings.focusMode });
   const toggleQuietMode = () => updateSettings({ quietMode: !settings.quietMode });
-  const toggleCompactMode = () => updateSettings({ compactMode: !settings.compactMode });
   const toggleTeamMode = () => updateSettings({ teamMode: !settings.teamMode });
 
   return (
@@ -173,7 +168,7 @@ export function AppHeader() {
 
           {isAuthenticated && (
             <>
-              {/* View modes */}
+              {/* Left group: view toggles */}
               <Tooltip title={settings.teamMode ? 'Switch to My view (T)' : 'Switch to Team view (T)'}>
                 <IconButton
                   onClick={toggleTeamMode}
@@ -191,18 +186,6 @@ export function AppHeader() {
                   <RefreshIcon sx={{ fontSize: 18 }} />
                 </IconButton>
               </Tooltip>
-              <Tooltip title={settings.focusMode ? 'Exit focus mode (F)' : 'Focus mode (F)'}>
-                <IconButton
-                  onClick={toggleFocusMode}
-                  size="small"
-                  sx={{
-                    color: settings.focusMode ? colors.red.brand : headerColor,
-                    bgcolor: settings.focusMode ? 'rgba(204,0,0,0.2)' : 'transparent',
-                  }}
-                >
-                  <CenterFocusStrongIcon sx={{ fontSize: 18 }} />
-                </IconButton>
-              </Tooltip>
               <Tooltip title={settings.quietMode ? 'Exit quiet mode (Q)' : 'Quiet mode (Q)'}>
                 <IconButton
                   onClick={toggleQuietMode}
@@ -215,27 +198,21 @@ export function AppHeader() {
                   <VisibilityOffIcon sx={{ fontSize: 18 }} />
                 </IconButton>
               </Tooltip>
-              <Tooltip title={settings.compactMode ? 'Normal density' : 'Compact density'}>
-                <IconButton onClick={toggleCompactMode} size="small" sx={{ color: headerColor }}>
-                  {settings.compactMode ? <DensitySmallIcon sx={{ fontSize: 18 }} /> : <DensityMediumIcon sx={{ fontSize: 18 }} />}
-                </IconButton>
-              </Tooltip>
-
-              
-              {/* Notifications & Settings */}
               <Tooltip title={notifEnabled ? 'Disable notifications' : 'Enable notifications'}>
                 <IconButton onClick={toggleNotifications} size="small" sx={{ color: headerColor }}>
                   {notifEnabled ? <NotificationsIcon sx={{ fontSize: 18 }} /> : <NotificationsOffIcon sx={{ fontSize: 18 }} />}
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Settings">
-                <IconButton onClick={() => setSettingsOpen(true)} size="small" sx={{ color: headerColor }}>
-                  <SettingsIcon sx={{ fontSize: 18 }} />
-                </IconButton>
-              </Tooltip>
               <Tooltip title={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}>
                 <IconButton onClick={toggleTheme} size="small" sx={{ color: headerColor }}>
                   {mode === 'light' ? <DarkModeIcon sx={{ fontSize: 18 }} /> : <LightModeIcon sx={{ fontSize: 18 }} />}
+                </IconButton>
+              </Tooltip>
+
+              {/* Settings — always last before user profile */}
+              <Tooltip title="Settings">
+                <IconButton onClick={() => setSettingsOpen(true)} size="small" sx={{ color: headerColor }}>
+                  <SettingsIcon sx={{ fontSize: 18 }} />
                 </IconButton>
               </Tooltip>
 

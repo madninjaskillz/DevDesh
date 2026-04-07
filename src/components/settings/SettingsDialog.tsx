@@ -19,6 +19,8 @@ import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import InputAdornment from '@mui/material/InputAdornment';
 import Collapse from '@mui/material/Collapse';
+import Switch from '@mui/material/Switch';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import SearchIcon from '@mui/icons-material/Search';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -160,6 +162,27 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                   </Tooltip>
                 );
               })}
+            </Box>
+
+            <Typography variant="subtitle2" sx={{ mb: 1, mt: 2 }}>
+              Display Modes
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+              <FormControlLabel
+                control={<Switch size="small" checked={settings.focusMode} onChange={() => updateSettings({ focusMode: !settings.focusMode })} />}
+                label="Focus mode — show only action items"
+                slotProps={{ typography: { variant: 'body2', fontSize: '0.85rem' } }}
+              />
+              <FormControlLabel
+                control={<Switch size="small" checked={settings.compactMode} onChange={() => updateSettings({ compactMode: !settings.compactMode })} />}
+                label="Compact mode — smaller text and tighter spacing"
+                slotProps={{ typography: { variant: 'body2', fontSize: '0.85rem' } }}
+              />
+              <FormControlLabel
+                control={<Switch size="small" checked={settings.autoCollapseEmpty} onChange={() => updateSettings({ autoCollapseEmpty: !settings.autoCollapseEmpty })} />}
+                label="Auto-collapse empty sections"
+                slotProps={{ typography: { variant: 'body2', fontSize: '0.85rem' } }}
+              />
             </Box>
           </>
         )}
