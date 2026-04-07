@@ -58,6 +58,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   const { mode, toggleTheme } = useThemeMode();
   const { token, login, isLoading: authLoading, error: authError } = useAuth();
   const [tab, setTab] = useState(0);
+  const [notifEnabled, setNotifEnabled] = useState(() => localStorage.getItem('devdash-notifications') === 'true');
   const [owner, setOwner] = useState('');
   const [repo, setRepo] = useState('');
   const [newToken, setNewToken] = useState('');
@@ -142,8 +143,25 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                 slotProps={{ typography: { variant: 'body2', fontSize: '0.85rem' } }}
               />
               <FormControlLabel
+                control={<Switch size="small" checked={settings.quietMode} onChange={() => updateSettings({ quietMode: !settings.quietMode })} />}
+                label="Quiet mode — hide trends and commits"
+                slotProps={{ typography: { variant: 'body2', fontSize: '0.85rem' } }}
+              />
+              <FormControlLabel
                 control={<Switch size="small" checked={settings.autoCollapseEmpty} onChange={() => updateSettings({ autoCollapseEmpty: !settings.autoCollapseEmpty })} />}
                 label="Auto-collapse empty sections"
+                slotProps={{ typography: { variant: 'body2', fontSize: '0.85rem' } }}
+              />
+              <FormControlLabel
+                control={<Switch size="small" checked={notifEnabled} onChange={() => {
+                  const next = !notifEnabled;
+                  setNotifEnabled(next);
+                  localStorage.setItem('devdash-notifications', String(next));
+                  if (next && 'Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission();
+                  }
+                }} />}
+                label="Desktop notifications"
                 slotProps={{ typography: { variant: 'body2', fontSize: '0.85rem' } }}
               />
             </Box>

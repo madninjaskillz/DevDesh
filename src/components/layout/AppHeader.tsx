@@ -10,10 +10,7 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import NotificationsOffIcon from '@mui/icons-material/NotificationsOff';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import PersonIcon from '@mui/icons-material/Person';
 import GroupsIcon from '@mui/icons-material/Groups';
 import { useQueryClient } from '@tanstack/react-query';
@@ -100,22 +97,10 @@ export function AppHeader() {
   const { settings, updateSettings } = useSettings();
   const queryClient = useQueryClient();
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [notifEnabled, setNotifEnabled] = useState(() => localStorage.getItem('devdash-notifications') === 'true');
-
-  const toggleNotifications = () => {
-    const next = !notifEnabled;
-    setNotifEnabled(next);
-    localStorage.setItem('devdash-notifications', String(next));
-    if (next && 'Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-  };
-
   const handleRefresh = () => {
     queryClient.invalidateQueries();
   };
 
-  const toggleQuietMode = () => updateSettings({ quietMode: !settings.quietMode });
   const toggleTeamMode = () => updateSettings({ teamMode: !settings.teamMode });
 
   return (
@@ -184,23 +169,6 @@ export function AppHeader() {
               <Tooltip title="Refresh data (R)">
                 <IconButton onClick={handleRefresh} size="small" sx={{ color: headerColor }}>
                   <RefreshIcon sx={{ fontSize: 18 }} />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title={settings.quietMode ? 'Exit quiet mode (Q)' : 'Quiet mode (Q)'}>
-                <IconButton
-                  onClick={toggleQuietMode}
-                  size="small"
-                  sx={{
-                    color: settings.quietMode ? colors.blue[4] : headerColor,
-                    bgcolor: settings.quietMode ? 'rgba(103,169,241,0.2)' : 'transparent',
-                  }}
-                >
-                  <VisibilityOffIcon sx={{ fontSize: 18 }} />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title={notifEnabled ? 'Disable notifications' : 'Enable notifications'}>
-                <IconButton onClick={toggleNotifications} size="small" sx={{ color: headerColor }}>
-                  {notifEnabled ? <NotificationsIcon sx={{ fontSize: 18 }} /> : <NotificationsOffIcon sx={{ fontSize: 18 }} />}
                 </IconButton>
               </Tooltip>
               <Tooltip title={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}>
