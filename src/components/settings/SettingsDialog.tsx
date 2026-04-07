@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -106,11 +107,11 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
               </Button>
             </Box>
 
-            <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
               Theme
             </Typography>
-            <ThemePicker
-              currentTheme={(settings.themeName || 'redgate') as any}
+            <ThemeSelector
+              currentTheme={(settings.themeName || 'redgate') as ThemeName}
               mode={mode}
               onSelect={(name) => {
                 const defaultBg = THEME_DEFAULT_BACKGROUND[name] ?? '';
@@ -118,51 +119,13 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
               }}
             />
 
-            <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1, mt: 2 }}>
               Background
             </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 1 }}>
-              <Box
-                onClick={() => updateSettings({ backgroundId: '' })}
-                sx={{
-                  height: 60,
-                  borderRadius: 1,
-                  cursor: 'pointer',
-                  border: '2px solid',
-                  borderColor: !settings.backgroundId ? 'primary.main' : 'divider',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  bgcolor: 'action.hover',
-                  '&:hover': { borderColor: 'primary.light' },
-                  transition: 'all 0.15s',
-                }}
-              >
-                <Typography variant="caption" color="text.secondary">None</Typography>
-              </Box>
-              {BACKGROUNDS.map((bg) => {
-                const selected = settings.backgroundId === bg.id;
-                return (
-                  <Tooltip key={bg.id} title={bg.label}>
-                    <Box
-                      onClick={() => updateSettings({ backgroundId: bg.id })}
-                      sx={{
-                        height: 60,
-                        borderRadius: 1,
-                        cursor: 'pointer',
-                        border: '2px solid',
-                        borderColor: selected ? 'primary.main' : 'transparent',
-                        backgroundImage: `url(${bg.file})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        '&:hover': { borderColor: 'primary.light', transform: 'scale(1.05)' },
-                        transition: 'all 0.15s',
-                      }}
-                    />
-                  </Tooltip>
-                );
-              })}
-            </Box>
+            <BackgroundSelector
+              currentBg={settings.backgroundId}
+              onSelect={(id) => updateSettings({ backgroundId: id })}
+            />
 
             <Typography variant="subtitle2" sx={{ mb: 1, mt: 2 }}>
               Display Modes
@@ -380,6 +343,122 @@ const THEME_GROUPS: ThemeGroup[] = [
   { label: 'Vibes', themes: ['brutalist', 'cottagecore', 'cyberpunk', 'highcontrast', 'noir', 'paper', 'pastel', 'retrowave', 'solarpunk', 'steampunk', 'synthwave', 'terminal', 'vaporwave', 'y2k'] },
   { label: 'Web Sites', themes: ['amazon', 'discord', 'ebay', 'facebook', 'github_theme', 'linkedin', 'netflix', 'reddit', 'slack', 'spotify', 'stackoverflow', 'twitch', 'twitter', 'wikipedia', 'youtube'] },
 ];
+
+function ThemeSelector({ currentTheme, mode, onSelect }: { currentTheme: ThemeName; mode: 'light' | 'dark'; onSelect: (name: ThemeName) => void }) {
+  const [open, setOpen] = useState(false);
+  const t = THEMES[currentTheme];
+  const displayLabel = t.label.replace(/^(Design System|Editor|OS|Vibe|Web Site) - /, '');
+
+  return (
+    <>
+      <Box
+        onClick={() => setOpen(true)}
+        sx={{
+          display: 'flex', gap: 2, alignItems: 'center', p: 1.5,
+          border: '1px solid', borderColor: 'divider', borderRadius: 1.5,
+          cursor: 'pointer', mb: 1,
+          '&:hover': { borderColor: 'primary.light', bgcolor: 'action.hover' },
+          transition: 'all 0.15s',
+        }}
+      >
+        <Box sx={{ width: 100, flexShrink: 0 }}>
+          <ThemePreviewCard name={currentTheme} mode={mode} selected size="large" onSelect={() => {}} />
+        </Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{displayLabel}</Typography>
+          <Typography variant="caption" color="text.secondary">{t.description}</Typography>
+          <Typography variant="caption" color="primary" sx={{ display: 'block', mt: 0.5 }}>Click to change</Typography>
+        </Box>
+      </Box>
+      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Choose Theme</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <ThemePicker currentTheme={currentTheme} mode={mode} onSelect={(name) => { onSelect(name); setOpen(false); }} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}
+
+function BackgroundSelector({ currentBg, onSelect }: { currentBg: string; onSelect: (id: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const current = BACKGROUNDS.find((b) => b.id === currentBg);
+
+  return (
+    <>
+      <Box
+        onClick={() => setOpen(true)}
+        sx={{
+          display: 'flex', gap: 2, alignItems: 'center', p: 1.5,
+          border: '1px solid', borderColor: 'divider', borderRadius: 1.5,
+          cursor: 'pointer', mb: 1,
+          '&:hover': { borderColor: 'primary.light', bgcolor: 'action.hover' },
+          transition: 'all 0.15s',
+        }}
+      >
+        <Box
+          sx={{
+            width: 80, height: 50, borderRadius: 1, flexShrink: 0,
+            bgcolor: 'action.hover',
+            backgroundImage: current ? `url(${current.file})` : undefined,
+            backgroundSize: 'cover', backgroundPosition: 'center',
+            border: '1px solid', borderColor: 'divider',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          {!current && <Typography variant="caption" color="text.secondary">None</Typography>}
+        </Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{current?.label ?? 'No background'}</Typography>
+          <Typography variant="caption" color="primary">Click to change</Typography>
+        </Box>
+      </Box>
+      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Choose Background</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 1 }}>
+            <Box
+              onClick={() => { onSelect(''); setOpen(false); }}
+              sx={{
+                height: 70, borderRadius: 1, cursor: 'pointer',
+                border: '2px solid', borderColor: !currentBg ? 'primary.main' : 'divider',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                bgcolor: 'action.hover',
+                '&:hover': { borderColor: 'primary.light' },
+                transition: 'all 0.15s',
+              }}
+            >
+              <Typography variant="caption" color="text.secondary">None</Typography>
+            </Box>
+            {BACKGROUNDS.map((bg) => {
+              const selected = currentBg === bg.id;
+              return (
+                <Tooltip key={bg.id} title={bg.label}>
+                  <Box
+                    onClick={() => { onSelect(bg.id); setOpen(false); }}
+                    sx={{
+                      height: 70, borderRadius: 1, cursor: 'pointer',
+                      border: '2px solid', borderColor: selected ? 'primary.main' : 'transparent',
+                      backgroundImage: `url(${bg.file})`, backgroundSize: 'cover', backgroundPosition: 'center',
+                      '&:hover': { borderColor: 'primary.light', transform: 'scale(1.05)' },
+                      transition: 'all 0.15s',
+                    }}
+                  />
+                </Tooltip>
+              );
+            })}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}
 
 function ThemePreviewCard({ name, mode, selected, onSelect, size = 'small' }: { name: ThemeName; mode: 'light' | 'dark'; selected: boolean; onSelect: () => void; size?: 'small' | 'large' }) {
   const t = THEMES[name];
