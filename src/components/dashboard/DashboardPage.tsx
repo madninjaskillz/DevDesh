@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
 import Chip from '@mui/material/Chip';
 import { useQueryClient } from '@tanstack/react-query';

@@ -16,7 +16,6 @@ import { useTheme } from '@mui/material/styles';
 import { useThemeMode } from '../../theme/ThemeProvider';
 import { useAuth } from '../../hooks/useAuth';
 import { useSettings } from '../../hooks/useSettings';
-import { colors } from '../../theme/colors';
 import { SettingsDialog } from '../settings/SettingsDialog';
 
 // Load Redgate brand fonts (served locally to avoid CORS issues)
@@ -92,7 +91,7 @@ export function AppHeader() {
   const headerColor = themeDef.custom.headerColor || muiTheme.palette.text.primary;
   const brandBg = themeDef.custom.brandBlockBg;
   const { user, isAuthenticated, logout } = useAuth();
-  const { settings, updateSettings } = useSettings();
+  const { settings } = useSettings();
   const queryClient = useQueryClient();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const handleRefresh = () => {
