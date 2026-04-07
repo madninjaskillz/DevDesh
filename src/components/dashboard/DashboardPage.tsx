@@ -65,18 +65,27 @@ export function DashboardPage() {
   const notes = useNotes();
   const { repos } = useRepoConfig();
 
-  // Repo filter — all checked by default, persisted to localStorage
-  const [disabledRepos, setDisabledRepos] = useState<Set<string>>(() => {
+  // Repo filter — separate disabled sets for personal and team views
+  const storageKey = teamMode ? 'devdash-disabled-repos-team' : 'devdash-disabled-repos';
+  const [disabledReposMy, setDisabledReposMy] = useState<Set<string>>(() => {
     try {
       const raw = localStorage.getItem('devdash-disabled-repos');
       return raw ? new Set(JSON.parse(raw)) : new Set();
     } catch { return new Set(); }
   });
+  const [disabledReposTeam, setDisabledReposTeam] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem('devdash-disabled-repos-team');
+      return raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch { return new Set(); }
+  });
+  const disabledRepos = teamMode ? disabledReposTeam : disabledReposMy;
   const toggleRepo = (fullName: string) => {
-    setDisabledRepos((prev) => {
+    const setter = teamMode ? setDisabledReposTeam : setDisabledReposMy;
+    setter((prev) => {
       const next = new Set(prev);
       if (next.has(fullName)) next.delete(fullName); else next.add(fullName);
-      localStorage.setItem('devdash-disabled-repos', JSON.stringify([...next]));
+      localStorage.setItem(storageKey, JSON.stringify([...next]));
       return next;
     });
   };
