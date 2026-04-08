@@ -14,10 +14,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const isDark = theme.palette.mode === 'dark';
   const isVideo = bg?.file.endsWith('.mp4');
 
-  // Translucent themes (glass, fluent) already have blurred surfaces,
-  // so they need a lighter scrim. Opaque themes need more.
-  const isTranslucentTheme = ['glass', 'fluent', 'aqua', 'vista', 'sonoma'].includes(themeDef.name);
-  const scrimOpacity = isTranslucentTheme ? 0.25 : 0.5;
+  const scrimOpacity = (settings.scrimOpacity ?? 50) / 100;
 
   return (
     <Box

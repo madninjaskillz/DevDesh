@@ -190,6 +190,22 @@ export function SettingsDialog({ open, onClose, onOpen }: SettingsDialogProps) {
               currentBg={settings.backgroundId}
               onSelect={(id) => updateSettings({ backgroundId: id })}
             />
+            {settings.backgroundId && (
+              <Box sx={{ mt: 1.5, px: 0.5 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                  Overlay opacity: {settings.scrimOpacity}%
+                </Typography>
+                <Slider
+                  size="small"
+                  value={settings.scrimOpacity}
+                  onChange={(_, v) => updateSettings({ scrimOpacity: v as number })}
+                  min={0}
+                  max={100}
+                  valueLabelDisplay="auto"
+                  valueLabelFormat={(v) => `${v}%`}
+                />
+              </Box>
+            )}
 
             <Typography variant="subtitle2" sx={{ mb: 1, mt: 2 }}>
               Display Modes

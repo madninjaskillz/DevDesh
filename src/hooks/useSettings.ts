@@ -27,6 +27,7 @@ export interface AppSettings {
   compactMode: boolean;
   teamMode: boolean;
   sectionOrder: string[];
+  scrimOpacity: number;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -42,6 +43,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   compactMode: false,
   teamMode: false,
   sectionOrder: [...DEFAULT_SECTION_ORDER],
+  scrimOpacity: 50,
 };
 
 interface SettingsContextValue {
