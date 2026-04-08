@@ -73,6 +73,11 @@ export function SettingsDialog({ open, onClose, onOpen }: SettingsDialogProps) {
   const savedThemeRef = useRef<ThemeName>((settings.themeName || 'redgate') as ThemeName);
   const themeChooserOpenRef = useRef<(v: boolean) => void | null>(null);
 
+  // Theme picker state — lifted here so it survives dialog close/reopen during preview
+  const [themeGroupTab, setThemeGroupTab] = useState(0);
+  const [themeSearch, setThemeSearch] = useState('');
+  const themeScrollPos = useRef(0);
+
   const clearPreview = useCallback(() => {
     if (previewInterval.current) { clearInterval(previewInterval.current); previewInterval.current = null; }
     setPreviewCountdown(0);
@@ -173,6 +178,9 @@ export function SettingsDialog({ open, onClose, onOpen }: SettingsDialogProps) {
               }}
               onPreviewStart={handlePreviewStart}
               themeChooserOpenRef={themeChooserOpenRef}
+              groupTab={themeGroupTab} onGroupTabChange={setThemeGroupTab}
+              search={themeSearch} onSearchChange={setThemeSearch}
+              scrollPos={themeScrollPos}
             />
 
             <Typography variant="subtitle2" sx={{ mb: 1, mt: 2 }}>
@@ -437,12 +445,15 @@ const THEME_GROUPS: ThemeGroup[] = [
   { label: 'Media', themes: ['ateam', 'barbie', 'batman', 'ghostbusters', 'jurassicpark', 'matrix', 'simpsons', 'spongebob', 'starwars', 'tron'] },
 ];
 
-function ThemeSelector({ currentTheme, mode, onSelect, onPreviewStart, themeChooserOpenRef }: { currentTheme: ThemeName; mode: 'light' | 'dark'; onSelect: (name: ThemeName) => void; onPreviewStart: (name: ThemeName, currentTheme: ThemeName) => void; themeChooserOpenRef: React.MutableRefObject<((v: boolean) => void) | null> }) {
+function ThemeSelector({ currentTheme, mode, onSelect, onPreviewStart, themeChooserOpenRef, groupTab, onGroupTabChange, search, onSearchChange, scrollPos }: {
+  currentTheme: ThemeName; mode: 'light' | 'dark'; onSelect: (name: ThemeName) => void;
+  onPreviewStart: (name: ThemeName, currentTheme: ThemeName) => void;
+  themeChooserOpenRef: React.MutableRefObject<((v: boolean) => void) | null>;
+  groupTab: number; onGroupTabChange: (tab: number) => void;
+  search: string; onSearchChange: (search: string) => void;
+  scrollPos: React.MutableRefObject<number>;
+}) {
   const [open, setOpen] = useState(false);
-  // Lifted state so it survives dialog close/reopen during preview
-  const [groupTab, setGroupTab] = useState(0);
-  const [search, setSearch] = useState('');
-  const scrollPos = useRef(0);
   const t = THEMES[currentTheme];
   const displayLabel = t.label.replace(/^(Design System|Editor|OS|Vibe|Web Site) - /, '');
 
@@ -480,8 +491,8 @@ function ThemeSelector({ currentTheme, mode, onSelect, onPreviewStart, themeChoo
         <DialogContent sx={{ pt: 1 }}>
           <ThemePicker
             currentTheme={currentTheme} mode={mode} onSelect={onSelect} onPreview={handlePreview}
-            groupTab={groupTab} onGroupTabChange={setGroupTab}
-            search={search} onSearchChange={setSearch}
+            groupTab={groupTab} onGroupTabChange={onGroupTabChange}
+            search={search} onSearchChange={onSearchChange}
             scrollPos={scrollPos}
           />
         </DialogContent>
