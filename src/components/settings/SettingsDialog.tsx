@@ -67,6 +67,55 @@ export function SettingsDialog({ open, onClose, onOpen }: SettingsDialogProps) {
   const [newToken, setNewToken] = useState('');
   const [tokenSaved, setTokenSaved] = useState(false);
 
+  // Preview state — lifted here so the Snackbar renders outside the Dialog
+  const [previewCountdown, setPreviewCountdown] = useState(0);
+  const previewInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const savedThemeRef = useRef<ThemeName>((settings.themeName || 'redgate') as ThemeName);
+  const themeChooserOpenRef = useRef<(v: boolean) => void | null>(null);
+
+  const clearPreview = useCallback(() => {
+    if (previewInterval.current) { clearInterval(previewInterval.current); previewInterval.current = null; }
+    setPreviewCountdown(0);
+  }, []);
+
+  useEffect(() => () => clearPreview(), [clearPreview]);
+
+  const handlePreviewStart = useCallback((name: ThemeName, currentTheme: ThemeName) => {
+    savedThemeRef.current = currentTheme;
+    const defaultBg = THEME_DEFAULT_BACKGROUND[name] ?? '';
+    updateSettings({ themeName: name, backgroundId: defaultBg });
+    onClose();
+    setPreviewCountdown(5);
+    if (previewInterval.current) clearInterval(previewInterval.current);
+    previewInterval.current = setInterval(() => {
+      setPreviewCountdown((prev) => {
+        if (prev <= 1) {
+          if (previewInterval.current) { clearInterval(previewInterval.current); previewInterval.current = null; }
+          setTimeout(() => {
+            const bg = THEME_DEFAULT_BACKGROUND[savedThemeRef.current] ?? '';
+            updateSettings({ themeName: savedThemeRef.current, backgroundId: bg });
+            onOpen();
+            setTimeout(() => { themeChooserOpenRef.current?.(true); }, 100);
+          }, 0);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, [updateSettings, onClose, onOpen, clearPreview]);
+
+  const handlePreviewKeep = useCallback(() => {
+    clearPreview();
+  }, [clearPreview]);
+
+  const handlePreviewCancel = useCallback(() => {
+    clearPreview();
+    const bg = THEME_DEFAULT_BACKGROUND[savedThemeRef.current] ?? '';
+    updateSettings({ themeName: savedThemeRef.current, backgroundId: bg });
+    onOpen();
+    setTimeout(() => { themeChooserOpenRef.current?.(true); }, 100);
+  }, [clearPreview, updateSettings, onOpen]);
+
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!owner.trim() || !repo.trim()) return;
@@ -76,6 +125,7 @@ export function SettingsDialog({ open, onClose, onOpen }: SettingsDialogProps) {
   };
 
   return (
+    <>
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ pb: 0 }}>Settings</DialogTitle>
       <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 3, borderBottom: 1, borderColor: 'divider' }}>
@@ -121,8 +171,8 @@ export function SettingsDialog({ open, onClose, onOpen }: SettingsDialogProps) {
                 const defaultBg = THEME_DEFAULT_BACKGROUND[name] ?? '';
                 updateSettings({ themeName: name, backgroundId: defaultBg });
               }}
-              onSettingsClose={onClose}
-              onSettingsOpen={onOpen}
+              onPreviewStart={handlePreviewStart}
+              themeChooserOpenRef={themeChooserOpenRef}
             />
 
             <Typography variant="subtitle2" sx={{ mb: 1, mt: 2 }}>
@@ -347,6 +397,25 @@ export function SettingsDialog({ open, onClose, onOpen }: SettingsDialogProps) {
 
       </DialogContent>
     </Dialog>
+
+    {/* Preview countdown toast — rendered outside Dialog so it's visible when settings is closed */}
+    <Snackbar
+      open={previewCountdown > 0}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+    >
+      <Paper elevation={6} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, borderRadius: 2 }}>
+        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+          Reverting in {previewCountdown}s
+        </Typography>
+        <Button size="small" variant="contained" color="primary" onClick={handlePreviewKeep}>
+          Keep
+        </Button>
+        <Button size="small" variant="outlined" onClick={handlePreviewCancel}>
+          Cancel
+        </Button>
+      </Paper>
+    </Snackbar>
+    </>
   );
 }
 
@@ -368,12 +437,8 @@ const THEME_GROUPS: ThemeGroup[] = [
   { label: 'Media', themes: ['ateam', 'barbie', 'batman', 'ghostbusters', 'jurassicpark', 'matrix', 'simpsons', 'spongebob', 'starwars', 'tron'] },
 ];
 
-function ThemeSelector({ currentTheme, mode, onSelect, onSettingsClose, onSettingsOpen }: { currentTheme: ThemeName; mode: 'light' | 'dark'; onSelect: (name: ThemeName) => void; onSettingsClose: () => void; onSettingsOpen: () => void }) {
+function ThemeSelector({ currentTheme, mode, onSelect, onPreviewStart, themeChooserOpenRef }: { currentTheme: ThemeName; mode: 'light' | 'dark'; onSelect: (name: ThemeName) => void; onPreviewStart: (name: ThemeName, currentTheme: ThemeName) => void; themeChooserOpenRef: React.MutableRefObject<((v: boolean) => void) | null> }) {
   const [open, setOpen] = useState(false);
-  const savedTheme = useRef<ThemeName>(currentTheme);
-  const previewingName = useRef<ThemeName | null>(null);
-  const [countdown, setCountdown] = useState(0);
-  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // Lifted state so it survives dialog close/reopen during preview
   const [groupTab, setGroupTab] = useState(0);
   const [search, setSearch] = useState('');
@@ -381,55 +446,13 @@ function ThemeSelector({ currentTheme, mode, onSelect, onSettingsClose, onSettin
   const t = THEMES[currentTheme];
   const displayLabel = t.label.replace(/^(Design System|Editor|OS|Vibe|Web Site) - /, '');
 
-  const isPreviewing = countdown > 0;
-
-  const clearPreviewTimer = useCallback(() => {
-    if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
-    setCountdown(0);
-    previewingName.current = null;
-  }, []);
-
-  // Cleanup on unmount
-  useEffect(() => () => clearPreviewTimer(), [clearPreviewTimer]);
-
-  const revertPreview = useCallback(() => {
-    clearPreviewTimer();
-    onSelect(savedTheme.current);
-    onSettingsOpen();
-    setTimeout(() => setOpen(true), 100);
-  }, [clearPreviewTimer, onSelect, onSettingsOpen]);
-
-  const keepPreview = useCallback(() => {
-    // Theme is already applied — just stop the countdown
-    clearPreviewTimer();
-  }, [clearPreviewTimer]);
+  // Expose setOpen to parent for reopening after preview
+  themeChooserOpenRef.current = setOpen;
 
   const handlePreview = useCallback((name: ThemeName) => {
-    savedTheme.current = currentTheme;
-    previewingName.current = name;
-    onSelect(name);
     setOpen(false);
-    onSettingsClose();
-    setCountdown(5);
-    if (countdownRef.current) clearInterval(countdownRef.current);
-    countdownRef.current = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          // Time's up — revert
-          if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
-          // Use setTimeout to avoid setState during render
-          setTimeout(() => {
-            previewingName.current = null;
-            onSelect(savedTheme.current);
-            onSettingsOpen();
-            setTimeout(() => setOpen(true), 100);
-          }, 0);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }, [currentTheme, onSelect, onSettingsClose, onSettingsOpen]);
+    onPreviewStart(name, currentTheme);
+  }, [currentTheme, onPreviewStart]);
 
   return (
     <>
@@ -466,24 +489,6 @@ function ThemeSelector({ currentTheme, mode, onSelect, onSettingsClose, onSettin
           <Button onClick={() => setOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
-
-      {/* Preview countdown toast */}
-      <Snackbar
-        open={isPreviewing}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-      >
-        <Paper elevation={6} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, borderRadius: 2 }}>
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-            Reverting in {countdown}s
-          </Typography>
-          <Button size="small" variant="contained" color="primary" onClick={keepPreview}>
-            Keep
-          </Button>
-          <Button size="small" variant="outlined" onClick={revertPreview}>
-            Cancel
-          </Button>
-        </Paper>
-      </Snackbar>
     </>
   );
 }
