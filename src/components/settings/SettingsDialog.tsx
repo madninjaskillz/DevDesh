@@ -368,9 +368,12 @@ const THEME_GROUPS: ThemeGroup[] = [
 
 function ThemeSelector({ currentTheme, mode, onSelect, onSettingsClose, onSettingsOpen }: { currentTheme: ThemeName; mode: 'light' | 'dark'; onSelect: (name: ThemeName) => void; onSettingsClose: () => void; onSettingsOpen: () => void }) {
   const [open, setOpen] = useState(false);
-  const [previewing, setPreviewing] = useState(false);
   const previewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedTheme = useRef<ThemeName>(currentTheme);
+  // Lifted state so it survives dialog close/reopen during preview
+  const [groupTab, setGroupTab] = useState(0);
+  const [search, setSearch] = useState('');
+  const scrollPos = useRef(0);
   const t = THEMES[currentTheme];
   const displayLabel = t.label.replace(/^(Design System|Editor|OS|Vibe|Web Site) - /, '');
 
@@ -378,20 +381,14 @@ function ThemeSelector({ currentTheme, mode, onSelect, onSettingsClose, onSettin
   useEffect(() => () => { if (previewTimer.current) clearTimeout(previewTimer.current); }, []);
 
   const handlePreview = useCallback((name: ThemeName) => {
-    // Save current theme before preview
     savedTheme.current = currentTheme;
-    setPreviewing(true);
-    // Apply preview theme and hide everything
     onSelect(name);
     setOpen(false);
     onSettingsClose();
-    // After 5 seconds, revert and reopen
     if (previewTimer.current) clearTimeout(previewTimer.current);
     previewTimer.current = setTimeout(() => {
       onSelect(savedTheme.current);
-      setPreviewing(false);
       onSettingsOpen();
-      // Reopen theme chooser after settings dialog renders
       setTimeout(() => setOpen(true), 100);
     }, 5000);
   }, [currentTheme, onSelect, onSettingsClose, onSettingsOpen]);
@@ -420,7 +417,12 @@ function ThemeSelector({ currentTheme, mode, onSelect, onSettingsClose, onSettin
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle>Choose Theme</DialogTitle>
         <DialogContent sx={{ pt: 1 }}>
-          <ThemePicker currentTheme={currentTheme} mode={mode} onSelect={onSelect} onPreview={handlePreview} />
+          <ThemePicker
+            currentTheme={currentTheme} mode={mode} onSelect={onSelect} onPreview={handlePreview}
+            groupTab={groupTab} onGroupTabChange={setGroupTab}
+            search={search} onSearchChange={setSearch}
+            scrollPos={scrollPos}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)}>Close</Button>
@@ -613,14 +615,28 @@ function ThemePreviewCard({ name, mode, selected, onSelect, onPreview, size = 's
   );
 }
 
-function ThemePicker({ currentTheme, mode, onSelect, onPreview }: { currentTheme: ThemeName; mode: 'light' | 'dark'; onSelect: (name: ThemeName) => void; onPreview?: (name: ThemeName) => void }) {
-  const [search, setSearch] = useState('');
-  const [groupTab, setGroupTab] = useState(0);
+function ThemePicker({ currentTheme, mode, onSelect, onPreview, groupTab, onGroupTabChange, search, onSearchChange, scrollPos }: {
+  currentTheme: ThemeName; mode: 'light' | 'dark'; onSelect: (name: ThemeName) => void; onPreview?: (name: ThemeName) => void;
+  groupTab: number; onGroupTabChange: (tab: number) => void;
+  search: string; onSearchChange: (search: string) => void;
+  scrollPos: React.MutableRefObject<number>;
+}) {
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const query = search.trim().toLowerCase();
   const isSearching = query.length > 0;
 
   const activeGroup = THEME_GROUPS[groupTab];
+
+  // Save scroll position on scroll, restore on mount
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    el.scrollTop = scrollPos.current;
+    const handleScroll = () => { scrollPos.current = el.scrollTop; };
+    el.addEventListener('scroll', handleScroll);
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, [groupTab, isSearching]);
 
   return (
     <Box sx={{ mb: 2 }}>
@@ -645,7 +661,7 @@ function ThemePicker({ currentTheme, mode, onSelect, onPreview }: { currentTheme
       {/* Search */}
       <TextField
         size="small" fullWidth placeholder="Search themes..."
-        value={search} onChange={(e) => setSearch(e.target.value)}
+        value={search} onChange={(e) => onSearchChange(e.target.value)}
         slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18 }} /></InputAdornment> } }}
         sx={{ mb: 1.5, '& .MuiOutlinedInput-root': { fontSize: '0.85rem' } }}
       />
@@ -654,7 +670,7 @@ function ThemePicker({ currentTheme, mode, onSelect, onPreview }: { currentTheme
       {!isSearching && (
         <Tabs
           value={groupTab}
-          onChange={(_, v) => setGroupTab(v)}
+          onChange={(_, v) => { scrollPos.current = 0; onGroupTabChange(v); }}
           variant="scrollable"
           scrollButtons="auto"
           sx={{ borderBottom: 1, borderColor: 'divider', mb: 0 }}
@@ -666,7 +682,7 @@ function ThemePicker({ currentTheme, mode, onSelect, onPreview }: { currentTheme
       )}
 
       {/* Theme grid */}
-      <Box sx={{ border: '1px solid', borderColor: 'divider', borderTop: isSearching ? undefined : 'none', borderRadius: isSearching ? 1 : '0 0 4px 4px', maxHeight: 360, overflow: 'auto' }}>
+      <Box ref={gridRef} sx={{ border: '1px solid', borderColor: 'divider', borderTop: isSearching ? undefined : 'none', borderRadius: isSearching ? 1 : '0 0 4px 4px', maxHeight: 360, overflow: 'auto' }}>
         {isSearching ? (
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 1, p: 1 }}>
             {THEME_NAMES.filter((name) => {
