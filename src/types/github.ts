@@ -42,6 +42,7 @@ export interface GitHubPR {
   base: { ref: string };
   requested_reviewers: { login: string; avatar_url: string }[];
   requested_teams: { name: string; slug: string }[];
+  labels: { name: string; color: string }[];
 }
 
 export interface GitHubReview {
@@ -118,6 +119,7 @@ export interface DashboardPR {
   linkedIssues: LinkedIssue[];
   missingIssueLinks: MissingIssueLink[];
   ciStatus: 'success' | 'failure' | 'pending' | 'neutral' | null;
+  labels: { name: string; color: string }[];
   headRef: string;
   baseRef: string;
 }

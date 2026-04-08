@@ -31,7 +31,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { DashboardPR, PRStatus } from '../../types/github';
 import { formatAge, getAgeColor } from '../../utils/dates';
 import { colors } from '../../theme/colors';
-import { getPRBody, updatePRBody, mergePR } from '../../api/github';
+import { getPRBody, updatePRBody, mergePR, addLabelToIssue } from '../../api/github';
 import { useAuth } from '../../hooks/useAuth';
 import { NoteChip } from './NoteChip';
 import { OverflowChips } from './OverflowChips';
@@ -65,6 +65,22 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [fixingPRs, setFixingPRs] = useState<Set<string>>(new Set());
   const [mergingPRs, setMergingPRs] = useState<Set<string>>(new Set());
+  const [labelingPRs, setLabelingPRs] = useState<Set<string>>(new Set());
+
+  const handleAddLabel = async (pr: DashboardPR, label: string) => {
+    if (!token) return;
+    const prKey = `${pr.repoFullName}-${pr.number}-${label}`;
+    setLabelingPRs((prev) => new Set(prev).add(prKey));
+    try {
+      const [owner, repo] = pr.repoFullName.split('/');
+      await addLabelToIssue(owner, repo, pr.number, label, token);
+      queryClient.invalidateQueries({ queryKey: ['prs'] });
+    } catch (err) {
+      console.error('Failed to add label:', err);
+    } finally {
+      setLabelingPRs((prev) => { const n = new Set(prev); n.delete(prKey); return n; });
+    }
+  };
 
   const handleMerge = async (pr: DashboardPR) => {
     if (!token) return;
@@ -204,6 +220,7 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
             <TableCell>Reviewers</TableCell>
             <TableCell>Linked Issues</TableCell>
             <TableCell>CI</TableCell>
+            <TableCell>Type</TableCell>
             <TableCell>
               <TableSortLabel
                 active={sortField === 'ageDays'}
@@ -387,6 +404,42 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
                   {!pr.ciStatus && (
                     <Typography variant="body2" color="text.secondary">--</Typography>
                   )}
+                </TableCell>
+                <TableCell>
+                  {(() => {
+                    const maint = pr.labels.find((l) => l.name === 'Maintenance');
+                    const newCap = pr.labels.find((l) => l.name === 'New capability');
+                    if (maint) return <Chip label="Maintenance" size="small" sx={{ bgcolor: `#${maint.color}30`, color: `#${maint.color}`, fontWeight: 600, border: `1px solid #${maint.color}` }} />;
+                    if (newCap) return <Chip label="New capability" size="small" sx={{ bgcolor: `#${newCap.color}30`, color: `#${newCap.color}`, fontWeight: 600, border: `1px solid #${newCap.color}` }} />;
+                    const mKey = `${pr.repoFullName}-${pr.number}-Maintenance`;
+                    const ncKey = `${pr.repoFullName}-${pr.number}-New capability`;
+                    return (
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        <Tooltip title="Add Maintenance label">
+                          <Chip
+                            label="+M"
+                            size="small"
+                            clickable
+                            onClick={() => handleAddLabel(pr, 'Maintenance')}
+                            disabled={labelingPRs.has(mKey)}
+                            variant="outlined"
+                            sx={{ fontSize: '0.7rem', fontWeight: 700 }}
+                          />
+                        </Tooltip>
+                        <Tooltip title="Add New capability label">
+                          <Chip
+                            label="+NC"
+                            size="small"
+                            clickable
+                            onClick={() => handleAddLabel(pr, 'New capability')}
+                            disabled={labelingPRs.has(ncKey)}
+                            variant="outlined"
+                            sx={{ fontSize: '0.7rem', fontWeight: 700 }}
+                          />
+                        </Tooltip>
+                      </Box>
+                    );
+                  })()}
                 </TableCell>
                 <TableCell>
                   <Chip label={formatAge(pr.ageDays)} color={getAgeColor(pr.ageDays)} size="small" />

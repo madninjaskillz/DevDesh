@@ -620,6 +620,24 @@ export async function getPRCheckRuns(
   return result.check_runs;
 }
 
+export async function addLabelToIssue(
+  owner: string,
+  repo: string,
+  issueNumber: number,
+  label: string,
+  token: string,
+): Promise<void> {
+  const res = await safeFetch(`${API_BASE}/repos/${owner}/${repo}/issues/${issueNumber}/labels`, {
+    method: 'POST',
+    headers: { ...headers(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ labels: [label] }),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new GitHubApiError(res.status, text, res.headers);
+  }
+}
+
 export async function mergePR(
   owner: string,
   repo: string,

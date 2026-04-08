@@ -180,6 +180,7 @@ export function useOpenPRs(teamMode = false) {
         linkedIssues: gqlData?.linkedIssues ?? [],
         missingIssueLinks: [],
         ciStatus: gqlData?.ciStatus ?? null,
+        labels: pr.labels ?? [],
         headRef: pr.head.ref,
         baseRef: pr.base.ref,
       };
