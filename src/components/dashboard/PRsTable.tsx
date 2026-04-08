@@ -65,20 +65,21 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [fixingPRs, setFixingPRs] = useState<Set<string>>(new Set());
   const [mergingPRs, setMergingPRs] = useState<Set<string>>(new Set());
-  const [labelingPRs, setLabelingPRs] = useState<Set<string>>(new Set());
+  // Maps "owner/repo-number" → label name for optimistic UI
+  const [appliedLabels, setAppliedLabels] = useState<Map<string, string>>(new Map());
 
   const handleAddLabel = async (pr: DashboardPR, label: string) => {
     if (!token) return;
-    const prKey = `${pr.repoFullName}-${pr.number}-${label}`;
-    setLabelingPRs((prev) => new Set(prev).add(prKey));
+    const prKey = `${pr.repoFullName}-${pr.number}`;
+    setAppliedLabels((prev) => new Map(prev).set(prKey, label));
     try {
       const [owner, repo] = pr.repoFullName.split('/');
       await addLabelToIssue(owner, repo, pr.number, label, token);
       queryClient.invalidateQueries({ queryKey: ['prs'] });
     } catch (err) {
       console.error('Failed to add label:', err);
-    } finally {
-      setLabelingPRs((prev) => { const n = new Set(prev); n.delete(prKey); return n; });
+      // Revert optimistic update on failure
+      setAppliedLabels((prev) => { const n = new Map(prev); n.delete(prKey); return n; });
     }
   };
 
@@ -409,33 +410,21 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
                   {(() => {
                     const maint = pr.labels.find((l) => l.name === 'Maintenance');
                     const newCap = pr.labels.find((l) => l.name === 'New capability');
-                    if (maint) return <Chip label="Maintenance" size="small" sx={{ bgcolor: `#${maint.color}30`, color: `#${maint.color}`, fontWeight: 600, border: `1px solid #${maint.color}` }} />;
-                    if (newCap) return <Chip label="New capability" size="small" sx={{ bgcolor: `#${newCap.color}30`, color: `#${newCap.color}`, fontWeight: 600, border: `1px solid #${newCap.color}` }} />;
-                    const mKey = `${pr.repoFullName}-${pr.number}-Maintenance`;
-                    const ncKey = `${pr.repoFullName}-${pr.number}-New capability`;
+                    const optimistic = appliedLabels.get(prKey);
+                    const showLabel = maint ? 'Maintenance' : newCap ? 'New capability' : optimistic ?? null;
+                    const labelColor = maint ? maint.color : newCap ? newCap.color : null;
+                    if (showLabel) {
+                      return labelColor
+                        ? <Chip label={showLabel} size="small" sx={{ bgcolor: `#${labelColor}30`, color: `#${labelColor}`, fontWeight: 600, border: `1px solid #${labelColor}` }} />
+                        : <Chip label={showLabel} size="small" color="primary" variant="outlined" sx={{ fontWeight: 600 }} />;
+                    }
                     return (
                       <Box sx={{ display: 'flex', gap: 0.5 }}>
                         <Tooltip title="Add Maintenance label">
-                          <Chip
-                            label="+M"
-                            size="small"
-                            clickable
-                            onClick={() => handleAddLabel(pr, 'Maintenance')}
-                            disabled={labelingPRs.has(mKey)}
-                            variant="outlined"
-                            sx={{ fontSize: '0.7rem', fontWeight: 700 }}
-                          />
+                          <Chip label="+M" size="small" clickable onClick={() => handleAddLabel(pr, 'Maintenance')} variant="outlined" sx={{ fontSize: '0.7rem', fontWeight: 700 }} />
                         </Tooltip>
                         <Tooltip title="Add New capability label">
-                          <Chip
-                            label="+NC"
-                            size="small"
-                            clickable
-                            onClick={() => handleAddLabel(pr, 'New capability')}
-                            disabled={labelingPRs.has(ncKey)}
-                            variant="outlined"
-                            sx={{ fontSize: '0.7rem', fontWeight: 700 }}
-                          />
+                          <Chip label="+NC" size="small" clickable onClick={() => handleAddLabel(pr, 'New capability')} variant="outlined" sx={{ fontSize: '0.7rem', fontWeight: 700 }} />
                         </Tooltip>
                       </Box>
                     );
