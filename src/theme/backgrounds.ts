@@ -76,6 +76,16 @@ export const BACKGROUNDS: BackgroundDef[] = [
   { id: 'morphos-blue', label: 'MorphOS', file: `${BASE}morphos-blue.svg` },
   { id: 'reactos-silver', label: 'ReactOS', file: `${BASE}reactos-silver.svg` },
   { id: 'hpux-tan', label: 'HP-UX CDE', file: `${BASE}hpux-tan.svg` },
+  { id: 'spongebob-ocean', label: 'Bikini Bottom', file: `${BASE}spongebob-ocean.jpg` },
+  { id: 'ateam-military', label: 'A-Team', file: `${BASE}ateam-military.jpg` },
+  { id: 'starwars-space', label: 'Galaxy', file: `${BASE}starwars-space.jpg` },
+  { id: 'matrix-code', label: 'Digital Rain', file: `${BASE}matrix-code.jpg` },
+  { id: 'barbie-pink', label: 'Pink Dream', file: `${BASE}barbie-pink.jpg` },
+  { id: 'batman-gotham', label: 'Gotham', file: `${BASE}batman-gotham.jpg` },
+  { id: 'jurassicpark-jungle', label: 'Jungle', file: `${BASE}jurassicpark-jungle.jpg` },
+  { id: 'simpsons-suburb', label: 'Springfield', file: `${BASE}simpsons-suburb.jpg` },
+  { id: 'ghostbusters-fog', label: 'Foggy Night', file: `${BASE}ghostbusters-fog.jpg` },
+  { id: 'tron-neon', label: 'Neon Grid', file: `${BASE}tron-neon.jpg` },
 ];
 
 /** Default background for each theme (applied when switching themes) */
@@ -175,16 +185,16 @@ export const THEME_DEFAULT_BACKGROUND: Record<ThemeName, string> = {
   slack: '',
   linkedin: '',
   wikipedia: '',
-  spongebob: '',
-  ateam: '',
-  starwars: '',
-  matrix: '',
-  barbie: '',
-  batman: '',
-  jurassicpark: '',
-  simpsons: '',
-  ghostbusters: '',
-  tron: '',
+  spongebob: 'spongebob-ocean',
+  ateam: 'ateam-military',
+  starwars: 'starwars-space',
+  matrix: 'matrix-code',
+  barbie: 'barbie-pink',
+  batman: 'batman-gotham',
+  jurassicpark: 'jurassicpark-jungle',
+  simpsons: 'simpsons-suburb',
+  ghostbusters: 'ghostbusters-fog',
+  tron: 'tron-neon',
 };
 
 export function getBackgroundById(id: string): BackgroundDef | undefined {
