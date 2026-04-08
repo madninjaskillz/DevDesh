@@ -12,6 +12,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const theme = useTheme();
   const bg = settings.backgroundId ? getBackgroundById(settings.backgroundId) : null;
   const isDark = theme.palette.mode === 'dark';
+  const isVideo = bg?.file.endsWith('.mp4');
 
   // Translucent themes (glass, fluent) already have blurred surfaces,
   // so they need a lighter scrim. Opaque themes need more.
@@ -24,7 +25,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
         display: 'flex',
         flexDirection: 'column',
         minHeight: '100vh',
-        ...(bg ? {
+        position: 'relative',
+        ...(bg && !isVideo ? {
           backgroundImage: `url(${bg.file})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
@@ -32,6 +34,26 @@ export function AppLayout({ children }: { children: ReactNode }) {
         } : {}),
       }}
     >
+      {bg && isVideo && (
+        <video
+          key={bg.file}
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: -1,
+          }}
+        >
+          <source src={bg.file} type="video/mp4" />
+        </video>
+      )}
       <AppHeader />
       <Box sx={{ height: 56 }} />
       <Box

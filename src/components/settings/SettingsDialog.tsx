@@ -46,7 +46,7 @@ import { useRepoConfig } from '../../hooks/useRepoConfig';
 import { useSettings, DEFAULT_SECTION_ORDER } from '../../hooks/useSettings';
 import { useAuth } from '../../hooks/useAuth';
 import { THEMES, THEME_NAMES } from '../../theme/themes';
-import { BACKGROUNDS, THEME_DEFAULT_BACKGROUND } from '../../theme/backgrounds';
+import { BACKGROUNDS, BG_CATEGORIES, THEME_DEFAULT_BACKGROUND } from '../../theme/backgrounds';
 import { useThemeMode } from '../../theme/ThemeProvider';
 
 interface SettingsDialogProps {
@@ -504,9 +504,27 @@ function ThemeSelector({ currentTheme, mode, onSelect, onPreviewStart, themeChoo
   );
 }
 
+function BgThumbnail({ bg, isVideo }: { bg: { file: string }; isVideo: boolean }) {
+  if (!isVideo) return null;
+  return (
+    <video
+      muted
+      autoPlay
+      loop
+      playsInline
+      style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }}
+    >
+      <source src={bg.file} type="video/mp4" />
+    </video>
+  );
+}
+
 function BackgroundSelector({ currentBg, onSelect }: { currentBg: string; onSelect: (id: string) => void }) {
   const [open, setOpen] = useState(false);
+  const [bgTab, setBgTab] = useState(0);
   const current = BACKGROUNDS.find((b) => b.id === currentBg);
+  const activeCategory = BG_CATEGORIES[bgTab];
+  const filtered = BACKGROUNDS.filter((b) => b.category === activeCategory);
 
   return (
     <>
@@ -524,12 +542,14 @@ function BackgroundSelector({ currentBg, onSelect }: { currentBg: string; onSele
           sx={{
             width: 80, height: 50, borderRadius: 1, flexShrink: 0,
             bgcolor: 'action.hover',
-            backgroundImage: current ? `url(${current.file})` : undefined,
+            backgroundImage: current && !current.file.endsWith('.mp4') ? `url(${current.file})` : undefined,
             backgroundSize: 'cover', backgroundPosition: 'center',
             border: '1px solid', borderColor: 'divider',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
+            position: 'relative', overflow: 'hidden',
           }}
         >
+          {current && current.file.endsWith('.mp4') && <BgThumbnail bg={current} isVideo />}
           {!current && <Typography variant="caption" color="text.secondary">None</Typography>}
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -538,7 +558,18 @@ function BackgroundSelector({ currentBg, onSelect }: { currentBg: string; onSele
         </Box>
       </Box>
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Choose Background</DialogTitle>
+        <DialogTitle sx={{ pb: 0 }}>Choose Background</DialogTitle>
+        <Tabs
+          value={bgTab}
+          onChange={(_, v) => setBgTab(v)}
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{ px: 3, borderBottom: 1, borderColor: 'divider' }}
+        >
+          {BG_CATEGORIES.map((cat) => (
+            <Tab key={cat} label={`${cat} (${BACKGROUNDS.filter((b) => b.category === cat).length})`} sx={{ textTransform: 'none', fontSize: '0.75rem', minHeight: 36, py: 0.5 }} />
+          ))}
+        </Tabs>
         <DialogContent sx={{ pt: 1 }}>
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 1 }}>
             <Box
@@ -554,20 +585,25 @@ function BackgroundSelector({ currentBg, onSelect }: { currentBg: string; onSele
             >
               <Typography variant="caption" color="text.secondary">None</Typography>
             </Box>
-            {BACKGROUNDS.map((bg) => {
+            {filtered.map((bg) => {
               const selected = currentBg === bg.id;
+              const isVideo = bg.file.endsWith('.mp4');
               return (
                 <Tooltip key={bg.id} title={bg.label}>
                   <Box
                     onClick={() => { onSelect(bg.id); setOpen(false); }}
                     sx={{
-                      height: 70, borderRadius: 1, cursor: 'pointer',
+                      height: 70, borderRadius: 1, cursor: 'pointer', position: 'relative', overflow: 'hidden',
                       border: '2px solid', borderColor: selected ? 'primary.main' : 'transparent',
-                      backgroundImage: `url(${bg.file})`, backgroundSize: 'cover', backgroundPosition: 'center',
+                      backgroundImage: !isVideo ? `url(${bg.file})` : undefined,
+                      backgroundSize: 'cover', backgroundPosition: 'center',
+                      bgcolor: isVideo ? '#000' : undefined,
                       '&:hover': { borderColor: 'primary.light', transform: 'scale(1.05)' },
                       transition: 'all 0.15s',
                     }}
-                  />
+                  >
+                    {isVideo && <BgThumbnail bg={bg} isVideo />}
+                  </Box>
                 </Tooltip>
               );
             })}
