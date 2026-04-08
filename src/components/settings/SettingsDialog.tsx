@@ -19,7 +19,6 @@ import Tooltip from '@mui/material/Tooltip';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import InputAdornment from '@mui/material/InputAdornment';
-import Collapse from '@mui/material/Collapse';
 import Switch from '@mui/material/Switch';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import SearchIcon from '@mui/icons-material/Search';
@@ -568,18 +567,12 @@ function ThemePreviewCard({ name, mode, selected, onSelect, size = 'small' }: { 
 
 function ThemePicker({ currentTheme, mode, onSelect }: { currentTheme: ThemeName; mode: 'light' | 'dark'; onSelect: (name: ThemeName) => void }) {
   const [search, setSearch] = useState('');
-  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
-
-  const toggleGroup = (label: string) => {
-    setCollapsed((prev) => {
-      const next = new Set(prev);
-      if (next.has(label)) next.delete(label); else next.add(label);
-      return next;
-    });
-  };
+  const [groupTab, setGroupTab] = useState(0);
 
   const query = search.trim().toLowerCase();
   const isSearching = query.length > 0;
+
+  const activeGroup = THEME_GROUPS[groupTab];
 
   return (
     <Box sx={{ mb: 2 }}>
@@ -609,8 +602,23 @@ function ThemePicker({ currentTheme, mode, onSelect }: { currentTheme: ThemeName
         sx={{ mb: 1.5, '& .MuiOutlinedInput-root': { fontSize: '0.85rem' } }}
       />
 
+      {/* Category tabs */}
+      {!isSearching && (
+        <Tabs
+          value={groupTab}
+          onChange={(_, v) => setGroupTab(v)}
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{ borderBottom: 1, borderColor: 'divider', mb: 0 }}
+        >
+          {THEME_GROUPS.map((group) => (
+            <Tab key={group.label} label={`${group.label} (${group.themes.length})`} sx={{ textTransform: 'none', fontSize: '0.75rem', minHeight: 36, py: 0.5 }} />
+          ))}
+        </Tabs>
+      )}
+
       {/* Theme grid */}
-      <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, maxHeight: 360, overflow: 'auto' }}>
+      <Box sx={{ border: '1px solid', borderColor: 'divider', borderTop: isSearching ? undefined : 'none', borderRadius: isSearching ? 1 : '0 0 4px 4px', maxHeight: 360, overflow: 'auto' }}>
         {isSearching ? (
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 1, p: 1 }}>
             {THEME_NAMES.filter((name) => {
@@ -622,29 +630,11 @@ function ThemePicker({ currentTheme, mode, onSelect }: { currentTheme: ThemeName
           </Box>
         ) : (
           <Box sx={{ p: 1 }}>
-            {THEME_GROUPS.map((group) => (
-              <Box key={group.label} sx={{ mb: 1.5, '&:last-child': { mb: 0 } }}>
-                <Box
-                  onClick={() => toggleGroup(group.label)}
-                  sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', py: 0.5, px: 0.5, userSelect: 'none', '&:hover': { bgcolor: 'action.hover' }, borderRadius: 1, mb: 0.75 }}
-                >
-                  {collapsed.has(group.label) ? <ExpandMoreIcon sx={{ fontSize: 18, mr: 0.5 }} /> : <ExpandLessIcon sx={{ fontSize: 18, mr: 0.5 }} />}
-                  <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary', fontSize: '0.7rem' }}>
-                    {group.label}
-                  </Typography>
-                  <Typography variant="caption" sx={{ ml: 0.5, color: 'text.secondary', fontSize: '0.65rem' }}>
-                    ({group.themes.length})
-                  </Typography>
-                </Box>
-                <Collapse in={!collapsed.has(group.label)}>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 1 }}>
-                    {group.themes.map((name) => (
-                      <ThemePreviewCard key={name} name={name} mode={mode} selected={name === currentTheme} onSelect={() => onSelect(name)} />
-                    ))}
-                  </Box>
-                </Collapse>
-              </Box>
-            ))}
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 1 }}>
+              {activeGroup.themes.map((name) => (
+                <ThemePreviewCard key={name} name={name} mode={mode} selected={name === currentTheme} onSelect={() => onSelect(name)} />
+              ))}
+            </Box>
           </Box>
         )}
       </Box>
