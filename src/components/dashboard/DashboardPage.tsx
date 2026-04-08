@@ -153,9 +153,44 @@ export function DashboardPage() {
   );
 
   // Label + board status filtering (exclude-based: all shown by default, uncheck to hide)
-  const [excludedLabels, setExcludedLabels] = useState<string[]>([]);
-  const [excludedStatuses, setExcludedStatuses] = useState<string[]>([]);
-  const [groupBy, setGroupBy] = useState<GroupBy>('none');
+  // Persist per view (dashboard / team)
+  const [excludedLabelsMy, setExcludedLabelsMy] = useState<string[]>(() => {
+    try { const r = localStorage.getItem('devdash-excluded-labels'); return r ? JSON.parse(r) : []; } catch { return []; }
+  });
+  const [excludedLabelsTeam, setExcludedLabelsTeam] = useState<string[]>(() => {
+    try { const r = localStorage.getItem('devdash-excluded-labels-team'); return r ? JSON.parse(r) : []; } catch { return []; }
+  });
+  const [excludedStatusesMy, setExcludedStatusesMy] = useState<string[]>(() => {
+    try { const r = localStorage.getItem('devdash-excluded-statuses'); return r ? JSON.parse(r) : []; } catch { return []; }
+  });
+  const [excludedStatusesTeam, setExcludedStatusesTeam] = useState<string[]>(() => {
+    try { const r = localStorage.getItem('devdash-excluded-statuses-team'); return r ? JSON.parse(r) : []; } catch { return []; }
+  });
+  const [groupByMy, setGroupByMy] = useState<GroupBy>(() => {
+    try { return (localStorage.getItem('devdash-groupby') as GroupBy) || 'none'; } catch { return 'none'; }
+  });
+  const [groupByTeam, setGroupByTeam] = useState<GroupBy>(() => {
+    try { return (localStorage.getItem('devdash-groupby-team') as GroupBy) || 'none'; } catch { return 'none'; }
+  });
+
+  const excludedLabels = teamMode ? excludedLabelsTeam : excludedLabelsMy;
+  const setExcludedLabels = (v: string[] | ((prev: string[]) => string[])) => {
+    const setter = teamMode ? setExcludedLabelsTeam : setExcludedLabelsMy;
+    const key = teamMode ? 'devdash-excluded-labels-team' : 'devdash-excluded-labels';
+    setter((prev) => { const next = typeof v === 'function' ? v(prev) : v; localStorage.setItem(key, JSON.stringify(next)); return next; });
+  };
+  const excludedStatuses = teamMode ? excludedStatusesTeam : excludedStatusesMy;
+  const setExcludedStatuses = (v: string[] | ((prev: string[]) => string[])) => {
+    const setter = teamMode ? setExcludedStatusesTeam : setExcludedStatusesMy;
+    const key = teamMode ? 'devdash-excluded-statuses-team' : 'devdash-excluded-statuses';
+    setter((prev) => { const next = typeof v === 'function' ? v(prev) : v; localStorage.setItem(key, JSON.stringify(next)); return next; });
+  };
+  const groupBy = teamMode ? groupByTeam : groupByMy;
+  const setGroupBy = (v: GroupBy) => {
+    const setter = teamMode ? setGroupByTeam : setGroupByMy;
+    const key = teamMode ? 'devdash-groupby-team' : 'devdash-groupby';
+    setter(v); localStorage.setItem(key, v);
+  };
   const filteredIssues = useMemo(() => {
     let result = issues;
     if (excludedLabels.length > 0) {
@@ -167,8 +202,19 @@ export function DashboardPage() {
     return result;
   }, [issues, excludedLabels, excludedStatuses]);
 
-  // PR status filtering (draft excluded by default)
-  const [excludedPRStatuses, setExcludedPRStatuses] = useState<string[]>(['draft']);
+  // PR status filtering (draft excluded by default) — persist per view
+  const [excludedPRStatusesMy, setExcludedPRStatusesMy] = useState<string[]>(() => {
+    try { const r = localStorage.getItem('devdash-excluded-pr-statuses'); return r ? JSON.parse(r) : ['draft']; } catch { return ['draft']; }
+  });
+  const [excludedPRStatusesTeam, setExcludedPRStatusesTeam] = useState<string[]>(() => {
+    try { const r = localStorage.getItem('devdash-excluded-pr-statuses-team'); return r ? JSON.parse(r) : ['draft']; } catch { return ['draft']; }
+  });
+  const excludedPRStatuses = teamMode ? excludedPRStatusesTeam : excludedPRStatusesMy;
+  const setExcludedPRStatuses = (v: string[] | ((prev: string[]) => string[])) => {
+    const setter = teamMode ? setExcludedPRStatusesTeam : setExcludedPRStatusesMy;
+    const key = teamMode ? 'devdash-excluded-pr-statuses-team' : 'devdash-excluded-pr-statuses';
+    setter((prev) => { const next = typeof v === 'function' ? v(prev) : v; localStorage.setItem(key, JSON.stringify(next)); return next; });
+  };
   const filteredPRs = useMemo(() => {
     if (excludedPRStatuses.length === 0) return prsWithMissingLinks;
     return prsWithMissingLinks.filter((pr) => !excludedPRStatuses.includes(pr.status));
@@ -209,7 +255,7 @@ export function DashboardPage() {
     }));
 
   const shortcuts = useKeyboardShortcuts([
-    { key: 'r', description: 'Refresh data', handler: () => queryClient.invalidateQueries() },
+    { key: 'r', description: 'Refresh data', handler: () => queryClient.invalidateQueries({ refetchType: 'all' }) },
     ...sectionShortcuts,
     { key: 'd', description: 'Toggle dark mode', handler: () => toggleTheme() },
     { key: 'f', description: 'Toggle focus mode', handler: () => toggleFocusMode() },
@@ -249,7 +295,6 @@ export function DashboardPage() {
         <Tabs
           value={teamMode ? 1 : 0}
           onChange={(_, v) => updateSettings({ teamMode: v === 1 })}
-          sx={{ minHeight: 36, '& .MuiTab-root': { minHeight: 36, py: 0.5, textTransform: 'none', fontWeight: 700, fontSize: '1.1rem' } }}
         >
           <Tab label="Dashboard" />
           <Tab label="Team" />

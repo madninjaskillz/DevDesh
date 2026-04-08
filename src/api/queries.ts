@@ -251,7 +251,7 @@ export function useDashboardSummary(issues: DashboardIssue[], prs: DashboardPR[]
 export function useTrendData(teamMode = false) {
   const { token, user } = useAuth();
   const { repos } = useRepoConfig();
-  const since = formatISO(subDays(new Date(), 30), { representation: 'date' });
+  const since = formatISO(subDays(new Date(), 90), { representation: 'date' });
   const loginOrAll = teamMode ? null : user?.login ?? null;
 
   const openIssueQueries = useQueries({
@@ -316,7 +316,7 @@ export function useTrendData(teamMode = false) {
     return computeTrendData(
       uniqueIssues.map((i) => ({ created_at: i.created_at, closed_at: i.closed_at })),
       uniquePRs.map((p) => ({ created_at: p.created_at, closed_at: p.closed_at ?? p.merged_at })),
-      30,
+      90,
     );
   }, [
     isLoading,

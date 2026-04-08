@@ -93,7 +93,7 @@ export function AppHeader() {
   const queryClient = useQueryClient();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const handleRefresh = () => {
-    queryClient.invalidateQueries();
+    queryClient.invalidateQueries({ refetchType: 'all' });
   };
 
 
