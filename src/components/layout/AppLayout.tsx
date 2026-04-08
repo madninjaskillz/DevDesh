@@ -3,12 +3,11 @@ import Box from '@mui/material/Box';
 import { useTheme } from '@mui/material/styles';
 import { AppHeader } from './AppHeader';
 import { useSettings } from '../../hooks/useSettings';
-import { useThemeMode } from '../../theme/ThemeProvider';
+
 import { getBackgroundById } from '../../theme/backgrounds';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { settings } = useSettings();
-  const { themeDef } = useThemeMode();
   const theme = useTheme();
   const bg = settings.backgroundId ? getBackgroundById(settings.backgroundId) : null;
   const isDark = theme.palette.mode === 'dark';
