@@ -175,6 +175,16 @@ export const THEME_DEFAULT_BACKGROUND: Record<ThemeName, string> = {
   slack: '',
   linkedin: '',
   wikipedia: '',
+  spongebob: '',
+  ateam: '',
+  starwars: '',
+  matrix: '',
+  barbie: '',
+  batman: '',
+  jurassicpark: '',
+  simpsons: '',
+  ghostbusters: '',
+  tron: '',
 };
 
 export function getBackgroundById(id: string): BackgroundDef | undefined {
