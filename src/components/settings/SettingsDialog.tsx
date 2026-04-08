@@ -1,4 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import Snackbar from '@mui/material/Snackbar';
+import Paper from '@mui/material/Paper';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -368,8 +370,10 @@ const THEME_GROUPS: ThemeGroup[] = [
 
 function ThemeSelector({ currentTheme, mode, onSelect, onSettingsClose, onSettingsOpen }: { currentTheme: ThemeName; mode: 'light' | 'dark'; onSelect: (name: ThemeName) => void; onSettingsClose: () => void; onSettingsOpen: () => void }) {
   const [open, setOpen] = useState(false);
-  const previewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedTheme = useRef<ThemeName>(currentTheme);
+  const previewingName = useRef<ThemeName | null>(null);
+  const [countdown, setCountdown] = useState(0);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // Lifted state so it survives dialog close/reopen during preview
   const [groupTab, setGroupTab] = useState(0);
   const [search, setSearch] = useState('');
@@ -377,20 +381,54 @@ function ThemeSelector({ currentTheme, mode, onSelect, onSettingsClose, onSettin
   const t = THEMES[currentTheme];
   const displayLabel = t.label.replace(/^(Design System|Editor|OS|Vibe|Web Site) - /, '');
 
-  // Cleanup timer on unmount
-  useEffect(() => () => { if (previewTimer.current) clearTimeout(previewTimer.current); }, []);
+  const isPreviewing = countdown > 0;
+
+  const clearPreviewTimer = useCallback(() => {
+    if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
+    setCountdown(0);
+    previewingName.current = null;
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => () => clearPreviewTimer(), [clearPreviewTimer]);
+
+  const revertPreview = useCallback(() => {
+    clearPreviewTimer();
+    onSelect(savedTheme.current);
+    onSettingsOpen();
+    setTimeout(() => setOpen(true), 100);
+  }, [clearPreviewTimer, onSelect, onSettingsOpen]);
+
+  const keepPreview = useCallback(() => {
+    // Theme is already applied — just stop the countdown
+    clearPreviewTimer();
+  }, [clearPreviewTimer]);
 
   const handlePreview = useCallback((name: ThemeName) => {
     savedTheme.current = currentTheme;
+    previewingName.current = name;
     onSelect(name);
     setOpen(false);
     onSettingsClose();
-    if (previewTimer.current) clearTimeout(previewTimer.current);
-    previewTimer.current = setTimeout(() => {
-      onSelect(savedTheme.current);
-      onSettingsOpen();
-      setTimeout(() => setOpen(true), 100);
-    }, 5000);
+    setCountdown(5);
+    if (countdownRef.current) clearInterval(countdownRef.current);
+    countdownRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          // Time's up — revert
+          if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
+          // Use setTimeout to avoid setState during render
+          setTimeout(() => {
+            previewingName.current = null;
+            onSelect(savedTheme.current);
+            onSettingsOpen();
+            setTimeout(() => setOpen(true), 100);
+          }, 0);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
   }, [currentTheme, onSelect, onSettingsClose, onSettingsOpen]);
 
   return (
@@ -428,6 +466,24 @@ function ThemeSelector({ currentTheme, mode, onSelect, onSettingsClose, onSettin
           <Button onClick={() => setOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Preview countdown toast */}
+      <Snackbar
+        open={isPreviewing}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+      >
+        <Paper elevation={6} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, borderRadius: 2 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            Reverting in {countdown}s
+          </Typography>
+          <Button size="small" variant="contained" color="primary" onClick={keepPreview}>
+            Keep
+          </Button>
+          <Button size="small" variant="outlined" onClick={revertPreview}>
+            Cancel
+          </Button>
+        </Paper>
+      </Snackbar>
     </>
   );
 }
