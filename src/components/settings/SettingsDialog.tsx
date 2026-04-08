@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -37,6 +37,7 @@ import BugReportIcon from '@mui/icons-material/BugReport';
 import MergeIcon from '@mui/icons-material/CallMerge';
 import ReviewsIcon from '@mui/icons-material/Reviews';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import PreviewIcon from '@mui/icons-material/RemoveRedEye';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import CommitIcon from '@mui/icons-material/Commit';
 import { useRepoConfig } from '../../hooks/useRepoConfig';
@@ -49,9 +50,10 @@ import { useThemeMode } from '../../theme/ThemeProvider';
 interface SettingsDialogProps {
   open: boolean;
   onClose: () => void;
+  onOpen: () => void;
 }
 
-export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
+export function SettingsDialog({ open, onClose, onOpen }: SettingsDialogProps) {
   const { repos, addRepo, removeRepo, isValidating, error } = useRepoConfig();
   const { settings, updateSettings } = useSettings();
   const { mode, toggleTheme } = useThemeMode();
@@ -117,6 +119,8 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                 const defaultBg = THEME_DEFAULT_BACKGROUND[name] ?? '';
                 updateSettings({ themeName: name, backgroundId: defaultBg });
               }}
+              onSettingsClose={onClose}
+              onSettingsOpen={onOpen}
             />
 
             <Typography variant="subtitle2" sx={{ mb: 1, mt: 2 }}>
@@ -362,10 +366,35 @@ const THEME_GROUPS: ThemeGroup[] = [
   { label: 'Media', themes: ['ateam', 'barbie', 'batman', 'ghostbusters', 'jurassicpark', 'matrix', 'simpsons', 'spongebob', 'starwars', 'tron'] },
 ];
 
-function ThemeSelector({ currentTheme, mode, onSelect }: { currentTheme: ThemeName; mode: 'light' | 'dark'; onSelect: (name: ThemeName) => void }) {
+function ThemeSelector({ currentTheme, mode, onSelect, onSettingsClose, onSettingsOpen }: { currentTheme: ThemeName; mode: 'light' | 'dark'; onSelect: (name: ThemeName) => void; onSettingsClose: () => void; onSettingsOpen: () => void }) {
   const [open, setOpen] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
+  const previewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savedTheme = useRef<ThemeName>(currentTheme);
   const t = THEMES[currentTheme];
   const displayLabel = t.label.replace(/^(Design System|Editor|OS|Vibe|Web Site) - /, '');
+
+  // Cleanup timer on unmount
+  useEffect(() => () => { if (previewTimer.current) clearTimeout(previewTimer.current); }, []);
+
+  const handlePreview = useCallback((name: ThemeName) => {
+    // Save current theme before preview
+    savedTheme.current = currentTheme;
+    setPreviewing(true);
+    // Apply preview theme and hide everything
+    onSelect(name);
+    setOpen(false);
+    onSettingsClose();
+    // After 5 seconds, revert and reopen
+    if (previewTimer.current) clearTimeout(previewTimer.current);
+    previewTimer.current = setTimeout(() => {
+      onSelect(savedTheme.current);
+      setPreviewing(false);
+      onSettingsOpen();
+      // Reopen theme chooser after settings dialog renders
+      setTimeout(() => setOpen(true), 100);
+    }, 5000);
+  }, [currentTheme, onSelect, onSettingsClose, onSettingsOpen]);
 
   return (
     <>
@@ -391,7 +420,7 @@ function ThemeSelector({ currentTheme, mode, onSelect }: { currentTheme: ThemeNa
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle>Choose Theme</DialogTitle>
         <DialogContent sx={{ pt: 1 }}>
-          <ThemePicker currentTheme={currentTheme} mode={mode} onSelect={(name) => { onSelect(name); setOpen(false); }} />
+          <ThemePicker currentTheme={currentTheme} mode={mode} onSelect={onSelect} onPreview={handlePreview} />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)}>Close</Button>
@@ -478,7 +507,7 @@ function BackgroundSelector({ currentBg, onSelect }: { currentBg: string; onSele
   );
 }
 
-function ThemePreviewCard({ name, mode, selected, onSelect, size = 'small' }: { name: ThemeName; mode: 'light' | 'dark'; selected: boolean; onSelect: () => void; size?: 'small' | 'large' }) {
+function ThemePreviewCard({ name, mode, selected, onSelect, onPreview, size = 'small' }: { name: ThemeName; mode: 'light' | 'dark'; selected: boolean; onSelect: () => void; onPreview?: () => void; size?: 'small' | 'large' }) {
   const t = THEMES[name];
   const displayLabel = t.label.replace(/^(Design System|Editor|OS|Vibe) - /, '');
   const palette = mode === 'dark' ? t.dark.palette : t.light.palette;
@@ -505,7 +534,9 @@ function ThemePreviewCard({ name, mode, selected, onSelect, size = 'small' }: { 
           transition: 'all 0.15s',
           boxShadow: selected ? 3 : 0,
           transform: selected ? 'scale(1.02)' : 'scale(1)',
+          position: 'relative',
           '&:hover': { borderColor: selected ? 'primary.main' : 'primary.light', transform: 'scale(1.04)', boxShadow: 2 },
+          '&:hover .preview-btn': { opacity: 1 },
         }}
       >
         {/* Mini dashboard preview */}
@@ -544,6 +575,23 @@ function ThemePreviewCard({ name, mode, selected, onSelect, size = 'small' }: { 
             </Box>
           </Box>
         </Box>
+        {/* Preview button */}
+        {onPreview && (
+          <IconButton
+            className="preview-btn"
+            size="small"
+            onClick={(e) => { e.stopPropagation(); onPreview(); }}
+            sx={{
+              position: 'absolute', top: isLarge ? 16 : 12, right: 2,
+              opacity: 0, transition: 'opacity 0.15s',
+              bgcolor: 'rgba(0,0,0,0.5)', color: '#fff',
+              width: isLarge ? 24 : 20, height: isLarge ? 24 : 20,
+              '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' },
+            }}
+          >
+            <PreviewIcon sx={{ fontSize: isLarge ? 14 : 12 }} />
+          </IconButton>
+        )}
         {/* Label */}
         <Box sx={{ px: 1, py: 0.5, bgcolor: selected ? 'primary.main' : 'background.paper', transition: 'background-color 0.15s' }}>
           <Typography
@@ -565,7 +613,7 @@ function ThemePreviewCard({ name, mode, selected, onSelect, size = 'small' }: { 
   );
 }
 
-function ThemePicker({ currentTheme, mode, onSelect }: { currentTheme: ThemeName; mode: 'light' | 'dark'; onSelect: (name: ThemeName) => void }) {
+function ThemePicker({ currentTheme, mode, onSelect, onPreview }: { currentTheme: ThemeName; mode: 'light' | 'dark'; onSelect: (name: ThemeName) => void; onPreview?: (name: ThemeName) => void }) {
   const [search, setSearch] = useState('');
   const [groupTab, setGroupTab] = useState(0);
 
@@ -625,14 +673,14 @@ function ThemePicker({ currentTheme, mode, onSelect }: { currentTheme: ThemeName
               const t = THEMES[name];
               return t.label.toLowerCase().includes(query) || t.description.toLowerCase().includes(query);
             }).map((name) => (
-              <ThemePreviewCard key={name} name={name} mode={mode} selected={name === currentTheme} onSelect={() => onSelect(name)} />
+              <ThemePreviewCard key={name} name={name} mode={mode} selected={name === currentTheme} onSelect={() => onSelect(name)} onPreview={onPreview ? () => onPreview(name) : undefined} />
             ))}
           </Box>
         ) : (
           <Box sx={{ p: 1 }}>
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 1 }}>
               {activeGroup.themes.map((name) => (
-                <ThemePreviewCard key={name} name={name} mode={mode} selected={name === currentTheme} onSelect={() => onSelect(name)} />
+                <ThemePreviewCard key={name} name={name} mode={mode} selected={name === currentTheme} onSelect={() => onSelect(name)} onPreview={onPreview ? () => onPreview(name) : undefined} />
               ))}
             </Box>
           </Box>

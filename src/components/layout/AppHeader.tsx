@@ -228,7 +228,7 @@ export function AppHeader() {
         </Toolbar>
       </AppBar>
 
-      <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} onOpen={() => setSettingsOpen(true)} />
     </>
   );
 }
