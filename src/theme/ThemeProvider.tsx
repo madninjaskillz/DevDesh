@@ -21,6 +21,12 @@ const ThemeContext = createContext<ThemeContextValue>({
 
 export const useThemeMode = () => useContext(ThemeContext);
 
+/** Returns a text transform function from the current theme (identity if none set) */
+export function useTextCase(): (text: string) => string {
+  const { themeDef } = useContext(ThemeContext);
+  return themeDef.custom.textCase ?? ((t: string) => t);
+}
+
 export function AppThemeProvider({ children }: { children: ReactNode }) {
   const prefersDark = useMediaQuery('(prefers-color-scheme: dark)');
   const stored = localStorage.getItem('devdash-theme') as ThemeMode | null;

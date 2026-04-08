@@ -37,6 +37,8 @@ export interface AppThemeDef {
     sidebarBg: (mode: 'light' | 'dark') => string;
     cardBorderRadius: number;
     globalCss?: (mode: 'light' | 'dark') => string;
+    /** Optional text transform for display text (tabs, titles) */
+    textCase?: (text: string) => string;
   };
   /** Window chrome configuration for sections */
   windowChrome?: WindowChrome;
@@ -1356,7 +1358,7 @@ export const THEMES: Record<ThemeName, AppThemeDef> = {
   youtube: { name: 'youtube', label: 'Web - YouTube', description: 'Dark with red accent, rounded cards', light: youtubeLight, dark: youtubeDark, custom: { headerBg: (m) => m === 'dark' ? '#0F0F0F' : '#FFFFFF', headerColor: '', brandBlockBg: '#FF0000', brandBlockColor: '#fff', sidebarBg: () => 'transparent', cardBorderRadius: 12 } },
 
   // ── Media ──
-  spongebob: { name: 'spongebob', label: 'Media - SpongeBob SquarePants', description: 'Bikini Bottom yellow and ocean blue', light: spongebobLight, dark: spongebobDark, custom: { headerBg: (m) => m === 'dark' ? '#1A3A5C' : '#FFEB3B', headerColor: '', brandBlockBg: '#2196F3', brandBlockColor: '#FFEB3B', sidebarBg: () => 'transparent', cardBorderRadius: 12 } },
+  spongebob: { name: 'spongebob', label: 'Media - SpongeBob SquarePants', description: 'Bikini Bottom yellow and ocean blue', light: spongebobLight, dark: spongebobDark, custom: { headerBg: (m) => m === 'dark' ? '#1A3A5C' : '#FFEB3B', headerColor: '', brandBlockBg: '#2196F3', brandBlockColor: '#FFEB3B', sidebarBg: () => 'transparent', cardBorderRadius: 12, textCase: (t) => t.split('').map((c, i) => i % 2 === 0 ? c.toLowerCase() : c.toUpperCase()).join('') } },
   ateam: { name: 'ateam', label: 'Media - The A-Team', description: 'Red stripe and military grey, I love it when a plan comes together', light: ateamLight, dark: ateamDark, custom: { headerBg: (m) => m === 'dark' ? '#1A1A1A' : '#2C2C2C', headerColor: '#FFFFFF', brandBlockBg: '#CC0000', brandBlockColor: '#FFFFFF', sidebarBg: () => 'transparent', cardBorderRadius: 2 } },
   starwars: { name: 'starwars', label: 'Media - Star Wars', description: 'Dark side with yellow crawl accent', light: starwarsLight, dark: starwarsDark, custom: { headerBg: () => '#000000', headerColor: '#FFE81F', brandBlockBg: '#FFE81F', brandBlockColor: '#000000', sidebarBg: () => 'transparent', cardBorderRadius: 4 } },
   matrix: { name: 'matrix', label: 'Media - The Matrix', description: 'Green digital rain on black', light: matrixLight, dark: matrixDark, custom: { headerBg: () => '#0D0D0D', headerColor: '#00FF41', brandBlockBg: '#00FF41', brandBlockColor: '#0D0D0D', sidebarBg: () => 'transparent', cardBorderRadius: 2 } },

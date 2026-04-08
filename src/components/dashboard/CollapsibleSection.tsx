@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, type ReactNode } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Collapse from '@mui/material/Collapse';
-import { useThemeMode } from '../../theme/ThemeProvider';
+import { useThemeMode, useTextCase } from '../../theme/ThemeProvider';
 // WindowChrome type used via themeDef.windowChrome
 
 const STORAGE_KEY = 'devdash-collapsed';
@@ -391,6 +391,7 @@ export function CollapsibleSection({ id, title, children, badge, icon, autoColla
   const [collapsed, setCollapsed] = useState(() => loadCollapsed().has(id));
   const { themeDef } = useThemeMode();
   const chrome = themeDef.windowChrome;
+  const textCase = useTextCase();
 
   useEffect(() => {
     if (!autoCollapseWhenEmpty || manuallyToggled) return;
@@ -414,7 +415,7 @@ export function CollapsibleSection({ id, title, children, badge, icon, autoColla
     <Box id={id} sx={{ mt: 3, opacity: badge === 0 && collapsed ? 0.6 : 1 }}>
       <ThemedTitleBar
         style={chrome?.buttonStyle ?? 'default'}
-        title={title}
+        title={textCase(title)}
         collapsed={collapsed}
         onToggle={toggle}
         badge={badge}

@@ -37,7 +37,7 @@ import { GitHubApiError } from '../../api/github';
 import { computeActionItems } from '../../utils/actions';
 import { useNotifications } from '../../hooks/useNotifications';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
-import { useThemeMode } from '../../theme/ThemeProvider';
+import { useThemeMode, useTextCase } from '../../theme/ThemeProvider';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Tab from '@mui/material/Tab';
@@ -224,6 +224,7 @@ export function DashboardPage() {
   const [drawerItem, setDrawerItem] = useState<DrawerItem | null>(null);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const { toggleTheme } = useThemeMode();
+  const textCase = useTextCase();
 
   const focusMode = settings.focusMode;
   const quietMode = settings.quietMode;
@@ -296,8 +297,8 @@ export function DashboardPage() {
           value={teamMode ? 1 : 0}
           onChange={(_, v) => updateSettings({ teamMode: v === 1 })}
         >
-          <Tab label="Dashboard" />
-          <Tab label="Team" />
+          <Tab label={textCase("Dashboard")} />
+          <Tab label={textCase("Team")} />
         </Tabs>
         <Box sx={{ flex: 1 }} />
         {focusMode && (
