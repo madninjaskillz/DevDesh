@@ -25,11 +25,12 @@ import { colors } from '../../theme/colors';
 interface TeamMember {
   login: string;
   avatar_url: string;
-  lastActive: string; // ISO date of most recent activity
+  lastActive: string;
   openPRs: number;
   openIssues: number;
   closedPRs: number;
   closedIssues: number;
+  recent30d: number;
 }
 
 interface TeamAvatarsProps {
@@ -84,6 +85,8 @@ export function TeamAvatars({ prs, issues, reviewRequests, awaitingReview, close
     }
 
     // Build member objects with activity counts
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
+
     return [...map.entries()]
       .map(([login, { avatar_url, dates }]) => {
         const lastActive = dates.length > 0 ? dates.sort().reverse()[0] : '';
@@ -91,9 +94,11 @@ export function TeamAvatars({ prs, issues, reviewRequests, awaitingReview, close
         const openIssues = issues.filter((i) => i.assignees.some((a) => a.login === login)).length;
         const closedPRCount = closedPRs.filter((pr) => pr.user.login === login).length;
         const closedIssueCount = closedIssues.filter((i) => (i.assignees ?? []).some((a) => a.login === login)).length;
-        return { login, avatar_url, lastActive, openPRs, openIssues, closedPRs: closedPRCount, closedIssues: closedIssueCount } as TeamMember;
+        const recent30d = closedPRs.filter((pr) => pr.user.login === login && (pr.merged_at ?? pr.closed_at ?? '') >= thirtyDaysAgo).length
+          + closedIssues.filter((i) => (i.assignees ?? []).some((a) => a.login === login) && (i.closed_at ?? '') >= thirtyDaysAgo).length;
+        return { login, avatar_url, lastActive, openPRs, openIssues, closedPRs: closedPRCount, closedIssues: closedIssueCount, recent30d } as TeamMember;
       })
-      .sort((a, b) => b.lastActive.localeCompare(a.lastActive));
+      .sort((a, b) => b.recent30d - a.recent30d || b.lastActive.localeCompare(a.lastActive));
   }, [prs, issues, reviewRequests, awaitingReview, closedIssues, closedPRs]);
 
   const activity = useMemo(() => {
