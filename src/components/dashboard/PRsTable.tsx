@@ -38,7 +38,6 @@ import { OverflowChips } from './OverflowChips';
 import { useHighlight, scrollToHighlighted } from '../../hooks/useHighlight';
 
 function getTimeInStatus(pr: DashboardPR): string {
-  const now = new Date();
   if (pr.status === 'approved') {
     const approvals = pr.reviews.filter((r) => r.state === 'APPROVED');
     if (approvals.length > 0) {
