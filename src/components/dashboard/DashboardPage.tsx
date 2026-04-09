@@ -28,6 +28,7 @@ import { LastWorkedOn } from './LastWorkedOn';
 import { WeeklySummary } from './WeeklySummary';
 import { CalendarHeatmap } from './CalendarHeatmap';
 import { HighlightContext, useHighlightState } from '../../hooks/useHighlight';
+import { useSnooze } from '../../hooks/useSnooze';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import MergeIcon from '@mui/icons-material/CallMerge';
@@ -57,6 +58,7 @@ function scrollTo(id: string) {
 
 export function DashboardPage() {
   const highlightValue = useHighlightState();
+  const snooze = useSnooze();
   const queryClient = useQueryClient();
   const { settings, updateSettings } = useSettings();
   const teamMode = settings.teamMode;
@@ -311,7 +313,7 @@ export function DashboardPage() {
         {quietMode && !focusMode && (
           <Chip label="Quiet" size="small" color="secondary" onDelete={toggleQuietMode} />
         )}
-        <ExportButton issues={issues} prs={prsWithMissingLinks} reviewRequests={reviewRequests} actionItems={actionItems} />
+        <ExportButton issues={issues} prs={prsWithMissingLinks} reviewRequests={reviewRequests} actionItems={actionItems} trendData={trendData} />
       </Box>
 
       {/* Repo filter */}
@@ -383,8 +385,8 @@ export function DashboardPage() {
           case 'section-actions':
             return (
               <SectionErrorBoundary key={sectionId} section="Action List">
-                <CollapsibleSection id="section-actions" title={teamMode ? 'Action Items' : 'What should I do next?'} badge={actionItems.length} icon={<PriorityHighIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
-                  <ActionList items={actionItems} isLoading={isLoading || reviewsLoading} />
+                <CollapsibleSection id="section-actions" title={teamMode ? 'Action Items' : 'What should I do next?'} badge={actionItems.filter((a) => !snooze.isSnoozed(a.id)).length} icon={<PriorityHighIcon fontSize="small" />} autoCollapseWhenEmpty={autoCollapse}>
+                  <ActionList items={actionItems} isLoading={isLoading || reviewsLoading} snooze={snooze} />
                 </CollapsibleSection>
               </SectionErrorBoundary>
             );
@@ -465,7 +467,7 @@ export function DashboardPage() {
                       <CalendarHeatmap trendData={trendData} isLoading={trendLoading} />
                     </Grid>
                   </Grid>
-                  <TrendChart data={trendData} isLoading={trendLoading} />
+                  <TrendChart data={trendData} isLoading={trendLoading} goals={settings} />
                 </CollapsibleSection>
               </SectionErrorBoundary>
             );

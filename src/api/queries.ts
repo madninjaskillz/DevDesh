@@ -316,7 +316,7 @@ export function useTrendData(teamMode = false) {
 
     return computeTrendData(
       uniqueIssues.map((i) => ({ created_at: i.created_at, closed_at: i.closed_at })),
-      uniquePRs.map((p) => ({ created_at: p.created_at, closed_at: p.closed_at ?? p.merged_at })),
+      uniquePRs.map((p) => ({ created_at: p.created_at, closed_at: p.closed_at ?? p.merged_at, merged_at: p.merged_at })),
       90,
     );
   }, [

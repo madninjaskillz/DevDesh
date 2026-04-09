@@ -29,13 +29,32 @@ import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import { useQueryClient } from '@tanstack/react-query';
 import type { DashboardPR, PRStatus } from '../../types/github';
-import { formatAge, getAgeColor } from '../../utils/dates';
+import { daysAgo, formatAge, getAgeColor } from '../../utils/dates';
 import { colors } from '../../theme/colors';
 import { getPRBody, updatePRBody, mergePR, addLabelToIssue } from '../../api/github';
 import { useAuth } from '../../hooks/useAuth';
 import { NoteChip } from './NoteChip';
 import { OverflowChips } from './OverflowChips';
 import { useHighlight, scrollToHighlighted } from '../../hooks/useHighlight';
+
+function getTimeInStatus(pr: DashboardPR): string {
+  const now = new Date();
+  if (pr.status === 'approved') {
+    const approvals = pr.reviews.filter((r) => r.state === 'APPROVED');
+    if (approvals.length > 0) {
+      const latest = approvals.reduce((a, b) => a.submitted_at > b.submitted_at ? a : b);
+      return formatAge(daysAgo(latest.submitted_at));
+    }
+  }
+  if (pr.status === 'changes_requested') {
+    const changes = pr.reviews.filter((r) => r.state === 'CHANGES_REQUESTED');
+    if (changes.length > 0) {
+      const latest = changes.reduce((a, b) => a.submitted_at > b.submitted_at ? a : b);
+      return formatAge(daysAgo(latest.submitted_at));
+    }
+  }
+  return formatAge(daysAgo(pr.createdAt));
+}
 
 type SortField = 'title' | 'repoName' | 'ageDays' | 'status' | 'unresolvedThreadCount';
 type SortDir = 'asc' | 'desc';
@@ -295,7 +314,9 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
                   <Chip label={pr.repoName} variant="outlined" />
                 </TableCell>
                 <TableCell>
-                  <Chip label={statusConf.label} color={statusConf.color} />
+                  <Tooltip title={`In ${statusConf.label.toLowerCase()} for ${getTimeInStatus(pr)}`}>
+                    <Chip label={statusConf.label} color={statusConf.color} />
+                  </Tooltip>
                 </TableCell>
                 <TableCell>
                   {pr.unresolvedThreadCount > 0 ? (

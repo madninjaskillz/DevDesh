@@ -416,6 +416,36 @@ export function SettingsDialog({ open, onClose, onOpen }: SettingsDialogProps) {
               min={1}
               max={14}
             />
+
+            <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
+              Goal Lines
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Set target thresholds shown as dashed lines on trend charts. Leave blank to disable.
+            </Typography>
+
+            {([
+              { label: 'Max open issues', key: 'goalMaxOpenIssues' as const },
+              { label: 'Max open PRs', key: 'goalMaxOpenPRs' as const },
+              { label: 'Max issue age (days)', key: 'goalMaxIssueAgeDays' as const },
+              { label: 'Max PR age (days)', key: 'goalMaxPRAgeDays' as const },
+              { label: 'Max cycle time (days)', key: 'goalMaxCycleTimeDays' as const },
+            ]).map(({ label, key }) => (
+              <TextField
+                key={key}
+                label={label}
+                type="number"
+                size="small"
+                fullWidth
+                sx={{ mb: 1.5 }}
+                value={settings[key] ?? ''}
+                onChange={(e) => {
+                  const val = e.target.value === '' ? null : Number(e.target.value);
+                  updateSettings({ [key]: val });
+                }}
+                slotProps={{ htmlInput: { min: 0 } }}
+              />
+            ))}
           </>
         )}
 

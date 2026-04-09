@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import Button from '@mui/material/Button';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import type { DashboardIssue, DashboardPR, DashboardReviewRequest } from '../../types/github';
+import type { DashboardIssue, DashboardPR, DashboardReviewRequest, TrendDataPoint } from '../../types/github';
 import type { ActionItem } from '../../utils/actions';
 import { formatAge } from '../../utils/dates';
 
@@ -10,15 +10,30 @@ interface ExportButtonProps {
   prs: DashboardPR[];
   reviewRequests: DashboardReviewRequest[];
   actionItems: ActionItem[];
+  trendData?: TrendDataPoint[];
 }
 
-export function ExportButton({ issues, prs, reviewRequests, actionItems }: ExportButtonProps) {
+export function ExportButton({ issues, prs, reviewRequests, actionItems, trendData = [] }: ExportButtonProps) {
   const handleCopy = useCallback(() => {
     const lines: string[] = [];
     const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
 
     lines.push(`**Standup — ${today}**`);
     lines.push('');
+
+    if (trendData.length >= 14) {
+      const thisWeek = trendData.slice(-7);
+      const lastWeek = trendData.slice(-14, -7);
+      const sum = (arr: TrendDataPoint[], key: keyof TrendDataPoint) => arr.reduce((s, d) => s + (d[key] as number), 0);
+      const closedIssuesThis = sum(thisWeek, 'closedIssuesToday');
+      const closedIssuesLast = sum(lastWeek, 'closedIssuesToday');
+      const closedPRsThis = sum(thisWeek, 'closedPRsToday');
+      const closedPRsLast = sum(lastWeek, 'closedPRsToday');
+      lines.push('**This week velocity:**');
+      lines.push(`- Issues closed: ${closedIssuesThis} (last week: ${closedIssuesLast})`);
+      lines.push(`- PRs closed: ${closedPRsThis} (last week: ${closedPRsLast})`);
+      lines.push('');
+    }
 
     if (actionItems.length > 0) {
       lines.push(`**Needs attention (${actionItems.length}):**`);

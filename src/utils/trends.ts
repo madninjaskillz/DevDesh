@@ -4,6 +4,7 @@ import { format, subDays, parseISO, differenceInDays } from 'date-fns';
 interface HistoricalItem {
   created_at: string;
   closed_at: string | null;
+  merged_at?: string | null;
 }
 
 /**
@@ -49,6 +50,30 @@ export function computeTrendData(
     const closedIssues30d = issues.filter((item) => wasClosedBetween(item, rolling30Start, endOfDay)).length;
     const closedPRs30d = prs.filter((item) => wasClosedBetween(item, rolling30Start, endOfDay)).length;
 
+    // PR cycle time: average days from created to merged for PRs merged in rolling 30d window
+    const mergedInWindow = prs.filter((item) => {
+      if (!item.merged_at) return false;
+      const merged = parseISO(item.merged_at);
+      return merged >= rolling30Start && merged <= endOfDay;
+    });
+    const avgCycleTimeDays = mergedInWindow.length > 0
+      ? Math.round(mergedInWindow.reduce((sum, item) => sum + Math.max(0, differenceInDays(parseISO(item.merged_at!), parseISO(item.created_at))), 0) / mergedInWindow.length)
+      : 0;
+
+    // Aging buckets
+    const bucket = (ages: number[]) => {
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0;
+      for (const age of ages) {
+        if (age < 3) b0++;
+        else if (age < 7) b1++;
+        else if (age < 14) b2++;
+        else b3++;
+      }
+      return [b0, b1, b2, b3] as const;
+    };
+    const [issuesAge0to3, issuesAge3to7, issuesAge7to14, issuesAge14plus] = bucket(issueAges);
+    const [prsAge0to3, prsAge3to7, prsAge7to14, prsAge14plus] = bucket(prAges);
+
     points.push({
       date: dateStr,
       openIssues: openIssues.length,
@@ -61,6 +86,15 @@ export function computeTrendData(
       closedPRsToday,
       closedIssues30d,
       closedPRs30d,
+      avgCycleTimeDays,
+      issuesAge0to3,
+      issuesAge3to7,
+      issuesAge7to14,
+      issuesAge14plus,
+      prsAge0to3,
+      prsAge3to7,
+      prsAge7to14,
+      prsAge14plus,
     });
   }
 

@@ -28,6 +28,11 @@ export interface AppSettings {
   teamMode: boolean;
   sectionOrder: string[];
   scrimOpacity: number;
+  goalMaxOpenIssues: number | null;
+  goalMaxOpenPRs: number | null;
+  goalMaxIssueAgeDays: number | null;
+  goalMaxPRAgeDays: number | null;
+  goalMaxCycleTimeDays: number | null;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -44,6 +49,11 @@ const DEFAULT_SETTINGS: AppSettings = {
   teamMode: false,
   sectionOrder: [...DEFAULT_SECTION_ORDER],
   scrimOpacity: 50,
+  goalMaxOpenIssues: null,
+  goalMaxOpenPRs: null,
+  goalMaxIssueAgeDays: null,
+  goalMaxPRAgeDays: null,
+  goalMaxCycleTimeDays: null,
 };
 
 interface SettingsContextValue {

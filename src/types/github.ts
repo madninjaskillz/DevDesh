@@ -136,6 +136,15 @@ export interface TrendDataPoint {
   closedPRsToday: number;
   closedIssues30d: number;
   closedPRs30d: number;
+  avgCycleTimeDays: number;
+  issuesAge0to3: number;
+  issuesAge3to7: number;
+  issuesAge7to14: number;
+  issuesAge14plus: number;
+  prsAge0to3: number;
+  prsAge3to7: number;
+  prsAge7to14: number;
+  prsAge14plus: number;
 }
 
 export const DEFAULT_REPOS = [
