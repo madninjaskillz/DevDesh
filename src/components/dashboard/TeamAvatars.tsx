@@ -129,7 +129,7 @@ export function TeamAvatars({ prs, issues, reviewRequests, awaitingReview, close
   return (
     <>
       <AvatarGroup
-        max={8}
+        max={999}
         sx={{
           '& .MuiAvatar-root': { width: 28, height: 28, fontSize: '0.7rem', cursor: 'pointer' },
         }}
