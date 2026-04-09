@@ -194,11 +194,8 @@ function SummaryStats({ prs, issues }: { prs: DashboardPR[]; issues: DashboardIs
         return created >= weekStart && created < weekEnd;
       }).length;
 
-      // Count issues assigned in this week (using assignedDate if < 7 days, or estimate)
       const weekIssues = issues.filter((issue) => {
-        const created = new Date(issue.htmlUrl ? issue.updatedAt : issue.updatedAt); // best proxy
-        const ageDays = issue.ageDays;
-        const assignedDate = new Date(now.getTime() - ageDays * 86400000);
+        const assignedDate = new Date(now.getTime() - issue.ageDays * 86400000);
         return assignedDate >= weekStart && assignedDate < weekEnd;
       }).length;
 
