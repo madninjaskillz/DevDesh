@@ -26,6 +26,7 @@ import type { GroupBy } from './LabelFilter';
 import { NoteChip } from './NoteChip';
 import { OverflowChips } from './OverflowChips';
 import { formatAge, getAgeColor } from '../../utils/dates';
+import { useHighlight, scrollToHighlighted } from '../../hooks/useHighlight';
 
 type SortField = 'title' | 'repoName' | 'ageDays';
 type SortDir = 'asc' | 'desc';
@@ -44,6 +45,7 @@ interface IssuesTableProps {
 }
 
 export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', notes }: IssuesTableProps) {
+  const { highlightedKey, setHighlightedKey } = useHighlight();
   const [sortField, setSortField] = useState<SortField>('ageDays');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
@@ -163,7 +165,15 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
         </TableHead>
         <TableBody>
           {sorted.map((issue) => (
-            <TableRow key={`${issue.repoFullName}-${issue.number}`} hover>
+            <TableRow
+              key={`${issue.repoFullName}-${issue.number}`}
+              hover
+              data-item-key={`${issue.repoFullName}-${issue.number}`}
+              sx={highlightedKey === `${issue.repoFullName}-${issue.number}` ? {
+                bgcolor: (theme) => theme.palette.mode === 'light' ? 'rgba(25, 118, 210, 0.08)' : 'rgba(144, 202, 249, 0.08)',
+                transition: 'background-color 0.2s',
+              } : { transition: 'background-color 0.2s' }}
+            >
               {notes && (
                 <TableCell>
                   <NoteChip
@@ -246,12 +256,18 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
                     maxVisible={2}
                     items={issue.linkedPRs.map((pr) => ({
                       key: pr.url,
-                      label: `#${pr.number} ${pr.title}`,
+                      label: `#${pr.number}`,
+                      tooltip: pr.title,
                       href: pr.url,
+                      highlightKey: `${issue.repoFullName.split('/')[0]}/${pr.repoName}-${pr.number}`,
                       chipProps: {
                         color: pr.state === 'MERGED' ? 'success' as const : pr.state === 'OPEN' ? 'primary' as const : 'default' as const,
                       },
                     }))}
+                    onHighlight={(key) => {
+                      setHighlightedKey(key);
+                      if (key) scrollToHighlighted(key);
+                    }}
                   />
                 ) : (
                   <Typography variant="body2" color="text.secondary">--</Typography>

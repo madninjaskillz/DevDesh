@@ -3,20 +3,44 @@ import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Paper from '@mui/material/Paper';
 import Popper from '@mui/material/Popper';
+import Tooltip from '@mui/material/Tooltip';
 
-interface OverflowItem {
+export interface OverflowItem {
   key: string;
   label: string;
+  tooltip?: string;
   href?: string;
+  highlightKey?: string;
   chipProps?: Record<string, any>;
 }
 
 interface OverflowChipsProps {
   items: OverflowItem[];
   maxVisible?: number;
+  onHighlight?: (key: string | null) => void;
 }
 
-export function OverflowChips({ items, maxVisible = 1 }: OverflowChipsProps) {
+function ChipWithTooltip({ item, onHighlight }: { item: OverflowItem; onHighlight?: (key: string | null) => void }) {
+  return (
+    <Tooltip title={item.tooltip ?? ''} disableHoverListener={!item.tooltip}>
+      <Chip
+        label={item.label}
+        size="small"
+        component={item.href ? 'a' : 'span'}
+        href={item.href}
+        target={item.href ? '_blank' : undefined}
+        rel={item.href ? 'noopener' : undefined}
+        clickable={!!item.href}
+        variant="outlined"
+        onMouseEnter={item.highlightKey ? () => onHighlight?.(item.highlightKey!) : undefined}
+        onMouseLeave={item.highlightKey ? () => onHighlight?.(null) : undefined}
+        {...item.chipProps}
+      />
+    </Tooltip>
+  );
+}
+
+export function OverflowChips({ items, maxVisible = 1, onHighlight }: OverflowChipsProps) {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -49,18 +73,7 @@ export function OverflowChips({ items, maxVisible = 1 }: OverflowChipsProps) {
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center' }}>
       {visible.map((item) => (
-        <Chip
-          key={item.key}
-          label={item.label}
-          size="small"
-          component={item.href ? 'a' : 'span'}
-          href={item.href}
-          target={item.href ? '_blank' : undefined}
-          rel={item.href ? 'noopener' : undefined}
-          clickable={!!item.href}
-          variant="outlined"
-          {...item.chipProps}
-        />
+        <ChipWithTooltip key={item.key} item={item} onHighlight={onHighlight} />
       ))}
       {overflow.length > 0 && (
         <>
@@ -86,18 +99,7 @@ export function OverflowChips({ items, maxVisible = 1 }: OverflowChipsProps) {
               sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 0.5, maxWidth: 320, maxHeight: 240, overflow: 'auto' }}
             >
               {overflow.map((item) => (
-                <Chip
-                  key={item.key}
-                  label={item.label}
-                  size="small"
-                  component={item.href ? 'a' : 'span'}
-                  href={item.href}
-                  target={item.href ? '_blank' : undefined}
-                  rel={item.href ? 'noopener' : undefined}
-                  clickable={!!item.href}
-                  variant="outlined"
-                  {...item.chipProps}
-                />
+                <ChipWithTooltip key={item.key} item={item} onHighlight={onHighlight} />
               ))}
             </Paper>
           </Popper>

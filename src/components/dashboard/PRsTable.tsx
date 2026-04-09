@@ -35,6 +35,7 @@ import { getPRBody, updatePRBody, mergePR, addLabelToIssue } from '../../api/git
 import { useAuth } from '../../hooks/useAuth';
 import { NoteChip } from './NoteChip';
 import { OverflowChips } from './OverflowChips';
+import { useHighlight, scrollToHighlighted } from '../../hooks/useHighlight';
 
 type SortField = 'title' | 'repoName' | 'ageDays' | 'status' | 'unresolvedThreadCount';
 type SortDir = 'asc' | 'desc';
@@ -59,6 +60,7 @@ interface PRsTableProps {
 }
 
 export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) {
+  const { highlightedKey, setHighlightedKey } = useHighlight();
   const { token } = useAuth();
   const queryClient = useQueryClient();
   const [sortField, setSortField] = useState<SortField>('ageDays');
@@ -242,13 +244,19 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
             const prKey = `${pr.repoFullName}-${pr.number}`;
             const isFixing = fixingPRs.has(prKey);
 
+            const isHighlighted = highlightedKey === prKey;
             return (
               <TableRow
                 key={prKey}
                 hover
-                sx={hasNoLinkedIssues ? {
+                data-item-key={prKey}
+                sx={isHighlighted ? {
+                  bgcolor: (theme) => theme.palette.mode === 'light' ? 'rgba(25, 118, 210, 0.08)' : 'rgba(144, 202, 249, 0.08)',
+                  transition: 'background-color 0.2s',
+                } : hasNoLinkedIssues ? {
                   bgcolor: (theme) => theme.palette.mode === 'light' ? '#FDE8E8' : 'rgba(245, 204, 204, 0.08)',
-                } : undefined}
+                  transition: 'background-color 0.2s',
+                } : { transition: 'background-color 0.2s' }}
               >
                 {notes && (
                   <TableCell>
@@ -336,9 +344,15 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
                         maxVisible={2}
                         items={pr.linkedIssues.map((issue) => ({
                           key: issue.url,
-                          label: `#${issue.number} ${issue.title}`,
+                          label: `#${issue.number}`,
+                          tooltip: issue.title,
                           href: issue.url,
+                          highlightKey: `${pr.repoFullName.split('/')[0]}/${issue.repoName}-${issue.number}`,
                         }))}
+                        onHighlight={(key) => {
+                          setHighlightedKey(key);
+                          if (key) scrollToHighlighted(key);
+                        }}
                       />
                     )}
                     {/* Issues that reference this PR but PR doesn't link back */}

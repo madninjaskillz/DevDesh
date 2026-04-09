@@ -27,6 +27,7 @@ import { LastVisitBanner } from './LastVisitBanner';
 import { LastWorkedOn } from './LastWorkedOn';
 import { WeeklySummary } from './WeeklySummary';
 import { CalendarHeatmap } from './CalendarHeatmap';
+import { HighlightContext, useHighlightState } from '../../hooks/useHighlight';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import MergeIcon from '@mui/icons-material/CallMerge';
@@ -55,6 +56,7 @@ function scrollTo(id: string) {
 }
 
 export function DashboardPage() {
+  const highlightValue = useHighlightState();
   const queryClient = useQueryClient();
   const { settings, updateSettings } = useSettings();
   const teamMode = settings.teamMode;
@@ -283,6 +285,7 @@ export function DashboardPage() {
   };
 
   return (
+    <HighlightContext.Provider value={highlightValue}>
     <Box sx={{
       display: 'flex',
       gap: 3,
@@ -483,5 +486,6 @@ export function DashboardPage() {
       <ShortcutsDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} shortcuts={shortcuts} />
       </Box>
     </Box>
+    </HighlightContext.Provider>
   );
 }
