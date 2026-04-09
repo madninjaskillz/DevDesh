@@ -28,6 +28,7 @@ import { LastWorkedOn } from './LastWorkedOn';
 import { WeeklySummary } from './WeeklySummary';
 import { CalendarHeatmap } from './CalendarHeatmap';
 import { HighlightContext, useHighlightState } from '../../hooks/useHighlight';
+import { TeamAvatars } from './TeamAvatars';
 import { useSnooze } from '../../hooks/useSnooze';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import BugReportIcon from '@mui/icons-material/BugReport';
@@ -313,6 +314,7 @@ export function DashboardPage() {
         {quietMode && !focusMode && (
           <Chip label="Quiet" size="small" color="secondary" onDelete={toggleQuietMode} />
         )}
+        <TeamAvatars prs={prsWithMissingLinks} issues={issues} />
         <ExportButton issues={issues} prs={prsWithMissingLinks} reviewRequests={reviewRequests} actionItems={actionItems} trendData={trendData} />
       </Box>
 
