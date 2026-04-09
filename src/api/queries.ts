@@ -273,6 +273,16 @@ export function useTrendData(teamMode = false) {
     })),
   });
 
+  // Always fetch all closed issues (unfiltered) for team member summaries
+  const allClosedIssueQueries = useQueries({
+    queries: teamMode ? [] : repos.map(({ owner, repo }) => ({
+      queryKey: ['trend-closed-issues', owner, repo, '__all__', since],
+      queryFn: () => getRecentlyClosedIssues(owner, repo, null, since, token!),
+      enabled: !!token && !!user,
+      staleTime: STALE_TIME,
+    })),
+  });
+
   const openPRQueries = useQueries({
     queries: repos.map(({ owner, repo }) => ({
       queryKey: ['trend-open-prs', owner, repo],
@@ -296,6 +306,7 @@ export function useTrendData(teamMode = false) {
     ...closedIssueQueries,
     ...openPRQueries,
     ...closedPRQueries,
+    ...allClosedIssueQueries,
   ].some((q) => q.isLoading);
 
   const { trendData, closedIssues, closedPRs } = useMemo(() => {
@@ -320,8 +331,14 @@ export function useTrendData(teamMode = false) {
       90,
     );
 
-    const ci = uniqueIssues.filter((i) => i.closed_at !== null);
-    const cp = uniquePRs.filter((p) => p.closed_at !== null || p.merged_at !== null);
+    // Unfiltered closed items for team member summaries
+    const allClosedIssueData = teamMode
+      ? closedIssueQueries.flatMap((q) => q.data ?? [])
+      : allClosedIssueQueries.flatMap((q) => q.data ?? []);
+    const allClosedPRData = closedPRQueries.flatMap((q) => q.data ?? []);
+
+    const ci = dedup(allClosedIssueData, (i) => `${i.repository_url}-${i.number}`).filter((i) => i.closed_at !== null);
+    const cp = dedup(allClosedPRData, (p) => `${p.html_url}`).filter((p) => p.closed_at !== null || p.merged_at !== null);
 
     return { trendData: td, closedIssues: ci, closedPRs: cp };
   }, [
@@ -330,6 +347,7 @@ export function useTrendData(teamMode = false) {
     closedIssueQueries.map((q) => q.dataUpdatedAt).join(','),
     openPRQueries.map((q) => q.dataUpdatedAt).join(','),
     closedPRQueries.map((q) => q.dataUpdatedAt).join(','),
+    allClosedIssueQueries.map((q) => q.dataUpdatedAt).join(','),
     user?.login,
     teamMode,
   ]);
