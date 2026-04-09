@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import Avatar from '@mui/material/Avatar';
-import AvatarGroup from '@mui/material/AvatarGroup';
-import Tooltip from '@mui/material/Tooltip';
+import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -10,10 +9,15 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Link from '@mui/material/Link';
+import List from '@mui/material/List';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemAvatar from '@mui/material/ListItemAvatar';
+import ListItemText from '@mui/material/ListItemText';
 import Divider from '@mui/material/Divider';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import MergeIcon from '@mui/icons-material/CallMerge';
+import GroupIcon from '@mui/icons-material/Group';
 import type { DashboardPR, DashboardIssue, DashboardReviewRequest, AwaitingReviewPR, GitHubIssue, GitHubPR } from '../../types/github';
 import { formatAge } from '../../utils/dates';
 import { colors } from '../../theme/colors';
@@ -21,6 +25,11 @@ import { colors } from '../../theme/colors';
 interface TeamMember {
   login: string;
   avatar_url: string;
+  lastActive: string; // ISO date of most recent activity
+  openPRs: number;
+  openIssues: number;
+  closedPRs: number;
+  closedIssues: number;
 }
 
 interface TeamAvatarsProps {
@@ -46,43 +55,45 @@ function daysAgoFromDate(dateStr: string): number {
 }
 
 export function TeamAvatars({ prs, issues, reviewRequests, awaitingReview, closedIssues, closedPRs }: TeamAvatarsProps) {
+  const [listOpen, setListOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
 
   const members = useMemo(() => {
-    const map = new Map<string, string>();
+    const map = new Map<string, { avatar_url: string; dates: string[] }>();
+
+    const touch = (login: string, avatar: string, date?: string) => {
+      if (!map.has(login)) map.set(login, { avatar_url: avatar, dates: [] });
+      const entry = map.get(login)!;
+      if (!entry.avatar_url && avatar) entry.avatar_url = avatar;
+      if (date) entry.dates.push(date);
+    };
+
     for (const pr of prs) {
-      if (!map.has(pr.author)) map.set(pr.author, pr.authorAvatar);
+      touch(pr.author, pr.authorAvatar, pr.createdAt);
+      for (const r of pr.reviewers) touch(r.login, r.avatar_url);
+      for (const r of pr.reviews) touch(r.user.login, r.user.avatar_url, r.submitted_at);
     }
     for (const issue of issues) {
-      for (const a of issue.assignees) {
-        if (!map.has(a.login)) map.set(a.login, a.avatar_url);
-      }
+      for (const a of issue.assignees) touch(a.login, a.avatar_url, issue.updatedAt);
     }
-    for (const pr of prs) {
-      for (const r of pr.reviewers) {
-        if (!map.has(r.login)) map.set(r.login, r.avatar_url);
-      }
-      for (const r of pr.reviews) {
-        if (!map.has(r.user.login)) map.set(r.user.login, r.user.avatar_url);
-      }
-    }
-    for (const req of reviewRequests) {
-      if (!map.has(req.author)) map.set(req.author, req.authorAvatar);
-    }
-    for (const pr of awaitingReview) {
-      if (!map.has(pr.author)) map.set(pr.author, pr.authorAvatar);
-    }
-    // Closed PR authors
-    for (const pr of closedPRs) {
-      if (!map.has(pr.user.login)) map.set(pr.user.login, pr.user.avatar_url);
-    }
-    // Closed issue assignees
+    for (const req of reviewRequests) touch(req.author, req.authorAvatar, req.createdAt);
+    for (const pr of awaitingReview) touch(pr.author, pr.authorAvatar, pr.createdAt);
+    for (const pr of closedPRs) touch(pr.user.login, pr.user.avatar_url, pr.merged_at ?? pr.closed_at ?? pr.updated_at);
     for (const issue of closedIssues) {
-      for (const a of issue.assignees ?? []) {
-        if (!map.has(a.login)) map.set(a.login, a.avatar_url);
-      }
+      for (const a of issue.assignees ?? []) touch(a.login, a.avatar_url, issue.closed_at ?? issue.updated_at);
     }
-    return [...map.entries()].map(([login, avatar_url]) => ({ login, avatar_url }));
+
+    // Build member objects with activity counts
+    return [...map.entries()]
+      .map(([login, { avatar_url, dates }]) => {
+        const lastActive = dates.length > 0 ? dates.sort().reverse()[0] : '';
+        const openPRs = prs.filter((pr) => pr.author === login).length;
+        const openIssues = issues.filter((i) => i.assignees.some((a) => a.login === login)).length;
+        const closedPRCount = closedPRs.filter((pr) => pr.user.login === login).length;
+        const closedIssueCount = closedIssues.filter((i) => (i.assignees ?? []).some((a) => a.login === login)).length;
+        return { login, avatar_url, lastActive, openPRs, openIssues, closedPRs: closedPRCount, closedIssues: closedIssueCount } as TeamMember;
+      })
+      .sort((a, b) => b.lastActive.localeCompare(a.lastActive));
   }, [prs, issues, reviewRequests, awaitingReview, closedIssues, closedPRs]);
 
   const activity = useMemo(() => {
@@ -128,23 +139,63 @@ export function TeamAvatars({ prs, issues, reviewRequests, awaitingReview, close
 
   return (
     <>
-      <AvatarGroup
-        max={999}
-        sx={{
-          '& .MuiAvatar-root': { width: 28, height: 28, fontSize: '0.7rem', cursor: 'pointer' },
-        }}
+      <Button
+        size="small"
+        variant="outlined"
+        startIcon={<GroupIcon fontSize="small" />}
+        onClick={() => setListOpen(true)}
+        sx={{ whiteSpace: 'nowrap' }}
       >
-        {members.map((m) => (
-          <Tooltip key={m.login} title={m.login}>
-            <Avatar
-              src={m.avatar_url}
-              alt={m.login}
-              onClick={() => setSelectedMember(m)}
-            />
-          </Tooltip>
-        ))}
-      </AvatarGroup>
+        Contributors ({members.length})
+      </Button>
 
+      {/* Contributors list dialog */}
+      <Dialog
+        open={listOpen && !selectedMember}
+        onClose={() => setListOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          Contributors
+          <IconButton onClick={() => setListOpen(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          <List disablePadding>
+            {members.map((m) => (
+              <ListItemButton
+                key={m.login}
+                onClick={() => setSelectedMember(m)}
+                sx={{ py: 1.5 }}
+              >
+                <ListItemAvatar>
+                  <Avatar src={m.avatar_url} alt={m.login} sx={{ width: 36, height: 36 }} />
+                </ListItemAvatar>
+                <ListItemText
+                  primary={m.login}
+                  secondary={[
+                    m.openPRs > 0 && `${m.openPRs} open PR${m.openPRs !== 1 ? 's' : ''}`,
+                    m.openIssues > 0 && `${m.openIssues} open issue${m.openIssues !== 1 ? 's' : ''}`,
+                    m.closedPRs > 0 && `${m.closedPRs} closed PR${m.closedPRs !== 1 ? 's' : ''}`,
+                    m.closedIssues > 0 && `${m.closedIssues} closed issue${m.closedIssues !== 1 ? 's' : ''}`,
+                  ].filter(Boolean).join(' \u00b7 ') || 'No recent activity'}
+                  primaryTypographyProps={{ fontWeight: 600, variant: 'body2' }}
+                  secondaryTypographyProps={{ variant: 'caption' }}
+                />
+                {m.lastActive && (
+                  <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap', ml: 1 }}>
+                    {formatAge(daysAgoFromDate(m.lastActive))} ago
+                  </Typography>
+                )}
+              </ListItemButton>
+            ))}
+          </List>
+        </DialogContent>
+      </Dialog>
+
+      {/* Member detail dialog */}
       <Dialog
         open={!!selectedMember}
         onClose={() => setSelectedMember(null)}
