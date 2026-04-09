@@ -12,7 +12,7 @@ import Chip from '@mui/material/Chip';
 import Link from '@mui/material/Link';
 import Divider from '@mui/material/Divider';
 import CloseIcon from '@mui/icons-material/Close';
-import type { DashboardPR, DashboardIssue } from '../../types/github';
+import type { DashboardPR, DashboardIssue, DashboardReviewRequest, AwaitingReviewPR } from '../../types/github';
 import { formatAge } from '../../utils/dates';
 import { colors } from '../../theme/colors';
 
@@ -24,6 +24,8 @@ interface TeamMember {
 interface TeamAvatarsProps {
   prs: DashboardPR[];
   issues: DashboardIssue[];
+  reviewRequests: DashboardReviewRequest[];
+  awaitingReview: AwaitingReviewPR[];
 }
 
 function getMemberActivity(member: string, prs: DashboardPR[], issues: DashboardIssue[]) {
@@ -37,21 +39,40 @@ function getMemberActivity(member: string, prs: DashboardPR[], issues: Dashboard
   return { memberPRs, memberIssues, oneWeekAgo, sixWeeksAgo };
 }
 
-export function TeamAvatars({ prs, issues }: TeamAvatarsProps) {
+export function TeamAvatars({ prs, issues, reviewRequests, awaitingReview }: TeamAvatarsProps) {
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
 
   const members = useMemo(() => {
     const map = new Map<string, string>();
+    // PR authors
     for (const pr of prs) {
       if (!map.has(pr.author)) map.set(pr.author, pr.authorAvatar);
     }
+    // Issue assignees
     for (const issue of issues) {
       for (const a of issue.assignees) {
         if (!map.has(a.login)) map.set(a.login, a.avatar_url);
       }
     }
+    // PR reviewers
+    for (const pr of prs) {
+      for (const r of pr.reviewers) {
+        if (!map.has(r.login)) map.set(r.login, r.avatar_url);
+      }
+      for (const r of pr.reviews) {
+        if (!map.has(r.user.login)) map.set(r.user.login, r.user.avatar_url);
+      }
+    }
+    // Review request authors
+    for (const req of reviewRequests) {
+      if (!map.has(req.author)) map.set(req.author, req.authorAvatar);
+    }
+    // Awaiting review PR authors
+    for (const pr of awaitingReview) {
+      if (!map.has(pr.author)) map.set(pr.author, pr.authorAvatar);
+    }
     return [...map.entries()].map(([login, avatar_url]) => ({ login, avatar_url }));
-  }, [prs, issues]);
+  }, [prs, issues, reviewRequests, awaitingReview]);
 
   const activity = useMemo(() => {
     if (!selectedMember) return null;

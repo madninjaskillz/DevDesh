@@ -314,7 +314,7 @@ export function DashboardPage() {
         {quietMode && !focusMode && (
           <Chip label="Quiet" size="small" color="secondary" onDelete={toggleQuietMode} />
         )}
-        <TeamAvatars prs={prsWithMissingLinks} issues={issues} />
+        <TeamAvatars prs={prsWithMissingLinks} issues={issues} reviewRequests={reviewRequests} awaitingReview={awaitingReview} />
         <ExportButton issues={issues} prs={prsWithMissingLinks} reviewRequests={reviewRequests} actionItems={actionItems} trendData={trendData} />
       </Box>
 
