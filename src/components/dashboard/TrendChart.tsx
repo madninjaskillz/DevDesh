@@ -29,7 +29,7 @@ export function TrendChart({ data, isLoading }: TrendChartProps) {
   if (isLoading) {
     return (
       <Grid container spacing={2}>
-        {[0, 1, 2, 3].map((i) => (
+        {[0, 1, 2, 3, 4].map((i) => (
           <Grid key={i} size={{ xs: 12, md: 6 }}>
             <Paper sx={{ p: 2 }}>
               <Skeleton variant="text" width={200} />
@@ -109,24 +109,6 @@ export function TrendChart({ data, isLoading }: TrendChartProps) {
               <Legend />
               <Line
                 type="monotone"
-                dataKey="closedIssuesToday"
-                name="Issues Closed (day)"
-                stroke={colors.orange[3]}
-                strokeWidth={1}
-                dot={false}
-                strokeDasharray="4 2"
-              />
-              <Line
-                type="monotone"
-                dataKey="closedPRsToday"
-                name="PRs Closed (day)"
-                stroke={colors.green[3]}
-                strokeWidth={1}
-                dot={false}
-                strokeDasharray="4 2"
-              />
-              <Line
-                type="monotone"
                 dataKey="closedIssues30d"
                 name="Issues Closed (30d)"
                 stroke={colors.orange[5]}
@@ -137,6 +119,43 @@ export function TrendChart({ data, isLoading }: TrendChartProps) {
                 type="monotone"
                 dataKey="closedPRs30d"
                 name="PRs Closed (30d)"
+                stroke={colors.green[5]}
+                strokeWidth={2}
+                dot={{ r: 3 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Paper>
+      </Grid>
+      <Grid size={{ xs: 12, md: 6 }}>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="subtitle2" gutterBottom>
+            Daily Closed
+          </Typography>
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+              <XAxis dataKey="date" tick={{ fontSize: 12, fill: textColor }} />
+              <YAxis tick={{ fontSize: 12, fill: textColor }} allowDecimals={false} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: theme.palette.background.paper,
+                  border: `1px solid ${gridColor}`,
+                }}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="closedIssuesToday"
+                name="Issues Closed"
+                stroke={colors.orange[5]}
+                strokeWidth={2}
+                dot={{ r: 3 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="closedPRsToday"
+                name="PRs Closed"
                 stroke={colors.green[5]}
                 strokeWidth={2}
                 dot={{ r: 3 }}
