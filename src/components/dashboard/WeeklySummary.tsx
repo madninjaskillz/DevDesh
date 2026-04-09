@@ -61,7 +61,7 @@ export function WeeklySummary({ trendData, isLoading }: WeeklySummaryProps) {
   const lastPRAge = avg(lastWeek.map((d) => d.avgPRAgeDays));
 
   return (
-    <Paper sx={{ p: 2, mb: 2 }}>
+    <Paper sx={{ p: 2, height: '100%' }}>
       <Typography variant="subtitle2" sx={{ mb: 1.5 }}>This Week vs Last Week</Typography>
       <Box sx={{ display: 'flex', gap: 2 }}>
         <TrendIndicator current={thisIssues} previous={lastIssues} label="Avg Open Issues" />

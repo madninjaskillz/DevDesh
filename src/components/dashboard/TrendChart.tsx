@@ -29,18 +29,14 @@ export function TrendChart({ data, isLoading }: TrendChartProps) {
   if (isLoading) {
     return (
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Paper sx={{ p: 2 }}>
-            <Skeleton variant="text" width={200} />
-            <Skeleton variant="rectangular" height={280} />
-          </Paper>
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Paper sx={{ p: 2 }}>
-            <Skeleton variant="text" width={200} />
-            <Skeleton variant="rectangular" height={280} />
-          </Paper>
-        </Grid>
+        {[0, 1, 2, 3].map((i) => (
+          <Grid key={i} size={{ xs: 12, md: 6 }}>
+            <Paper sx={{ p: 2 }}>
+              <Skeleton variant="text" width={200} />
+              <Skeleton variant="rectangular" height={280} />
+            </Paper>
+          </Grid>
+        ))}
       </Grid>
     );
   }
@@ -97,6 +93,43 @@ export function TrendChart({ data, isLoading }: TrendChartProps) {
       <Grid size={{ xs: 12, md: 6 }}>
         <Paper sx={{ p: 2 }}>
           <Typography variant="subtitle2" gutterBottom>
+            Rolling 30-Day Closed
+          </Typography>
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+              <XAxis dataKey="date" tick={{ fontSize: 12, fill: textColor }} />
+              <YAxis tick={{ fontSize: 12, fill: textColor }} allowDecimals={false} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: theme.palette.background.paper,
+                  border: `1px solid ${gridColor}`,
+                }}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="closedIssues30d"
+                name="Issues Closed (30d)"
+                stroke={colors.orange[5]}
+                strokeWidth={2}
+                dot={{ r: 3 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="closedPRs30d"
+                name="PRs Closed (30d)"
+                stroke={colors.green[5]}
+                strokeWidth={2}
+                dot={{ r: 3 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Paper>
+      </Grid>
+      <Grid size={{ xs: 12, md: 6 }}>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="subtitle2" gutterBottom>
             Average Age Over Time (days)
           </Typography>
           <ResponsiveContainer width="100%" height={280}>
@@ -123,6 +156,43 @@ export function TrendChart({ data, isLoading }: TrendChartProps) {
                 type="monotone"
                 dataKey="avgPRAgeDays"
                 name="Avg PR Age"
+                stroke={colors.green[5]}
+                strokeWidth={2}
+                dot={{ r: 3 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Paper>
+      </Grid>
+      <Grid size={{ xs: 12, md: 6 }}>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="subtitle2" gutterBottom>
+            Max Age Over Time (days)
+          </Typography>
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+              <XAxis dataKey="date" tick={{ fontSize: 12, fill: textColor }} />
+              <YAxis tick={{ fontSize: 12, fill: textColor }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: theme.palette.background.paper,
+                  border: `1px solid ${gridColor}`,
+                }}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="maxIssueAgeDays"
+                name="Max Issue Age"
+                stroke={colors.orange[5]}
+                strokeWidth={2}
+                dot={{ r: 3 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="maxPRAgeDays"
+                name="Max PR Age"
                 stroke={colors.green[5]}
                 strokeWidth={2}
                 dot={{ r: 3 }}

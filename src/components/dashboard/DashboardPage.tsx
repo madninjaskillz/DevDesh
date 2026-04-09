@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import Chip from '@mui/material/Chip';
+import Grid from '@mui/material/Grid';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAssignedIssues, useOpenPRs, useReviewRequests, useAwaitingReview, useDashboardSummary, useTrendData, useRecentCommits } from '../../api/queries';
 import { SummaryCards } from './SummaryCards';
@@ -453,8 +454,14 @@ export function DashboardPage() {
             return (
               <SectionErrorBoundary key={sectionId} section="Trends">
                 <CollapsibleSection id="section-trends" title="Trends" icon={<TrendingUpIcon fontSize="small" />}>
-                  <WeeklySummary trendData={trendData} isLoading={trendLoading} />
-                  <CalendarHeatmap trendData={trendData} isLoading={trendLoading} />
+                  <Grid container spacing={2} sx={{ mb: 2 }}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <WeeklySummary trendData={trendData} isLoading={trendLoading} />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <CalendarHeatmap trendData={trendData} isLoading={trendLoading} />
+                    </Grid>
+                  </Grid>
                   <TrendChart data={trendData} isLoading={trendLoading} />
                 </CollapsibleSection>
               </SectionErrorBoundary>

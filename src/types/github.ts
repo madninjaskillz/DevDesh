@@ -130,6 +130,10 @@ export interface TrendDataPoint {
   openPRs: number;
   avgIssueAgeDays: number;
   avgPRAgeDays: number;
+  maxIssueAgeDays: number;
+  maxPRAgeDays: number;
+  closedIssues30d: number;
+  closedPRs30d: number;
 }
 
 export const DEFAULT_REPOS = [

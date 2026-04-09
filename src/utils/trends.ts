@@ -28,13 +28,21 @@ export function computeTrendData(
     const openIssues = issues.filter((item) => isOpenOnDate(item, endOfDay));
     const openPRs = prs.filter((item) => isOpenOnDate(item, endOfDay));
 
-    const avgIssueAgeDays = openIssues.length > 0
-      ? Math.round(openIssues.reduce((sum, item) => sum + Math.max(0, differenceInDays(endOfDay, parseISO(item.created_at))), 0) / openIssues.length)
-      : 0;
+    const issueAges = openIssues.map((item) => Math.max(0, differenceInDays(endOfDay, parseISO(item.created_at))));
+    const prAges = openPRs.map((item) => Math.max(0, differenceInDays(endOfDay, parseISO(item.created_at))));
 
-    const avgPRAgeDays = openPRs.length > 0
-      ? Math.round(openPRs.reduce((sum, item) => sum + Math.max(0, differenceInDays(endOfDay, parseISO(item.created_at))), 0) / openPRs.length)
+    const avgIssueAgeDays = issueAges.length > 0
+      ? Math.round(issueAges.reduce((sum, age) => sum + age, 0) / issueAges.length)
       : 0;
+    const avgPRAgeDays = prAges.length > 0
+      ? Math.round(prAges.reduce((sum, age) => sum + age, 0) / prAges.length)
+      : 0;
+    const maxIssueAgeDays = issueAges.length > 0 ? Math.max(...issueAges) : 0;
+    const maxPRAgeDays = prAges.length > 0 ? Math.max(...prAges) : 0;
+
+    const rolling30Start = subDays(endOfDay, 30);
+    const closedIssues30d = issues.filter((item) => wasClosedBetween(item, rolling30Start, endOfDay)).length;
+    const closedPRs30d = prs.filter((item) => wasClosedBetween(item, rolling30Start, endOfDay)).length;
 
     points.push({
       date: dateStr,
@@ -42,6 +50,10 @@ export function computeTrendData(
       openPRs: openPRs.length,
       avgIssueAgeDays,
       avgPRAgeDays,
+      maxIssueAgeDays,
+      maxPRAgeDays,
+      closedIssues30d,
+      closedPRs30d,
     });
   }
 
@@ -54,4 +66,10 @@ function isOpenOnDate(item: HistoricalItem, date: Date): boolean {
   if (item.closed_at === null) return true;
   const closed = parseISO(item.closed_at);
   return closed > date;
+}
+
+function wasClosedBetween(item: HistoricalItem, start: Date, end: Date): boolean {
+  if (item.closed_at === null) return false;
+  const closed = parseISO(item.closed_at);
+  return closed >= start && closed <= end;
 }

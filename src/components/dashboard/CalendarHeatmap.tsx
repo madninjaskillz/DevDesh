@@ -45,7 +45,7 @@ export function CalendarHeatmap({ trendData, isLoading }: CalendarHeatmapProps) 
   const maxTotal = Math.max(...cells.map((c) => c.total), 1);
 
   return (
-    <Paper sx={{ p: 2, mb: 2 }}>
+    <Paper sx={{ p: 2, height: '100%' }}>
       <Typography variant="subtitle2" sx={{ mb: 1 }}>Workload Heatmap (30 days)</Typography>
       <Box sx={{ display: 'flex', gap: '3px', flexWrap: 'wrap' }}>
         {cells.map((cell) => (
