@@ -40,6 +40,11 @@ export function computeTrendData(
     const maxIssueAgeDays = issueAges.length > 0 ? Math.max(...issueAges) : 0;
     const maxPRAgeDays = prAges.length > 0 ? Math.max(...prAges) : 0;
 
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const closedIssuesToday = issues.filter((item) => wasClosedBetween(item, startOfDay, endOfDay)).length;
+    const closedPRsToday = prs.filter((item) => wasClosedBetween(item, startOfDay, endOfDay)).length;
+
     const rolling30Start = subDays(endOfDay, 30);
     const closedIssues30d = issues.filter((item) => wasClosedBetween(item, rolling30Start, endOfDay)).length;
     const closedPRs30d = prs.filter((item) => wasClosedBetween(item, rolling30Start, endOfDay)).length;
@@ -52,6 +57,8 @@ export function computeTrendData(
       avgPRAgeDays,
       maxIssueAgeDays,
       maxPRAgeDays,
+      closedIssuesToday,
+      closedPRsToday,
       closedIssues30d,
       closedPRs30d,
     });

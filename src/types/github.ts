@@ -132,6 +132,8 @@ export interface TrendDataPoint {
   avgPRAgeDays: number;
   maxIssueAgeDays: number;
   maxPRAgeDays: number;
+  closedIssuesToday: number;
+  closedPRsToday: number;
   closedIssues30d: number;
   closedPRs30d: number;
 }

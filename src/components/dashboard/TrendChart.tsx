@@ -109,6 +109,24 @@ export function TrendChart({ data, isLoading }: TrendChartProps) {
               <Legend />
               <Line
                 type="monotone"
+                dataKey="closedIssuesToday"
+                name="Issues Closed (day)"
+                stroke={colors.orange[3]}
+                strokeWidth={1}
+                dot={false}
+                strokeDasharray="4 2"
+              />
+              <Line
+                type="monotone"
+                dataKey="closedPRsToday"
+                name="PRs Closed (day)"
+                stroke={colors.green[3]}
+                strokeWidth={1}
+                dot={false}
+                strokeDasharray="4 2"
+              />
+              <Line
+                type="monotone"
                 dataKey="closedIssues30d"
                 name="Issues Closed (30d)"
                 stroke={colors.orange[5]}
