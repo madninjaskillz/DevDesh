@@ -12,7 +12,9 @@ import Chip from '@mui/material/Chip';
 import Link from '@mui/material/Link';
 import Divider from '@mui/material/Divider';
 import CloseIcon from '@mui/icons-material/Close';
-import type { DashboardPR, DashboardIssue, DashboardReviewRequest, AwaitingReviewPR } from '../../types/github';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import MergeIcon from '@mui/icons-material/CallMerge';
+import type { DashboardPR, DashboardIssue, DashboardReviewRequest, AwaitingReviewPR, GitHubIssue, GitHubPR } from '../../types/github';
 import { formatAge } from '../../utils/dates';
 import { colors } from '../../theme/colors';
 
@@ -26,35 +28,36 @@ interface TeamAvatarsProps {
   issues: DashboardIssue[];
   reviewRequests: DashboardReviewRequest[];
   awaitingReview: AwaitingReviewPR[];
+  closedIssues: GitHubIssue[];
+  closedPRs: GitHubPR[];
 }
 
-function getMemberActivity(member: string, prs: DashboardPR[], issues: DashboardIssue[]) {
-  const now = new Date();
-  const oneWeekAgo = new Date(now.getTime() - 7 * 86400000);
-  const sixWeeksAgo = new Date(now.getTime() - 42 * 86400000);
-
-  const memberPRs = prs.filter((pr) => pr.author === member);
-  const memberIssues = issues.filter((issue) => issue.assignees.some((a) => a.login === member));
-
-  return { memberPRs, memberIssues, oneWeekAgo, sixWeeksAgo };
+interface ClosedItem {
+  number: number;
+  title: string;
+  url: string;
+  repoName: string;
+  closedAt: string;
+  merged?: boolean;
 }
 
-export function TeamAvatars({ prs, issues, reviewRequests, awaitingReview }: TeamAvatarsProps) {
+function daysAgoFromDate(dateStr: string): number {
+  return Math.max(0, Math.round((Date.now() - new Date(dateStr).getTime()) / 86400000));
+}
+
+export function TeamAvatars({ prs, issues, reviewRequests, awaitingReview, closedIssues, closedPRs }: TeamAvatarsProps) {
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
 
   const members = useMemo(() => {
     const map = new Map<string, string>();
-    // PR authors
     for (const pr of prs) {
       if (!map.has(pr.author)) map.set(pr.author, pr.authorAvatar);
     }
-    // Issue assignees
     for (const issue of issues) {
       for (const a of issue.assignees) {
         if (!map.has(a.login)) map.set(a.login, a.avatar_url);
       }
     }
-    // PR reviewers
     for (const pr of prs) {
       for (const r of pr.reviewers) {
         if (!map.has(r.login)) map.set(r.login, r.avatar_url);
@@ -63,21 +66,63 @@ export function TeamAvatars({ prs, issues, reviewRequests, awaitingReview }: Tea
         if (!map.has(r.user.login)) map.set(r.user.login, r.user.avatar_url);
       }
     }
-    // Review request authors
     for (const req of reviewRequests) {
       if (!map.has(req.author)) map.set(req.author, req.authorAvatar);
     }
-    // Awaiting review PR authors
     for (const pr of awaitingReview) {
       if (!map.has(pr.author)) map.set(pr.author, pr.authorAvatar);
     }
+    // Closed PR authors
+    for (const pr of closedPRs) {
+      if (!map.has(pr.user.login)) map.set(pr.user.login, pr.user.avatar_url);
+    }
+    // Closed issue assignees
+    for (const issue of closedIssues) {
+      for (const a of issue.assignees ?? []) {
+        if (!map.has(a.login)) map.set(a.login, a.avatar_url);
+      }
+    }
     return [...map.entries()].map(([login, avatar_url]) => ({ login, avatar_url }));
-  }, [prs, issues, reviewRequests, awaitingReview]);
+  }, [prs, issues, reviewRequests, awaitingReview, closedIssues, closedPRs]);
 
   const activity = useMemo(() => {
     if (!selectedMember) return null;
-    return getMemberActivity(selectedMember.login, prs, issues);
-  }, [selectedMember, prs, issues]);
+    const login = selectedMember.login;
+
+    const memberPRs = prs.filter((pr) => pr.author === login);
+    const memberIssues = issues.filter((issue) => issue.assignees.some((a) => a.login === login));
+
+    const memberClosedPRs: ClosedItem[] = closedPRs
+      .filter((pr) => pr.user.login === login)
+      .map((pr) => {
+        const repo = pr.html_url.split('/').slice(3, 5).join('/');
+        return {
+          number: pr.number,
+          title: pr.title,
+          url: pr.html_url,
+          repoName: repo.split('/')[1] ?? repo,
+          closedAt: pr.merged_at ?? pr.closed_at ?? '',
+          merged: !!pr.merged_at,
+        };
+      })
+      .sort((a, b) => b.closedAt.localeCompare(a.closedAt));
+
+    const memberClosedIssues: ClosedItem[] = closedIssues
+      .filter((issue) => (issue.assignees ?? []).some((a) => a.login === login))
+      .map((issue) => {
+        const parts = issue.repository_url.split('/');
+        return {
+          number: issue.number,
+          title: issue.title,
+          url: issue.html_url,
+          repoName: parts[parts.length - 1] ?? '',
+          closedAt: issue.closed_at ?? '',
+        };
+      })
+      .sort((a, b) => b.closedAt.localeCompare(a.closedAt));
+
+    return { memberPRs, memberIssues, memberClosedPRs, memberClosedIssues };
+  }, [selectedMember, prs, issues, closedPRs, closedIssues]);
 
   if (members.length === 0) return null;
 
@@ -110,9 +155,7 @@ export function TeamAvatars({ prs, issues, reviewRequests, awaitingReview }: Tea
           <>
             <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pr: 6 }}>
               <Avatar src={selectedMember.avatar_url} alt={selectedMember.login} sx={{ width: 36, height: 36 }} />
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{selectedMember.login}</Typography>
-              </Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{selectedMember.login}</Typography>
               <IconButton
                 onClick={() => setSelectedMember(null)}
                 sx={{ position: 'absolute', right: 8, top: 8 }}
@@ -121,26 +164,108 @@ export function TeamAvatars({ prs, issues, reviewRequests, awaitingReview }: Tea
               </IconButton>
             </DialogTitle>
             <DialogContent>
-              {/* This Week */}
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                This Week
-              </Typography>
-              <ActivitySection
-                prs={activity.memberPRs}
-                issues={activity.memberIssues}
-                label="this week"
-              />
+              {/* Summary stats */}
+              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                <StatBox label="Open PRs" value={activity.memberPRs.length} />
+                <StatBox label="Open Issues" value={activity.memberIssues.length} />
+                <StatBox label="PRs Closed (90d)" value={activity.memberClosedPRs.length} />
+                <StatBox label="Issues Closed (90d)" value={activity.memberClosedIssues.length} />
+              </Box>
+
+              {/* Weekly throughput */}
+              <WeeklyBreakdown closedPRs={activity.memberClosedPRs} closedIssues={activity.memberClosedIssues} />
 
               <Divider sx={{ my: 2 }} />
 
-              {/* Last 6 Weeks */}
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Last 6 Weeks
-              </Typography>
-              <SummaryStats
-                prs={activity.memberPRs}
-                issues={activity.memberIssues}
-              />
+              {/* Open PRs */}
+              {activity.memberPRs.length > 0 && (
+                <>
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Open PRs</Typography>
+                  {activity.memberPRs.map((pr) => (
+                    <Box key={pr.htmlUrl} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
+                      <Chip
+                        label={pr.status.replace('_', ' ')}
+                        size="small"
+                        color={pr.status === 'approved' ? 'success' : pr.status === 'changes_requested' ? 'error' : pr.status === 'draft' ? 'default' : 'warning'}
+                        sx={{ minWidth: 60, fontSize: '0.65rem' }}
+                      />
+                      <Link href={pr.htmlUrl} target="_blank" rel="noopener" variant="body2" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        #{pr.number} {pr.title}
+                      </Link>
+                      <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+                        {pr.repoName} &middot; {formatAge(pr.ageDays)}
+                      </Typography>
+                    </Box>
+                  ))}
+                </>
+              )}
+
+              {/* Open Issues */}
+              {activity.memberIssues.length > 0 && (
+                <Box sx={{ mt: activity.memberPRs.length > 0 ? 1.5 : 0 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Open Issues</Typography>
+                  {activity.memberIssues.map((issue) => (
+                    <Box key={issue.htmlUrl} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: colors.orange[5], flexShrink: 0 }} />
+                      <Link href={issue.htmlUrl} target="_blank" rel="noopener" variant="body2" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        #{issue.number} {issue.title}
+                      </Link>
+                      <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+                        {issue.repoName} &middot; {formatAge(issue.ageDays)}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              )}
+
+              {/* Recently Closed PRs */}
+              {activity.memberClosedPRs.length > 0 && (
+                <Box sx={{ mt: 1.5 }}>
+                  <Divider sx={{ my: 1.5 }} />
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Recently Closed PRs</Typography>
+                  {activity.memberClosedPRs.slice(0, 15).map((pr) => (
+                    <Box key={pr.url} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
+                      {pr.merged ? (
+                        <MergeIcon sx={{ fontSize: 16, color: colors.green[5] }} />
+                      ) : (
+                        <CheckCircleIcon sx={{ fontSize: 16, color: colors.red[3] }} />
+                      )}
+                      <Link href={pr.url} target="_blank" rel="noopener" variant="body2" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        #{pr.number} {pr.title}
+                      </Link>
+                      <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+                        {pr.repoName} &middot; {formatAge(daysAgoFromDate(pr.closedAt))} ago
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              )}
+
+              {/* Recently Closed Issues */}
+              {activity.memberClosedIssues.length > 0 && (
+                <Box sx={{ mt: 1.5 }}>
+                  <Divider sx={{ my: 1.5 }} />
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Recently Closed Issues</Typography>
+                  {activity.memberClosedIssues.slice(0, 15).map((issue) => (
+                    <Box key={issue.url} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
+                      <CheckCircleIcon sx={{ fontSize: 16, color: colors.green[5] }} />
+                      <Link href={issue.url} target="_blank" rel="noopener" variant="body2" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        #{issue.number} {issue.title}
+                      </Link>
+                      <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+                        {issue.repoName} &middot; {formatAge(daysAgoFromDate(issue.closedAt))} ago
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              )}
+
+              {activity.memberPRs.length === 0 && activity.memberIssues.length === 0 &&
+                activity.memberClosedPRs.length === 0 && activity.memberClosedIssues.length === 0 && (
+                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                  No activity found in the last 90 days.
+                </Typography>
+              )}
             </DialogContent>
           </>
         )}
@@ -149,119 +274,72 @@ export function TeamAvatars({ prs, issues, reviewRequests, awaitingReview }: Tea
   );
 }
 
-function ActivitySection({ prs, issues, label }: { prs: DashboardPR[]; issues: DashboardIssue[]; label: string }) {
+function StatBox({ label, value }: { label: string; value: number }) {
   return (
-    <Box>
-      {prs.length > 0 && (
-        <Box sx={{ mb: 1.5 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-            Open PRs ({prs.length})
-          </Typography>
-          {prs.map((pr) => (
-            <Box key={pr.htmlUrl} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
-              <Chip
-                label={pr.status}
-                size="small"
-                color={pr.status === 'approved' ? 'success' : pr.status === 'changes_requested' ? 'error' : pr.status === 'draft' ? 'default' : 'warning'}
-                sx={{ minWidth: 60, fontSize: '0.65rem' }}
-              />
-              <Link href={pr.htmlUrl} target="_blank" rel="noopener" variant="body2" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                #{pr.number} {pr.title}
-              </Link>
-              <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
-                {pr.repoName} &middot; {formatAge(pr.ageDays)}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      )}
-      {issues.length > 0 && (
-        <Box>
-          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-            Open Issues ({issues.length})
-          </Typography>
-          {issues.map((issue) => (
-            <Box key={issue.htmlUrl} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
-              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: colors.orange[5], flexShrink: 0 }} />
-              <Link href={issue.htmlUrl} target="_blank" rel="noopener" variant="body2" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                #{issue.number} {issue.title}
-              </Link>
-              <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
-                {issue.repoName} &middot; {formatAge(issue.ageDays)}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      )}
-      {prs.length === 0 && issues.length === 0 && (
-        <Typography variant="body2" color="text.secondary">No open items {label}.</Typography>
-      )}
+    <Box sx={{ textAlign: 'center', flex: 1 }}>
+      <Typography variant="h5" sx={{ fontWeight: 700 }}>{value}</Typography>
+      <Typography variant="caption" color="text.secondary">{label}</Typography>
     </Box>
   );
 }
 
-function SummaryStats({ prs, issues }: { prs: DashboardPR[]; issues: DashboardIssue[] }) {
-  const prsByWeek = useMemo(() => {
-    const weeks: { label: string; prs: number; issues: number }[] = [];
-    const now = new Date();
+function WeeklyBreakdown({ closedPRs, closedIssues }: { closedPRs: ClosedItem[]; closedIssues: ClosedItem[] }) {
+  const weeks = useMemo(() => {
+    const now = Date.now();
+    const result: { label: string; prs: number; issues: number }[] = [];
     for (let w = 0; w < 6; w++) {
-      const weekEnd = new Date(now.getTime() - w * 7 * 86400000);
-      const weekStart = new Date(weekEnd.getTime() - 7 * 86400000);
-      const weekLabel = w === 0 ? 'This week' : w === 1 ? 'Last week' : `${w} weeks ago`;
+      const weekEnd = now - w * 7 * 86400000;
+      const weekStart = weekEnd - 7 * 86400000;
+      const label = w === 0 ? 'This week' : w === 1 ? 'Last week' : `${w} weeks ago`;
 
-      // Count PRs created in this week
-      const weekPRs = prs.filter((pr) => {
-        const created = new Date(pr.createdAt);
-        return created >= weekStart && created < weekEnd;
+      const prs = closedPRs.filter((p) => {
+        const t = new Date(p.closedAt).getTime();
+        return t >= weekStart && t < weekEnd;
       }).length;
 
-      const weekIssues = issues.filter((issue) => {
-        const assignedDate = new Date(now.getTime() - issue.ageDays * 86400000);
-        return assignedDate >= weekStart && assignedDate < weekEnd;
+      const iss = closedIssues.filter((i) => {
+        const t = new Date(i.closedAt).getTime();
+        return t >= weekStart && t < weekEnd;
       }).length;
 
-      weeks.push({ label: weekLabel, prs: weekPRs, issues: weekIssues });
+      result.push({ label, prs, issues: iss });
     }
-    return weeks;
-  }, [prs, issues]);
+    return result;
+  }, [closedPRs, closedIssues]);
+
+  const maxVal = Math.max(...weeks.map((w) => w.prs + w.issues), 1);
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', gap: 2, mb: 1 }}>
-        <Box sx={{ textAlign: 'center', flex: 1 }}>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>{prs.length}</Typography>
-          <Typography variant="caption" color="text.secondary">Open PRs</Typography>
-        </Box>
-        <Box sx={{ textAlign: 'center', flex: 1 }}>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>{issues.length}</Typography>
-          <Typography variant="caption" color="text.secondary">Open Issues</Typography>
-        </Box>
-        <Box sx={{ textAlign: 'center', flex: 1 }}>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            {prs.length > 0 ? Math.round(prs.reduce((s, p) => s + p.ageDays, 0) / prs.length) : 0}d
-          </Typography>
-          <Typography variant="caption" color="text.secondary">Avg PR Age</Typography>
-        </Box>
-        <Box sx={{ textAlign: 'center', flex: 1 }}>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            {issues.length > 0 ? Math.round(issues.reduce((s, i) => s + i.ageDays, 0) / issues.length) : 0}d
-          </Typography>
-          <Typography variant="caption" color="text.secondary">Avg Issue Age</Typography>
-        </Box>
-      </Box>
-
-      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mt: 2, mb: 0.5 }}>
-        PRs opened per week
+      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+        Closed per week
       </Typography>
-      {prsByWeek.map((week) => (
+      {weeks.map((week) => (
         <Box key={week.label} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.25 }}>
-          <Typography variant="caption" sx={{ width: 100 }}>{week.label}</Typography>
-          <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Box sx={{ height: 14, borderRadius: 1, bgcolor: colors.green[3], minWidth: week.prs > 0 ? 8 : 0, width: `${Math.min(week.prs * 20, 100)}%`, transition: 'width 0.3s' }} />
-            <Typography variant="caption">{week.prs}</Typography>
+          <Typography variant="caption" sx={{ width: 90, flexShrink: 0 }}>{week.label}</Typography>
+          <Box sx={{ flex: 1, display: 'flex', height: 14, borderRadius: 1, overflow: 'hidden' }}>
+            {week.prs > 0 && (
+              <Box sx={{ height: '100%', bgcolor: colors.green[3], width: `${(week.prs / maxVal) * 100}%`, transition: 'width 0.3s' }} />
+            )}
+            {week.issues > 0 && (
+              <Box sx={{ height: '100%', bgcolor: colors.orange[3], width: `${(week.issues / maxVal) * 100}%`, transition: 'width 0.3s' }} />
+            )}
           </Box>
+          <Typography variant="caption" sx={{ minWidth: 50 }}>
+            {week.prs} PR{week.prs !== 1 ? 's' : ''}, {week.issues} iss
+          </Typography>
         </Box>
       ))}
+      <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Box sx={{ width: 10, height: 10, borderRadius: 1, bgcolor: colors.green[3] }} />
+          <Typography variant="caption" color="text.secondary">PRs</Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Box sx={{ width: 10, height: 10, borderRadius: 1, bgcolor: colors.orange[3] }} />
+          <Typography variant="caption" color="text.secondary">Issues</Typography>
+        </Box>
+      </Box>
     </Box>
   );
 }

@@ -17,7 +17,7 @@ import {
 } from './github';
 import { daysAgo } from '../utils/dates';
 import { computeTrendData } from '../utils/trends';
-import type { DashboardIssue, DashboardPR, DashboardReviewRequest, DashboardCommit, ActivityEvent, AwaitingReviewPR, ReviewPriority, PRStatus, TrendDataPoint } from '../types/github';
+import type { DashboardIssue, DashboardPR, DashboardReviewRequest, DashboardCommit, ActivityEvent, AwaitingReviewPR, ReviewPriority, PRStatus, TrendDataPoint, GitHubIssue, GitHubPR } from '../types/github';
 import { useMemo } from 'react';
 import { subDays, formatISO } from 'date-fns';
 
@@ -298,8 +298,8 @@ export function useTrendData(teamMode = false) {
     ...closedPRQueries,
   ].some((q) => q.isLoading);
 
-  const trendData: TrendDataPoint[] = useMemo(() => {
-    if (isLoading) return [];
+  const { trendData, closedIssues, closedPRs } = useMemo(() => {
+    if (isLoading) return { trendData: [] as TrendDataPoint[], closedIssues: [] as GitHubIssue[], closedPRs: [] as GitHubPR[] };
 
     const allIssues = [
       ...openIssueQueries.flatMap((q) => q.data ?? []),
@@ -314,11 +314,16 @@ export function useTrendData(teamMode = false) {
     const uniqueIssues = dedup(allIssues, (i) => `${i.repository_url}-${i.number}`);
     const uniquePRs = dedup(allPRs, (p) => `${p.html_url}`);
 
-    return computeTrendData(
+    const td = computeTrendData(
       uniqueIssues.map((i) => ({ created_at: i.created_at, closed_at: i.closed_at })),
       uniquePRs.map((p) => ({ created_at: p.created_at, closed_at: p.closed_at ?? p.merged_at, merged_at: p.merged_at })),
       90,
     );
+
+    const ci = uniqueIssues.filter((i) => i.closed_at !== null);
+    const cp = uniquePRs.filter((p) => p.closed_at !== null || p.merged_at !== null);
+
+    return { trendData: td, closedIssues: ci, closedPRs: cp };
   }, [
     isLoading,
     openIssueQueries.map((q) => q.dataUpdatedAt).join(','),
@@ -329,7 +334,7 @@ export function useTrendData(teamMode = false) {
     teamMode,
   ]);
 
-  return { trendData, isLoading };
+  return { trendData, closedIssues, closedPRs, isLoading };
 }
 
 export function useAwaitingReview() {

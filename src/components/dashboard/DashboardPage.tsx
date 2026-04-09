@@ -67,7 +67,7 @@ export function DashboardPage() {
   const { prs: allPrs, isLoading: prsLoading, isError: prsError, error: prsErr } = useOpenPRs(teamMode);
   const { requests: allReviewRequests, isLoading: reviewsLoading } = useReviewRequests();
   const { awaitingReview: allAwaitingReview, isLoading: awaitingLoading } = useAwaitingReview();
-  const { trendData, isLoading: trendLoading } = useTrendData(teamMode);
+  const { trendData, closedIssues, closedPRs, isLoading: trendLoading } = useTrendData(teamMode);
   const { commits: allCommits, isLoading: commitsLoading } = useRecentCommits(teamMode);
   const notes = useNotes();
   const { repos } = useRepoConfig();
@@ -314,7 +314,7 @@ export function DashboardPage() {
         {quietMode && !focusMode && (
           <Chip label="Quiet" size="small" color="secondary" onDelete={toggleQuietMode} />
         )}
-        <TeamAvatars prs={prsWithMissingLinks} issues={issues} reviewRequests={reviewRequests} awaitingReview={awaitingReview} />
+        <TeamAvatars prs={prsWithMissingLinks} issues={issues} reviewRequests={reviewRequests} awaitingReview={awaitingReview} closedIssues={closedIssues} closedPRs={closedPRs} />
         <ExportButton issues={issues} prs={prsWithMissingLinks} reviewRequests={reviewRequests} actionItems={actionItems} trendData={trendData} />
       </Box>
 
