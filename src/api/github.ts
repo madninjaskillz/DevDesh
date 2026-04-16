@@ -53,11 +53,12 @@ async function fetchJSON<T>(url: string, token: string): Promise<T> {
   return res.json();
 }
 
-async function fetchAllPages<T>(url: string, token: string): Promise<T[]> {
+async function fetchAllPages<T>(url: string, token: string, maxPages = 5): Promise<T[]> {
   const results: T[] = [];
   let nextUrl: string | null = `${url}${url.includes('?') ? '&' : '?'}per_page=100`;
+  let page = 0;
 
-  while (nextUrl) {
+  while (nextUrl && page < maxPages) {
     const res = await safeFetch(nextUrl, { headers: headers(token) });
     trackRateLimit(res);
     if (!res.ok) {
@@ -66,6 +67,7 @@ async function fetchAllPages<T>(url: string, token: string): Promise<T[]> {
     }
     const data: T[] = await res.json();
     results.push(...data);
+    page++;
 
     const link = res.headers.get('Link');
     nextUrl = parseLinkNext(link);
@@ -213,57 +215,63 @@ export async function getPRGraphQLData(
   prNumber: number,
   token: string,
 ): Promise<PRGraphQLData> {
-  const query = `
-    query($owner: String!, $repo: String!, $number: Int!) {
-      repository(owner: $owner, name: $repo) {
-        pullRequest(number: $number) {
-          reviewThreads(first: 100) {
-            nodes {
-              isResolved
-              isOutdated
-              comments(first: 1) {
-                totalCount
-                nodes {
-                  author {
-                    login
-                    avatarUrl
-                  }
-                }
-              }
-            }
-            totalCount
-          }
-          commits(last: 1) {
-            nodes {
-              commit {
-                statusCheckRollup {
-                  state
-                }
-              }
-            }
-          }
-          closingIssuesReferences(first: 10) {
-            nodes {
-              number
-              title
-              url
-              repository {
-                name
-              }
-            }
-          }
+  const result = await getBatchedPRGraphQLData(owner, repo, [prNumber], token);
+  return result[prNumber] ?? { threads: [], totalCount: 0, unresolvedCount: 0, unresolvedAuthors: [], linkedIssues: [], ciStatus: null };
+}
+
+/**
+ * Fetch GraphQL enrichment data AND reviews for multiple PRs in a single request.
+ * Replaces N individual getPRGraphQLData + N getPRReviews calls with 1 batched query.
+ */
+export async function getBatchedPREnrichment(
+  owner: string,
+  repo: string,
+  prNumbers: number[],
+  token: string,
+): Promise<Record<number, { graphql: PRGraphQLData; reviews: GitHubReview[] }>> {
+  if (prNumbers.length === 0) return {};
+
+  const prFragments = prNumbers.map(
+    (num, i) => `pr${i}: pullRequest(number: ${num}) {
+      number
+      reviews(first: 100) {
+        nodes {
+          state
+          submittedAt
+          author { login avatarUrl }
+          body
         }
       }
+      reviewThreads(first: 100) {
+        nodes {
+          isResolved
+          isOutdated
+          comments(first: 1) {
+            totalCount
+            nodes { author { login avatarUrl } }
+          }
+        }
+        totalCount
+      }
+      commits(last: 1) {
+        nodes { commit { statusCheckRollup { state } } }
+      }
+      closingIssuesReferences(first: 10) {
+        nodes { number title url repository { name } }
+      }
+    }`,
+  );
+
+  const query = `query($owner: String!, $repo: String!) {
+    repository(owner: $owner, name: $repo) {
+      ${prFragments.join('\n')}
     }
-  `;
+  }`;
 
   const res = await safeFetch(GRAPHQL_URL, {
     method: 'POST',
     headers: headers(token),
-    body: JSON.stringify({
-      query,
-      variables: { owner, repo, number: prNumber },
-    }),
+    body: JSON.stringify({ query, variables: { owner, repo } }),
   });
 
   if (!res.ok) {
@@ -272,18 +280,103 @@ export async function getPRGraphQLData(
   }
 
   const json = await res.json();
-  if (json.errors) {
-    throw new Error(`GraphQL error: ${JSON.stringify(json.errors)}`);
+  const repoData = json.data?.repository;
+  if (!repoData) return {};
+
+  const result: Record<number, { graphql: PRGraphQLData; reviews: GitHubReview[] }> = {};
+
+  prNumbers.forEach((num, i) => {
+    const pr = repoData[`pr${i}`];
+    if (!pr) {
+      result[num] = {
+        graphql: { threads: [], totalCount: 0, unresolvedCount: 0, unresolvedAuthors: [], linkedIssues: [], ciStatus: null },
+        reviews: [],
+      };
+      return;
+    }
+
+    // Parse reviews
+    const reviews: GitHubReview[] = (pr.reviews?.nodes ?? []).map((r: any) => ({
+      state: r.state,
+      submitted_at: r.submittedAt,
+      user: { login: r.author?.login ?? '', avatar_url: r.author?.avatarUrl ?? '' },
+    }));
+
+    // Parse GraphQL enrichment data
+    const graphql = parsePRGraphQLNode(pr);
+
+    result[num] = { graphql, reviews };
+  });
+
+  return result;
+}
+
+/** Batch fetch GraphQL data for multiple PRs in one request (without reviews). */
+async function getBatchedPRGraphQLData(
+  owner: string,
+  repo: string,
+  prNumbers: number[],
+  token: string,
+): Promise<Record<number, PRGraphQLData>> {
+  if (prNumbers.length === 0) return {};
+
+  const prFragments = prNumbers.map(
+    (num, i) => `pr${i}: pullRequest(number: ${num}) {
+      number
+      reviewThreads(first: 100) {
+        nodes {
+          isResolved
+          isOutdated
+          comments(first: 1) {
+            totalCount
+            nodes { author { login avatarUrl } }
+          }
+        }
+        totalCount
+      }
+      commits(last: 1) {
+        nodes { commit { statusCheckRollup { state } } }
+      }
+      closingIssuesReferences(first: 10) {
+        nodes { number title url repository { name } }
+      }
+    }`,
+  );
+
+  const query = `query($owner: String!, $repo: String!) {
+    repository(owner: $owner, name: $repo) {
+      ${prFragments.join('\n')}
+    }
+  }`;
+
+  const res = await safeFetch(GRAPHQL_URL, {
+    method: 'POST',
+    headers: headers(token),
+    body: JSON.stringify({ query, variables: { owner, repo } }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new GitHubApiError(res.status, body, res.headers);
   }
 
-  const pr = json.data.repository.pullRequest;
+  const json = await res.json();
+  const repoData = json.data?.repository;
+  if (!repoData) return {};
+
+  const result: Record<number, PRGraphQLData> = {};
+  prNumbers.forEach((num, i) => {
+    const pr = repoData[`pr${i}`];
+    result[num] = pr ? parsePRGraphQLNode(pr) : { threads: [], totalCount: 0, unresolvedCount: 0, unresolvedAuthors: [], linkedIssues: [], ciStatus: null };
+  });
+  return result;
+}
+
+function parsePRGraphQLNode(pr: any): PRGraphQLData {
   const reviewThreads = pr.reviewThreads;
-  const threads: ReviewThread[] = reviewThreads.nodes;
-  const totalCount = reviewThreads.totalCount;
-  // A thread is "active" (needs attention) if:
-  // - not resolved
-  // - not outdated (code changed since comment)
-  // - not authored by a bot (e.g. github-advanced-security, dependabot)
+  const threads: ReviewThread[] = reviewThreads?.nodes ?? [];
+  const totalCount = reviewThreads?.totalCount ?? 0;
+
   const activeThreads = threads.filter((t: any) => {
     if (t.isResolved || t.isOutdated) return false;
     const authorLogin: string = t.comments?.nodes?.[0]?.author?.login ?? '';
@@ -292,7 +385,6 @@ export async function getPRGraphQLData(
   });
   const unresolvedCount = activeThreads.length;
 
-  // Extract unique authors of active unresolved threads
   const authorMap = new Map<string, { login: string; avatarUrl: string }>();
   for (const t of activeThreads) {
     if (t.comments?.nodes?.[0]?.author) {
@@ -304,7 +396,7 @@ export async function getPRGraphQLData(
   }
   const unresolvedAuthors = [...authorMap.values()];
 
-  const linkedIssues: LinkedIssue[] = (pr.closingIssuesReferences.nodes ?? []).map(
+  const linkedIssues: LinkedIssue[] = (pr.closingIssuesReferences?.nodes ?? []).map(
     (node: { number: number; title: string; url: string; repository: { name: string } }) => ({
       number: node.number,
       title: node.title,
@@ -313,7 +405,6 @@ export async function getPRGraphQLData(
     }),
   );
 
-  // CI status from the latest commit's status check rollup
   const rollupState = pr.commits?.nodes?.[0]?.commit?.statusCheckRollup?.state;
   let ciStatus: CIStatus = null;
   if (rollupState === 'SUCCESS') ciStatus = 'success';

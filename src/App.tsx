@@ -28,7 +28,7 @@ const queryClient = new QueryClient({
         return false;
       },
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
-      refetchOnWindowFocus: true,
+      refetchOnWindowFocus: false,
       gcTime: TEN_MINUTES,
       staleTime: 5 * 60 * 1000,
     },

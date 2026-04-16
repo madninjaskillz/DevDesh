@@ -6,8 +6,7 @@ import {
   getOpenPRs,
   getRecentlyClosedIssues,
   getRecentlyClosedPRs,
-  getPRReviews,
-  getPRGraphQLData,
+  getBatchedPREnrichment,
   getIssueLinkedPRs,
   getIssueProjectStatuses,
   getUserTeamSlugs,
@@ -35,6 +34,7 @@ export function useAssignedIssues(teamMode = false) {
       enabled: !!token && !!user,
       staleTime: STALE_TIME,
       refetchInterval: REFETCH_INTERVAL,
+      refetchOnWindowFocus: true,
     })),
   });
 
@@ -43,7 +43,7 @@ export function useAssignedIssues(teamMode = false) {
       ...repos[idx],
       issues: (q.data ?? []).map((i) => i.number),
     }));
-  }, [queries.map((q) => q.data).join(','), repos]);
+  }, [queries.map((q) => q.dataUpdatedAt).join(','), repos]);
 
   const linkedPRQueries = useQueries({
     queries: issuesByRepo.map(({ owner, repo, issues: issueNums }) => ({
@@ -88,7 +88,7 @@ export function useAssignedIssues(teamMode = false) {
         }));
       })
       .sort((a, b) => b.ageDays - a.ageDays);
-  }, [queries.map((q) => q.data).join(','), linkedPRQueries.map((q) => q.dataUpdatedAt).join(','), projectStatusQueries.map((q) => q.dataUpdatedAt).join(','), repos]);
+  }, [queries.map((q) => q.dataUpdatedAt).join(','), linkedPRQueries.map((q) => q.dataUpdatedAt).join(','), projectStatusQueries.map((q) => q.dataUpdatedAt).join(','), repos]);
 
   return { issues, isLoading, isError, error };
 }
@@ -104,35 +104,31 @@ export function useOpenPRs(teamMode = false) {
       enabled: !!token && !!user,
       staleTime: STALE_TIME,
       refetchInterval: REFETCH_INTERVAL,
+      refetchOnWindowFocus: true,
     })),
   });
 
-  const allPRs = useMemo(() => {
-    return prQueries.flatMap((q, idx) =>
-      (q.data ?? [])
-        .filter((pr) => teamMode || pr.user.login === user?.login)
-        .map((pr) => ({ ...pr, repoIdx: idx })),
-    );
-  }, [prQueries.map((q) => q.data).join(','), user?.login, teamMode]);
+  // Group PRs by repo for batched enrichment (1 query per repo instead of N×2)
+  const prsByRepo = useMemo(() => {
+    return prQueries.map((q, idx) => {
+      const filtered = (q.data ?? [])
+        .filter((pr) => teamMode || pr.user.login === user?.login);
+      return {
+        ...repos[idx],
+        prs: filtered,
+        numbers: filtered.map((pr) => pr.number),
+      };
+    });
+  }, [prQueries.map((q) => q.dataUpdatedAt).join(','), user?.login, teamMode, repos]);
 
+  // One batched enrichment query per repo (reviews + GraphQL in a single request)
   const enrichmentQueries = useQueries({
-    queries: allPRs.flatMap((pr) => {
-      const { owner, repo } = repos[pr.repoIdx];
-      return [
-        {
-          queryKey: ['pr-reviews', owner, repo, pr.number],
-          queryFn: () => getPRReviews(owner, repo, pr.number, token!),
-          enabled: !!token,
-          staleTime: STALE_TIME,
-        },
-        {
-          queryKey: ['pr-graphql', owner, repo, pr.number],
-          queryFn: () => getPRGraphQLData(owner, repo, pr.number, token!),
-          enabled: !!token,
-          staleTime: STALE_TIME,
-        },
-      ];
-    }),
+    queries: prsByRepo.map(({ owner, repo, numbers }) => ({
+      queryKey: ['pr-enrichment-batch', owner, repo, numbers.join(',')],
+      queryFn: () => getBatchedPREnrichment(owner, repo, numbers, token!),
+      enabled: !!token && numbers.length > 0,
+      staleTime: STALE_TIME,
+    })),
   });
 
   const isLoading = prQueries.some((q) => q.isLoading) || enrichmentQueries.some((q) => q.isLoading);
@@ -140,52 +136,57 @@ export function useOpenPRs(teamMode = false) {
   const error = prQueries.find((q) => q.error)?.error ?? null;
 
   const dashboardPRs: DashboardPR[] = useMemo(() => {
-    return allPRs.map((pr, i) => {
-      const reviews = (enrichmentQueries[i * 2]?.data as Awaited<ReturnType<typeof getPRReviews>> | undefined) ?? [];
-      const gqlData = enrichmentQueries[i * 2 + 1]?.data as PRGraphQLData | undefined;
+    return prsByRepo.flatMap((repoGroup, repoIdx) => {
+      const enrichment = enrichmentQueries[repoIdx]?.data as Record<number, { graphql: PRGraphQLData; reviews: import('../types/github').GitHubReview[] }> | undefined;
 
-      const latestByReviewer = new Map<string, string>();
-      for (const review of reviews) {
-        if (review.state !== 'COMMENTED' && review.state !== 'PENDING') {
-          latestByReviewer.set(review.user.login, review.state);
+      return repoGroup.prs.map((pr) => {
+        const prEnrichment = enrichment?.[pr.number];
+        const reviews = prEnrichment?.reviews ?? [];
+        const gqlData = prEnrichment?.graphql;
+
+        const latestByReviewer = new Map<string, string>();
+        for (const review of reviews) {
+          if (review.state !== 'COMMENTED' && review.state !== 'PENDING') {
+            latestByReviewer.set(review.user.login, review.state);
+          }
         }
-      }
 
-      let status: PRStatus = 'review_pending';
-      if (pr.draft) {
-        status = 'draft';
-      } else if ([...latestByReviewer.values()].some((s) => s === 'CHANGES_REQUESTED')) {
-        status = 'changes_requested';
-      } else if (latestByReviewer.size > 0 && [...latestByReviewer.values()].every((s) => s === 'APPROVED')) {
-        status = 'approved';
-      }
+        let status: PRStatus = 'review_pending';
+        if (pr.draft) {
+          status = 'draft';
+        } else if ([...latestByReviewer.values()].some((s) => s === 'CHANGES_REQUESTED')) {
+          status = 'changes_requested';
+        } else if (latestByReviewer.size > 0 && [...latestByReviewer.values()].every((s) => s === 'APPROVED')) {
+          status = 'approved';
+        }
 
-      return {
-        number: pr.number,
-        title: pr.title,
-        htmlUrl: pr.html_url,
-        draft: pr.draft,
-        author: pr.user.login,
-        authorAvatar: pr.user.avatar_url,
-        repoName: repos[pr.repoIdx].repo,
-        repoFullName: `${repos[pr.repoIdx].owner}/${repos[pr.repoIdx].repo}`,
-        createdAt: pr.created_at,
-        ageDays: daysAgo(pr.created_at),
-        status,
-        reviews,
-        unresolvedThreadCount: gqlData?.unresolvedCount ?? 0,
-        unresolvedAuthors: gqlData?.unresolvedAuthors ?? [],
-        totalThreadCount: gqlData?.totalCount ?? 0,
-        reviewers: pr.requested_reviewers ?? [],
-        linkedIssues: gqlData?.linkedIssues ?? [],
-        missingIssueLinks: [],
-        ciStatus: gqlData?.ciStatus ?? null,
-        labels: pr.labels ?? [],
-        headRef: pr.head.ref,
-        baseRef: pr.base.ref,
-      };
+        return {
+          number: pr.number,
+          title: pr.title,
+          htmlUrl: pr.html_url,
+          draft: pr.draft,
+          author: pr.user.login,
+          authorAvatar: pr.user.avatar_url,
+          repoName: repoGroup.repo,
+          repoFullName: `${repoGroup.owner}/${repoGroup.repo}`,
+          createdAt: pr.created_at,
+          ageDays: daysAgo(pr.created_at),
+          status,
+          reviews,
+          unresolvedThreadCount: gqlData?.unresolvedCount ?? 0,
+          unresolvedAuthors: gqlData?.unresolvedAuthors ?? [],
+          totalThreadCount: gqlData?.totalCount ?? 0,
+          reviewers: pr.requested_reviewers ?? [],
+          linkedIssues: gqlData?.linkedIssues ?? [],
+          missingIssueLinks: [],
+          ciStatus: gqlData?.ciStatus ?? null,
+          labels: pr.labels ?? [],
+          headRef: pr.head.ref,
+          baseRef: pr.base.ref,
+        };
+      });
     }).sort((a, b) => b.ageDays - a.ageDays);
-  }, [allPRs, enrichmentQueries.map((q) => q.data).join(','), repos]);
+  }, [prsByRepo, enrichmentQueries.map((q) => q.dataUpdatedAt).join(',')]);
 
   return { prs: dashboardPRs, isLoading, isError, error };
 }
@@ -194,14 +195,14 @@ export function useReviewRequests() {
   const { token, user } = useAuth();
   const { repos } = useRepoConfig();
 
-  // Reuses the same ['prs', owner, repo] cache keys — TanStack Query deduplicates
+  // Reuses the same ['prs', owner, repo] cache keys — TanStack Query deduplicates.
+  // No refetchInterval/refetchOnWindowFocus here; useOpenPRs already drives those.
   const prQueries = useQueries({
     queries: repos.map(({ owner, repo }) => ({
       queryKey: ['prs', owner, repo],
       queryFn: () => getOpenPRs(owner, repo, token!),
       enabled: !!token && !!user,
       staleTime: STALE_TIME,
-      refetchInterval: REFETCH_INTERVAL,
     })),
   });
 
@@ -227,7 +228,7 @@ export function useReviewRequests() {
           })),
       )
       .sort((a, b) => b.waitingDays - a.waitingDays);
-  }, [prQueries.map((q) => q.data).join(','), user?.login, repos]);
+  }, [prQueries.map((q) => q.dataUpdatedAt).join(','), user?.login, repos]);
 
   return { requests, isLoading, isError, error };
 }
@@ -359,13 +360,13 @@ export function useAwaitingReview() {
   const { token, user } = useAuth();
   const { repos } = useRepoConfig();
 
+  // Shares ['prs', owner, repo] cache with useOpenPRs — no need for own refetch config
   const prQueries = useQueries({
     queries: repos.map(({ owner, repo }) => ({
       queryKey: ['prs', owner, repo],
       queryFn: () => getOpenPRs(owner, repo, token!),
       enabled: !!token && !!user,
       staleTime: STALE_TIME,
-      refetchInterval: REFETCH_INTERVAL,
     })),
   });
 
@@ -437,7 +438,7 @@ export function useActivityFeed() {
       queryKey: ['events', owner, repo],
       queryFn: () => getRepoEvents(owner, repo, token!),
       enabled: !!token && !!user,
-      staleTime: 60_000,
+      staleTime: STALE_TIME,
       refetchInterval: REFETCH_INTERVAL,
     })),
   });
