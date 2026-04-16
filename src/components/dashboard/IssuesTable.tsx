@@ -25,10 +25,10 @@ import type { DashboardIssue } from '../../types/github';
 import type { GroupBy } from './LabelFilter';
 import { NoteChip } from './NoteChip';
 import { OverflowChips } from './OverflowChips';
-import { formatAge, getAgeColor } from '../../utils/dates';
+import { daysAgo, formatAge, formatDate, getAgeColor } from '../../utils/dates';
 import { useHighlight, scrollToHighlighted } from '../../hooks/useHighlight';
 
-type SortField = 'title' | 'repoName' | 'ageDays';
+type SortField = 'title' | 'repoName' | 'ageDays' | 'updatedAt';
 type SortDir = 'asc' | 'desc';
 
 interface NotesHook {
@@ -62,6 +62,7 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
     return [...issues].sort((a, b) => {
       const mul = sortDir === 'asc' ? 1 : -1;
       if (sortField === 'ageDays') return (a.ageDays - b.ageDays) * mul;
+      if (sortField === 'updatedAt') return a.updatedAt.localeCompare(b.updatedAt) * mul;
       return a[sortField].localeCompare(b[sortField]) * mul;
     });
   }, [issues, sortField, sortDir]);
@@ -158,6 +159,15 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
                 onClick={() => handleSort('ageDays')}
               >
                 Age
+              </TableSortLabel>
+            </TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={sortField === 'updatedAt'}
+                direction={sortField === 'updatedAt' ? sortDir : 'desc'}
+                onClick={() => handleSort('updatedAt')}
+              >
+                Activity
               </TableSortLabel>
             </TableCell>
             <TableCell width={48} />
@@ -275,6 +285,13 @@ export function IssuesTable({ issues, isLoading, onItemClick, groupBy = 'none', 
               </TableCell>
               <TableCell>
                 <Chip label={formatAge(issue.ageDays)} color={getAgeColor(issue.ageDays)} size="small" />
+              </TableCell>
+              <TableCell>
+                <Tooltip title={formatDate(issue.updatedAt)}>
+                  <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap', fontSize: '0.8rem' }}>
+                    {formatAge(daysAgo(issue.updatedAt))} ago
+                  </Typography>
+                </Tooltip>
               </TableCell>
               <TableCell>
                 <IconButton href={issue.htmlUrl} target="_blank" rel="noopener" size="small">

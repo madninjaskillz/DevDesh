@@ -170,6 +170,7 @@ export function useOpenPRs(teamMode = false) {
           repoName: repoGroup.repo,
           repoFullName: `${repoGroup.owner}/${repoGroup.repo}`,
           createdAt: pr.created_at,
+          updatedAt: pr.updated_at,
           ageDays: daysAgo(pr.created_at),
           status,
           reviews,
@@ -224,6 +225,7 @@ export function useReviewRequests() {
             author: pr.user.login,
             authorAvatar: pr.user.avatar_url,
             createdAt: pr.created_at,
+            updatedAt: pr.updated_at,
             waitingDays: daysAgo(pr.created_at),
           })),
       )
@@ -408,6 +410,7 @@ export function useAwaitingReview() {
               author: pr.user.login,
               authorAvatar: pr.user.avatar_url,
               createdAt: pr.created_at,
+              updatedAt: pr.updated_at,
               ageDays: daysAgo(pr.created_at),
               draft: pr.draft,
               priority,

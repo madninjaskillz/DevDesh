@@ -29,7 +29,7 @@ import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import { useQueryClient } from '@tanstack/react-query';
 import type { DashboardPR, PRStatus } from '../../types/github';
-import { daysAgo, formatAge, getAgeColor } from '../../utils/dates';
+import { daysAgo, formatAge, formatDate, getAgeColor } from '../../utils/dates';
 import { colors } from '../../theme/colors';
 import { getPRBody, updatePRBody, mergePR, addLabelToIssue } from '../../api/github';
 import { useAuth } from '../../hooks/useAuth';
@@ -55,7 +55,7 @@ function getTimeInStatus(pr: DashboardPR): string {
   return formatAge(daysAgo(pr.createdAt));
 }
 
-type SortField = 'title' | 'repoName' | 'ageDays' | 'status' | 'unresolvedThreadCount';
+type SortField = 'title' | 'repoName' | 'ageDays' | 'updatedAt' | 'status' | 'unresolvedThreadCount';
 type SortDir = 'asc' | 'desc';
 
 const STATUS_CONFIG: Record<PRStatus, { label: string; color: 'default' | 'success' | 'error' | 'warning' }> = {
@@ -171,6 +171,7 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
     return [...prs].sort((a, b) => {
       const mul = sortDir === 'asc' ? 1 : -1;
       if (sortField === 'ageDays') return (a.ageDays - b.ageDays) * mul;
+      if (sortField === 'updatedAt') return a.updatedAt.localeCompare(b.updatedAt) * mul;
       if (sortField === 'unresolvedThreadCount') return (a.unresolvedThreadCount - b.unresolvedThreadCount) * mul;
       if (sortField === 'status') return a.status.localeCompare(b.status) * mul;
       if (sortField === 'repoName') return a.repoName.localeCompare(b.repoName) * mul;
@@ -249,6 +250,15 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
                 onClick={() => handleSort('ageDays')}
               >
                 Age
+              </TableSortLabel>
+            </TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={sortField === 'updatedAt'}
+                direction={sortField === 'updatedAt' ? sortDir : 'desc'}
+                onClick={() => handleSort('updatedAt')}
+              >
+                Activity
               </TableSortLabel>
             </TableCell>
             <TableCell width={48} />
@@ -466,6 +476,13 @@ export function PRsTable({ prs, isLoading, onItemClick, notes }: PRsTableProps) 
                 </TableCell>
                 <TableCell>
                   <Chip label={formatAge(pr.ageDays)} color={getAgeColor(pr.ageDays)} size="small" />
+                </TableCell>
+                <TableCell>
+                  <Tooltip title={formatDate(pr.updatedAt)}>
+                    <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap', fontSize: '0.8rem' }}>
+                      {formatAge(daysAgo(pr.updatedAt))} ago
+                    </Typography>
+                  </Tooltip>
                 </TableCell>
                 <TableCell>
                   <Box sx={{ display: 'flex', gap: 0.25 }}>

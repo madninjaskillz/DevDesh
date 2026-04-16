@@ -17,9 +17,9 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import type { DashboardReviewRequest } from '../../types/github';
-import { formatAge, getAgeColor } from '../../utils/dates';
+import { daysAgo, formatAge, formatDate, getAgeColor } from '../../utils/dates';
 
-type SortField = 'title' | 'repoName' | 'waitingDays' | 'author';
+type SortField = 'title' | 'repoName' | 'waitingDays' | 'updatedAt' | 'author';
 type SortDir = 'asc' | 'desc';
 
 interface ReviewRequestsTableProps {
@@ -44,6 +44,7 @@ export function ReviewRequestsTable({ requests, isLoading }: ReviewRequestsTable
     return [...requests].sort((a, b) => {
       const mul = sortDir === 'asc' ? 1 : -1;
       if (sortField === 'waitingDays') return (a.waitingDays - b.waitingDays) * mul;
+      if (sortField === 'updatedAt') return a.updatedAt.localeCompare(b.updatedAt) * mul;
       return String(a[sortField]).localeCompare(String(b[sortField])) * mul;
     });
   }, [requests, sortField, sortDir]);
@@ -107,6 +108,15 @@ export function ReviewRequestsTable({ requests, isLoading }: ReviewRequestsTable
                 Waiting
               </TableSortLabel>
             </TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={sortField === 'updatedAt'}
+                direction={sortField === 'updatedAt' ? sortDir : 'desc'}
+                onClick={() => handleSort('updatedAt')}
+              >
+                Activity
+              </TableSortLabel>
+            </TableCell>
             <TableCell width={48} />
           </TableRow>
         </TableHead>
@@ -150,6 +160,13 @@ export function ReviewRequestsTable({ requests, isLoading }: ReviewRequestsTable
               </TableCell>
               <TableCell>
                 <Chip label={formatAge(req.waitingDays)} color={getAgeColor(req.waitingDays)} size="small" />
+              </TableCell>
+              <TableCell>
+                <Tooltip title={formatDate(req.updatedAt)}>
+                  <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap', fontSize: '0.8rem' }}>
+                    {formatAge(daysAgo(req.updatedAt))} ago
+                  </Typography>
+                </Tooltip>
               </TableCell>
               <TableCell>
                 <IconButton href={req.htmlUrl} target="_blank" rel="noopener" size="small">

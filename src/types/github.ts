@@ -109,6 +109,7 @@ export interface DashboardPR {
   repoName: string;
   repoFullName: string;
   createdAt: string;
+  updatedAt: string;
   ageDays: number;
   status: PRStatus;
   reviews: GitHubReview[];
@@ -183,6 +184,7 @@ export interface AwaitingReviewPR {
   author: string;
   authorAvatar: string;
   createdAt: string;
+  updatedAt: string;
   ageDays: number;
   draft: boolean;
   priority: ReviewPriority;
@@ -199,5 +201,6 @@ export interface DashboardReviewRequest {
   author: string;
   authorAvatar: string;
   createdAt: string;
+  updatedAt: string;
   waitingDays: number;
 }
