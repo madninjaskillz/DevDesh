@@ -8,6 +8,7 @@ export interface RepoConfig {
 }
 
 const STORAGE_KEY = 'devdash-repos';
+const STARRED_KEY = 'devdash-starred-repos';
 
 const DEFAULT_REPOS: RepoConfig[] = [
   { owner: 'red-gate', repo: 'flyway-main' },
@@ -18,6 +19,8 @@ interface RepoConfigContextValue {
   repos: RepoConfig[];
   addRepo: (owner: string, repo: string) => Promise<void>;
   removeRepo: (owner: string, repo: string) => void;
+  starredRepos: Set<string>;
+  toggleStar: (owner: string, repo: string) => void;
   isValidating: boolean;
   error: string | null;
 }
@@ -26,6 +29,8 @@ export const RepoConfigContext = createContext<RepoConfigContextValue>({
   repos: DEFAULT_REPOS,
   addRepo: async () => {},
   removeRepo: () => {},
+  starredRepos: new Set(),
+  toggleStar: () => {},
   isValidating: false,
   error: null,
 });
@@ -47,10 +52,24 @@ function saveRepos(repos: RepoConfig[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(repos));
 }
 
+function loadStarred(): Set<string> {
+  try {
+    const raw = localStorage.getItem(STARRED_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function saveStarred(starred: Set<string>) {
+  localStorage.setItem(STARRED_KEY, JSON.stringify([...starred]));
+}
+
 export function useRepoConfigProvider(): RepoConfigContextValue {
   const { token } = useAuth();
   const queryClient = useQueryClient();
   const [repos, setRepos] = useState<RepoConfig[]>(loadRepos);
+  const [starredRepos, setStarredRepos] = useState<Set<string>>(loadStarred);
   const [isValidating, setIsValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -108,10 +127,29 @@ export function useRepoConfigProvider(): RepoConfigContextValue {
       const updated = current.filter((r) => !(r.owner === owner && r.repo === repo));
       saveRepos(updated);
       setRepos(updated);
+      // Also remove from starred if present
+      const fullName = `${owner}/${repo}`;
+      setStarredRepos((prev) => {
+        if (!prev.has(fullName)) return prev;
+        const next = new Set(prev);
+        next.delete(fullName);
+        saveStarred(next);
+        return next;
+      });
       queryClient.invalidateQueries();
     },
     [queryClient],
   );
 
-  return { repos, addRepo, removeRepo, isValidating, error };
+  const toggleStar = useCallback((owner: string, repo: string) => {
+    const fullName = `${owner}/${repo}`;
+    setStarredRepos((prev) => {
+      const next = new Set(prev);
+      if (next.has(fullName)) next.delete(fullName); else next.add(fullName);
+      saveStarred(next);
+      return next;
+    });
+  }, []);
+
+  return { repos, addRepo, removeRepo, starredRepos, toggleStar, isValidating, error };
 }

@@ -70,7 +70,7 @@ export function DashboardPage() {
   const { trendData, closedIssues, closedPRs, isLoading: trendLoading } = useTrendData(teamMode);
   const { commits: allCommits, isLoading: commitsLoading } = useRecentCommits(teamMode);
   const notes = useNotes();
-  const { repos } = useRepoConfig();
+  const { repos, starredRepos } = useRepoConfig();
 
   // Repo filter — separate disabled sets for personal and team views
   const storageKey = teamMode ? 'devdash-disabled-repos-team' : 'devdash-disabled-repos';
@@ -314,7 +314,7 @@ export function DashboardPage() {
         {quietMode && !focusMode && (
           <Chip label="Quiet" size="small" color="secondary" onDelete={toggleQuietMode} />
         )}
-        <TeamAvatars prs={prsWithMissingLinks} issues={issues} reviewRequests={reviewRequests} awaitingReview={awaitingReview} closedIssues={closedIssues} closedPRs={closedPRs} />
+        <TeamAvatars prs={prsWithMissingLinks} issues={issues} reviewRequests={reviewRequests} awaitingReview={awaitingReview} closedIssues={closedIssues} closedPRs={closedPRs} starredRepos={starredRepos} />
         <ExportButton issues={issues} prs={prsWithMissingLinks} reviewRequests={reviewRequests} actionItems={actionItems} trendData={trendData} />
       </Box>
 

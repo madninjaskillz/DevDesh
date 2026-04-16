@@ -28,6 +28,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import Link from '@mui/material/Link';
@@ -56,7 +58,7 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ open, onClose, onOpen }: SettingsDialogProps) {
-  const { repos, addRepo, removeRepo, isValidating, error } = useRepoConfig();
+  const { repos, addRepo, removeRepo, starredRepos, toggleStar, isValidating, error } = useRepoConfig();
   const { settings, updateSettings } = useSettings();
   const { mode, toggleTheme } = useThemeMode();
   const { token, login, isLoading: authLoading, error: authError } = useAuth();
@@ -260,26 +262,45 @@ export function SettingsDialog({ open, onClose, onOpen }: SettingsDialogProps) {
             </Typography>
 
             <List dense>
-              {repos.map((r) => (
-                <ListItem
-                  key={`${r.owner}/${r.repo}`}
-                  secondaryAction={
-                    <IconButton
-                      edge="end"
-                      onClick={() => removeRepo(r.owner, r.repo)}
-                      disabled={repos.length <= 1}
-                      size="small"
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  }
-                >
-                  <ListItemText
-                    primary={`${r.owner}/${r.repo}`}
-                    primaryTypographyProps={{ variant: 'body2', fontFamily: '"Roboto Mono", monospace' }}
-                  />
-                </ListItem>
-              ))}
+              {repos.map((r) => {
+                const fullName = `${r.owner}/${r.repo}`;
+                const isStarred = starredRepos.has(fullName);
+                return (
+                  <ListItem
+                    key={fullName}
+                    secondaryAction={
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        <Tooltip title={isStarred ? 'Team-owned repo (click to unstar)' : 'Mark as team-owned repo'}>
+                          <IconButton
+                            edge="end"
+                            onClick={() => toggleStar(r.owner, r.repo)}
+                            size="small"
+                          >
+                            {isStarred
+                              ? <StarIcon fontSize="small" sx={{ color: 'warning.main' }} />
+                              : <StarBorderIcon fontSize="small" />}
+                          </IconButton>
+                        </Tooltip>
+                        <IconButton
+                          edge="end"
+                          onClick={() => removeRepo(r.owner, r.repo)}
+                          disabled={repos.length <= 1}
+                          size="small"
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    }
+                  >
+                    <ListItemText
+                      primary={fullName}
+                      secondary={isStarred ? 'Team-owned' : undefined}
+                      primaryTypographyProps={{ variant: 'body2', fontFamily: '"Roboto Mono", monospace' }}
+                      secondaryTypographyProps={{ variant: 'caption', color: 'warning.main' }}
+                    />
+                  </ListItem>
+                );
+              })}
             </List>
 
             {error && (

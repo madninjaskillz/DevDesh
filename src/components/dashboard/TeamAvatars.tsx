@@ -40,6 +40,8 @@ interface TeamAvatarsProps {
   awaitingReview: AwaitingReviewPR[];
   closedIssues: GitHubIssue[];
   closedPRs: GitHubPR[];
+  /** When set, only contributors from starred repos appear in the list. */
+  starredRepos?: Set<string>;
 }
 
 interface ClosedItem {
@@ -55,9 +57,13 @@ function daysAgoFromDate(dateStr: string): number {
   return Math.max(0, Math.round((Date.now() - new Date(dateStr).getTime()) / 86400000));
 }
 
-export function TeamAvatars({ prs, issues, reviewRequests, awaitingReview, closedIssues, closedPRs }: TeamAvatarsProps) {
+export function TeamAvatars({ prs, issues, reviewRequests, awaitingReview, closedIssues, closedPRs, starredRepos }: TeamAvatarsProps) {
   const [listOpen, setListOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+
+  // When starred repos are configured, only derive contributors from those repos.
+  // Activity counts still use all repos so member detail dialogs show full context.
+  const hasStarFilter = starredRepos && starredRepos.size > 0;
 
   const members = useMemo(() => {
     const map = new Map<string, { avatar_url: string; dates: string[] }>();
@@ -69,22 +75,45 @@ export function TeamAvatars({ prs, issues, reviewRequests, awaitingReview, close
       if (date) entry.dates.push(date);
     };
 
+    // Helper: check if a repo fullName passes the star filter
+    const inScope = (repoFullName: string) => !hasStarFilter || starredRepos!.has(repoFullName);
+
+    // Extract repo fullName from a GitHub html_url like "https://github.com/owner/repo/..."
+    const repoFromUrl = (url: string) => {
+      const parts = url.split('/');
+      return parts.length >= 5 ? `${parts[3]}/${parts[4]}` : '';
+    };
+
     for (const pr of prs) {
+      if (!inScope(pr.repoFullName)) continue;
       touch(pr.author, pr.authorAvatar, pr.createdAt);
       for (const r of pr.reviewers) touch(r.login, r.avatar_url);
       for (const r of pr.reviews) touch(r.user.login, r.user.avatar_url, r.submitted_at);
     }
     for (const issue of issues) {
+      if (!inScope(issue.repoFullName)) continue;
       for (const a of issue.assignees) touch(a.login, a.avatar_url, issue.updatedAt);
     }
-    for (const req of reviewRequests) touch(req.author, req.authorAvatar, req.createdAt);
-    for (const pr of awaitingReview) touch(pr.author, pr.authorAvatar, pr.createdAt);
-    for (const pr of closedPRs) touch(pr.user.login, pr.user.avatar_url, pr.merged_at ?? pr.closed_at ?? pr.updated_at);
+    for (const req of reviewRequests) {
+      if (!inScope(req.repoFullName)) continue;
+      touch(req.author, req.authorAvatar, req.createdAt);
+    }
+    for (const pr of awaitingReview) {
+      if (!inScope(pr.repoFullName)) continue;
+      touch(pr.author, pr.authorAvatar, pr.createdAt);
+    }
+    for (const pr of closedPRs) {
+      if (!inScope(repoFromUrl(pr.html_url))) continue;
+      touch(pr.user.login, pr.user.avatar_url, pr.merged_at ?? pr.closed_at ?? pr.updated_at);
+    }
     for (const issue of closedIssues) {
+      const parts = issue.repository_url.split('/');
+      const repo = parts.length >= 2 ? `${parts[parts.length - 2]}/${parts[parts.length - 1]}` : '';
+      if (!inScope(repo)) continue;
       for (const a of issue.assignees ?? []) touch(a.login, a.avatar_url, issue.closed_at ?? issue.updated_at);
     }
 
-    // Build member objects with activity counts
+    // Build member objects with activity counts (across ALL repos for full context)
     const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
 
     return [...map.entries()]
@@ -99,7 +128,7 @@ export function TeamAvatars({ prs, issues, reviewRequests, awaitingReview, close
         return { login, avatar_url, lastActive, openPRs, openIssues, closedPRs: closedPRCount, closedIssues: closedIssueCount, recent30d } as TeamMember;
       })
       .sort((a, b) => b.recent30d - a.recent30d || b.lastActive.localeCompare(a.lastActive));
-  }, [prs, issues, reviewRequests, awaitingReview, closedIssues, closedPRs]);
+  }, [prs, issues, reviewRequests, awaitingReview, closedIssues, closedPRs, hasStarFilter, starredRepos]);
 
   const activity = useMemo(() => {
     if (!selectedMember) return null;
