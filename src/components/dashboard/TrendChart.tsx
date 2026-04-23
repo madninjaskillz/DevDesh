@@ -186,7 +186,7 @@ export function TrendChart({ data, isLoading, goals }: TrendChartProps) {
       <Grid size={{ xs: 12, md: 6 }}>
         <Paper sx={{ p: 2 }}>
           <Typography variant="subtitle2" gutterBottom>
-            Average Age Over Time (days)
+            Average Time On Plate (days)
           </Typography>
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={data}>
@@ -203,7 +203,7 @@ export function TrendChart({ data, isLoading, goals }: TrendChartProps) {
               <Line
                 type="monotone"
                 dataKey="avgIssueAgeDays"
-                name="Avg Issue Age"
+                name="Avg Time Assigned"
                 stroke={colors.orange[5]}
                 strokeWidth={2}
                 dot={{ r: 3 }}
@@ -225,7 +225,7 @@ export function TrendChart({ data, isLoading, goals }: TrendChartProps) {
       <Grid size={{ xs: 12, md: 6 }}>
         <Paper sx={{ p: 2 }}>
           <Typography variant="subtitle2" gutterBottom>
-            Max Age Over Time (days)
+            Max Time On Plate (days)
           </Typography>
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={data}>
@@ -242,7 +242,7 @@ export function TrendChart({ data, isLoading, goals }: TrendChartProps) {
               <Line
                 type="monotone"
                 dataKey="maxIssueAgeDays"
-                name="Max Issue Age"
+                name="Max Time Assigned"
                 stroke={colors.orange[5]}
                 strokeWidth={2}
                 dot={{ r: 3 }}

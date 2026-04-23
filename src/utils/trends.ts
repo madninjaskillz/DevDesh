@@ -12,6 +12,7 @@ interface HistoricalItem {
 /** Pre-parsed item with Date objects cached for reuse across 91 loop iterations. */
 interface ParsedItem {
   created: Date;
+  createdMs: number;
   closed: Date | null;
   merged: Date | null;
   /** Effective start for age/open calculations: assigned_at if present, else created_at. */
@@ -25,7 +26,7 @@ function parseItems(items: HistoricalItem[]): ParsedItem[] {
     const closed = item.closed_at ? new Date(item.closed_at) : null;
     const merged = item.merged_at ? new Date(item.merged_at) : null;
     const start = item.assigned_at ? new Date(item.assigned_at) : created;
-    return { created, closed, merged, start, startMs: start.getTime() };
+    return { created, createdMs: created.getTime(), closed, merged, start, startMs: start.getTime() };
   });
 }
 
@@ -56,8 +57,14 @@ export function computeTrendData(
     const openIssues = parsedIssues.filter((item) => isOpenOnDate(item, endOfDayMs));
     const openPRs = parsedPRs.filter((item) => isOpenOnDate(item, endOfDayMs));
 
-    const issueAges = openIssues.map((item) => Math.max(0, differenceInDays(endOfDay, item.start)));
-    const prAges = openPRs.map((item) => Math.max(0, differenceInDays(endOfDay, item.start)));
+    // For age/"time assigned" metrics, only count items that were already on the user's plate
+    // by this date — i.e. assigned at or before endOfDay. Items assigned later contribute
+    // nothing to the historical snapshot (including them with age 0 would pull the average down).
+    const assignedIssues = openIssues.filter((item) => item.startMs <= endOfDayMs);
+    const assignedPRs = openPRs.filter((item) => item.startMs <= endOfDayMs);
+
+    const issueAges = assignedIssues.map((item) => Math.max(0, differenceInDays(endOfDay, item.start)));
+    const prAges = assignedPRs.map((item) => Math.max(0, differenceInDays(endOfDay, item.start)));
 
     const avgIssueAgeDays = issueAges.length > 0
       ? Math.round(issueAges.reduce((sum, age) => sum + age, 0) / issueAges.length)
