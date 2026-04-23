@@ -5,6 +5,8 @@ interface HistoricalItem {
   created_at: string;
   closed_at: string | null;
   merged_at?: string | null;
+  /** For issues: when the current user was first assigned. Falls back to created_at if absent. */
+  assigned_at?: string | null;
 }
 
 /** Pre-parsed item with Date objects cached for reuse across 91 loop iterations. */
@@ -12,7 +14,9 @@ interface ParsedItem {
   created: Date;
   closed: Date | null;
   merged: Date | null;
-  createdMs: number;
+  /** Effective start for age/open calculations: assigned_at if present, else created_at. */
+  start: Date;
+  startMs: number;
 }
 
 function parseItems(items: HistoricalItem[]): ParsedItem[] {
@@ -20,7 +24,8 @@ function parseItems(items: HistoricalItem[]): ParsedItem[] {
     const created = new Date(item.created_at);
     const closed = item.closed_at ? new Date(item.closed_at) : null;
     const merged = item.merged_at ? new Date(item.merged_at) : null;
-    return { created, closed, merged, createdMs: created.getTime() };
+    const start = item.assigned_at ? new Date(item.assigned_at) : created;
+    return { created, closed, merged, start, startMs: start.getTime() };
   });
 }
 
@@ -51,8 +56,8 @@ export function computeTrendData(
     const openIssues = parsedIssues.filter((item) => isOpenOnDate(item, endOfDayMs));
     const openPRs = parsedPRs.filter((item) => isOpenOnDate(item, endOfDayMs));
 
-    const issueAges = openIssues.map((item) => Math.max(0, differenceInDays(endOfDay, item.created)));
-    const prAges = openPRs.map((item) => Math.max(0, differenceInDays(endOfDay, item.created)));
+    const issueAges = openIssues.map((item) => Math.max(0, differenceInDays(endOfDay, item.start)));
+    const prAges = openPRs.map((item) => Math.max(0, differenceInDays(endOfDay, item.start)));
 
     const avgIssueAgeDays = issueAges.length > 0
       ? Math.round(issueAges.reduce((sum, age) => sum + age, 0) / issueAges.length)

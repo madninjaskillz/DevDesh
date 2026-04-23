@@ -8,6 +8,7 @@ import {
   getRecentlyClosedPRs,
   getBatchedPREnrichment,
   getIssueLinkedPRs,
+  getIssueAssignmentDates,
   getIssueProjectStatuses,
   getUserTeamSlugs,
   getRepoEvents,
@@ -63,6 +64,15 @@ export function useAssignedIssues(teamMode = false) {
     })),
   });
 
+  const assignmentDateQueries = useQueries({
+    queries: issuesByRepo.map(({ owner, repo, issues: issueNums }) => ({
+      queryKey: ['issue-assignment-date', owner, repo, user?.login, issueNums.join(',')],
+      queryFn: () => getIssueAssignmentDates(owner, repo, issueNums, user!.login, token!),
+      enabled: !!token && !!user && issueNums.length > 0,
+      staleTime: STALE_TIME,
+    })),
+  });
+
   const isLoading = queries.some((q) => q.isLoading) || linkedPRQueries.some((q) => q.isLoading);
   const isError = queries.some((q) => q.isError);
   const error = queries.find((q) => q.error)?.error ?? null;
@@ -72,23 +82,27 @@ export function useAssignedIssues(teamMode = false) {
       .flatMap((q, idx) => {
         const linkedPRMap = linkedPRQueries[idx]?.data as Record<number, import('../types/github').LinkedPR[]> | undefined;
         const statusMap = projectStatusQueries[idx]?.data as Record<number, { name: string; color: string } | null> | undefined;
-        return (q.data ?? []).map((issue) => ({
-          number: issue.number,
-          title: issue.title,
-          htmlUrl: issue.html_url,
-          labels: issue.labels,
-          assignedDate: issue.created_at,
-          ageDays: daysAgo(issue.created_at),
-          repoName: repos[idx].repo,
-          repoFullName: `${repos[idx].owner}/${repos[idx].repo}`,
-          updatedAt: issue.updated_at,
-          linkedPRs: recordGet(linkedPRMap, issue.number) ?? [],
-          projectStatus: recordGet(statusMap, issue.number) ?? null,
-          assignees: issue.assignees ?? [],
-        }));
+        const assignmentDateMap = assignmentDateQueries[idx]?.data as Record<number, string | null> | undefined;
+        return (q.data ?? []).map((issue) => {
+          const assignedDate = recordGet(assignmentDateMap, issue.number) ?? issue.created_at;
+          return {
+            number: issue.number,
+            title: issue.title,
+            htmlUrl: issue.html_url,
+            labels: issue.labels,
+            assignedDate,
+            ageDays: daysAgo(assignedDate),
+            repoName: repos[idx].repo,
+            repoFullName: `${repos[idx].owner}/${repos[idx].repo}`,
+            updatedAt: issue.updated_at,
+            linkedPRs: recordGet(linkedPRMap, issue.number) ?? [],
+            projectStatus: recordGet(statusMap, issue.number) ?? null,
+            assignees: issue.assignees ?? [],
+          };
+        });
       })
       .sort((a, b) => b.ageDays - a.ageDays);
-  }, [queries.map((q) => q.dataUpdatedAt).join(','), linkedPRQueries.map((q) => q.dataUpdatedAt).join(','), projectStatusQueries.map((q) => q.dataUpdatedAt).join(','), repos]);
+  }, [queries.map((q) => q.dataUpdatedAt).join(','), linkedPRQueries.map((q) => q.dataUpdatedAt).join(','), projectStatusQueries.map((q) => q.dataUpdatedAt).join(','), assignmentDateQueries.map((q) => q.dataUpdatedAt).join(','), repos]);
 
   return { issues, isLoading, isError, error };
 }
@@ -304,21 +318,51 @@ export function useTrendData(teamMode = false) {
     })),
   });
 
+  // Collect per-repo issue numbers so trend-age calculations can use assignment date, not creation date.
+  // In teamMode there is no single user to measure assignment-for, so we skip this fetch and fall back to created_at.
+  const trendIssueNumbersByRepo = useMemo(() => {
+    return repos.map((_, idx) => {
+      const open = openIssueQueries[idx]?.data ?? [];
+      const closed = closedIssueQueries[idx]?.data ?? [];
+      const nums = Array.from(new Set([...open, ...closed].map((i) => i.number)));
+      nums.sort((a, b) => a - b);
+      return nums;
+    });
+  }, [openIssueQueries.map((q) => q.dataUpdatedAt).join(','), closedIssueQueries.map((q) => q.dataUpdatedAt).join(','), repos]);
+
+  const assignmentDateQueries = useQueries({
+    queries: repos.map(({ owner, repo }, idx) => {
+      const nums = trendIssueNumbersByRepo[idx] ?? [];
+      return {
+        queryKey: ['trend-issue-assignment-date', owner, repo, user?.login, nums.join(',')],
+        queryFn: () => getIssueAssignmentDates(owner, repo, nums, user!.login, token!),
+        enabled: !!token && !!user && !teamMode && nums.length > 0,
+        staleTime: STALE_TIME,
+      };
+    }),
+  });
+
   const isLoading = [
     ...openIssueQueries,
     ...closedIssueQueries,
     ...openPRQueries,
     ...closedPRQueries,
     ...allClosedIssueQueries,
+    ...assignmentDateQueries,
   ].some((q) => q.isLoading);
 
   const { trendData, closedIssues, closedPRs } = useMemo(() => {
     if (isLoading) return { trendData: [] as TrendDataPoint[], closedIssues: [] as GitHubIssue[], closedPRs: [] as GitHubPR[] };
 
-    const allIssues = [
-      ...openIssueQueries.flatMap((q) => q.data ?? []),
-      ...closedIssueQueries.flatMap((q) => q.data ?? []),
-    ];
+    const allIssues = repos.flatMap((_, idx) => {
+      const assignmentMap = assignmentDateQueries[idx]?.data as Record<number, string | null> | undefined;
+      const open = openIssueQueries[idx]?.data ?? [];
+      const closed = closedIssueQueries[idx]?.data ?? [];
+      return [...open, ...closed].map((i) => ({
+        ...i,
+        assigned_at: recordGet(assignmentMap, i.number) ?? null,
+      }));
+    });
 
     const allPRs = [
       ...openPRQueries.flatMap((q) => q.data ?? []),
@@ -329,7 +373,7 @@ export function useTrendData(teamMode = false) {
     const uniquePRs = dedup(allPRs, (p) => `${p.html_url}`);
 
     const td = computeTrendData(
-      uniqueIssues.map((i) => ({ created_at: i.created_at, closed_at: i.closed_at })),
+      uniqueIssues.map((i) => ({ created_at: i.created_at, closed_at: i.closed_at, assigned_at: i.assigned_at })),
       uniquePRs.map((p) => ({ created_at: p.created_at, closed_at: p.closed_at ?? p.merged_at, merged_at: p.merged_at })),
       90,
     );
@@ -351,6 +395,7 @@ export function useTrendData(teamMode = false) {
     openPRQueries.map((q) => q.dataUpdatedAt).join(','),
     closedPRQueries.map((q) => q.dataUpdatedAt).join(','),
     allClosedIssueQueries.map((q) => q.dataUpdatedAt).join(','),
+    assignmentDateQueries.map((q) => q.dataUpdatedAt).join(','),
     user?.login,
     teamMode,
   ]);

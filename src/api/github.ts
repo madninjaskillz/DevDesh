@@ -512,6 +512,80 @@ export async function getIssueLinkedPRs(
   return result;
 }
 
+export async function getIssueAssignmentDates(
+  owner: string,
+  repo: string,
+  issueNumbers: number[],
+  username: string,
+  token: string,
+): Promise<Record<number, string | null>> {
+  if (issueNumbers.length === 0) return {};
+
+  const issueFragments = issueNumbers.map(
+    (num, i) => `issue${i}: issue(number: ${num}) {
+      number
+      timelineItems(itemTypes: [ASSIGNED_EVENT], last: 100) {
+        nodes {
+          ... on AssignedEvent {
+            createdAt
+            assignee {
+              ... on User { login }
+            }
+          }
+        }
+      }
+    }`,
+  );
+
+  const query = `query($owner: String!, $repo: String!) {
+    repository(owner: $owner, name: $repo) {
+      ${issueFragments.join('\n')}
+    }
+  }`;
+
+  const res = await safeFetch(GRAPHQL_URL, {
+    method: 'POST',
+    headers: headers(token),
+    body: JSON.stringify({ query, variables: { owner, repo } }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new GitHubApiError(res.status, body, res.headers);
+  }
+
+  const json = await res.json();
+  const repoData = json.data?.repository;
+  if (!repoData) return {};
+
+  const result: Record<number, string | null> = {};
+
+  issueNumbers.forEach((num, i) => {
+    const issueData = repoData[`issue${i}`];
+    if (!issueData) {
+      result[num] = null;
+      return;
+    }
+
+    // Use the most recent assignment to this user — if they were unassigned
+    // and later reassigned, the current "age on my plate" starts at the re-assignment.
+    // Case-insensitive login match to be safe against casing mismatches.
+    const loginLower = username.toLowerCase();
+    let latestAssignedAt: string | null = null;
+    for (const node of issueData.timelineItems?.nodes ?? []) {
+      const nodeLogin: string | undefined = node?.assignee?.login;
+      if (!nodeLogin || !node.createdAt) continue;
+      if (nodeLogin.toLowerCase() !== loginLower) continue;
+      if (latestAssignedAt === null || node.createdAt > latestAssignedAt) {
+        latestAssignedAt = node.createdAt;
+      }
+    }
+    result[num] = latestAssignedAt;
+  });
+
+  return result;
+}
+
 export async function getIssueProjectStatuses(
   owner: string,
   repo: string,
