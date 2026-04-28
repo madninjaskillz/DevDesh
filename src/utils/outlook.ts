@@ -11,6 +11,8 @@ export interface OutlookMeeting {
   location?: string;
   organizer?: string;
   isAllDay?: boolean;
+  /** 0=None, 1=Organized, 2=Tentative, 3=Accepted, 4=Declined, 5=NotResponded */
+  responseStatus?: number;
   url?: string;
 }
 
@@ -159,8 +161,9 @@ $items = $cal.Items
 $items.IncludeRecurrences = $true
 $items.Sort('[Start]')
 
-$start = (Get-Date).Date
-$end = $start.AddDays(2)
+# Window: 7 days back (for retros) through 2 days forward (for "what next").
+$start = (Get-Date).Date.AddDays(-7)
+$end = (Get-Date).Date.AddDays(2)
 $fmt = 'MM/dd/yyyy HH:mm'
 $filter = "[Start] <= '" + $end.ToString($fmt) + "' AND [End] >= '" + $start.ToString($fmt) + "'"
 $filtered = $items.Restrict($filter)
@@ -172,15 +175,19 @@ foreach ($item in $filtered) {
         if ($item.Body) {
             $bodySnippet = $item.Body.Substring(0, [Math]::Min(500, $item.Body.Length))
         }
+        # ResponseStatus: 0=None, 1=Organized, 2=Tentative, 3=Accepted, 4=Declined, 5=NotResponded
+        $response = 0
+        try { $response = [int]$item.ResponseStatus } catch {}
         $result += [PSCustomObject]@{
-            id        = $item.EntryID
-            subject   = $item.Subject
-            start     = $item.Start.ToString('o')
-            end       = $item.End.ToString('o')
-            location  = $item.Location
-            organizer = $item.Organizer
-            isAllDay  = [bool]$item.AllDayEvent
-            body      = $bodySnippet
+            id             = $item.EntryID
+            subject        = $item.Subject
+            start          = $item.Start.ToString('o')
+            end            = $item.End.ToString('o')
+            location       = $item.Location
+            organizer      = $item.Organizer
+            isAllDay       = [bool]$item.AllDayEvent
+            responseStatus = $response
+            body           = $bodySnippet
         }
     } catch {
         # Skip items we can't read (corrupted recurrences etc.)

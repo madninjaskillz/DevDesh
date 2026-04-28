@@ -323,7 +323,7 @@ export function DashboardPage() {
           <Chip label="Quiet" size="small" color="secondary" onDelete={toggleQuietMode} />
         )}
         <TeamAvatars prs={prsWithMissingLinks} issues={issues} reviewRequests={reviewRequests} awaitingReview={awaitingReview} closedIssues={closedIssues} closedPRs={closedPRs} starredRepos={starredRepos} />
-        <ExportButton issues={issues} prs={prsWithMissingLinks} reviewRequests={reviewRequests} actionItems={actionItems} trendData={trendData} />
+        <ExportButton issues={issues} prs={prsWithMissingLinks} reviewRequests={reviewRequests} actionItems={actionItems} trendData={trendData} meetings={outlook.meetings} />
       </Box>
 
       {/* Repo filter */}
