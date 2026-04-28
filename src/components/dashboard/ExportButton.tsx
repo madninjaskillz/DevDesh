@@ -7,9 +7,14 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckIcon from '@mui/icons-material/Check';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import CodeIcon from '@mui/icons-material/Code';
+import ReactMarkdown, { type Components } from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import type { DashboardIssue, DashboardPR, DashboardReviewRequest, TrendDataPoint } from '../../types/github';
 import type { ActionItem } from '../../utils/actions';
 import type { OutlookMeeting } from '../../utils/outlook';
@@ -188,6 +193,76 @@ function buildRetro(
   return lines.join('\n');
 }
 
+// Promote whole-line **...** patterns to proper markdown headings so the
+// rendered view has visual hierarchy. The clipboard copy still uses the
+// original raw text — this transformation is rendering-only.
+function elevateHeadings(raw: string): string {
+  return raw
+    .split('\n')
+    .map((line) => {
+      const m = /^\*\*(.+?)\*\*$/.exec(line.trim());
+      if (!m) return line;
+      const t = m[1].trim();
+      if (t.endsWith(':')) return `### ${t.slice(0, -1).trim()}`;
+      return `## ${t}`;
+    })
+    .join('\n');
+}
+
+const mdComponents: Components = {
+  h2: ({ children }) => (
+    <>
+      <Typography variant="h6" sx={{ mt: 0, mb: 1, fontWeight: 700, letterSpacing: '-0.01em' }}>
+        {children}
+      </Typography>
+      <Divider sx={{ mb: 2 }} />
+    </>
+  ),
+  h3: ({ children }) => (
+    <Typography
+      variant="overline"
+      sx={{
+        display: 'block',
+        mt: 2,
+        mb: 0.5,
+        fontWeight: 700,
+        color: 'primary.main',
+        letterSpacing: '0.05em',
+        lineHeight: 1.4,
+      }}
+    >
+      {children}
+    </Typography>
+  ),
+  p: ({ children }) => (
+    <Typography variant="body2" sx={{ my: 0.5, lineHeight: 1.6 }}>{children}</Typography>
+  ),
+  ul: ({ children }) => (
+    <Box component="ul" sx={{ m: 0, mb: 1.5, pl: 2.5, '& li': { mb: 0.25 } }}>{children}</Box>
+  ),
+  li: ({ children }) => (
+    <Typography component="li" variant="body2" sx={{ lineHeight: 1.6 }}>{children}</Typography>
+  ),
+  strong: ({ children }) => (
+    <Box component="strong" sx={{ fontWeight: 600 }}>{children}</Box>
+  ),
+  code: ({ children }) => (
+    <Box
+      component="code"
+      sx={{
+        fontFamily: '"Roboto Mono", monospace',
+        fontSize: '0.85em',
+        bgcolor: 'action.hover',
+        px: 0.5,
+        py: 0.1,
+        borderRadius: 0.5,
+      }}
+    >
+      {children}
+    </Box>
+  ),
+};
+
 interface OutputDialogProps {
   open: boolean;
   onClose: () => void;
@@ -197,6 +272,7 @@ interface OutputDialogProps {
 
 function OutputDialog({ open, onClose, title, text }: OutputDialogProps) {
   const [copied, setCopied] = useState(false);
+  const [showRaw, setShowRaw] = useState(false);
 
   const handleCopy = () => {
     void navigator.clipboard.writeText(text);
@@ -204,39 +280,66 @@ function OutputDialog({ open, onClose, title, text }: OutputDialogProps) {
     setTimeout(() => setCopied(false), 1500);
   };
 
+  const enhanced = useMemo(() => elevateHeadings(text), [text]);
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, pr: 6 }}>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 0.5, pr: 1 }}>
         {title}
         <Box sx={{ flex: 1 }} />
+        <Tooltip title={showRaw ? 'Show formatted' : 'Show raw markdown'}>
+          <IconButton size="small" onClick={() => setShowRaw((v) => !v)}>
+            <CodeIcon fontSize="small" color={showRaw ? 'primary' : 'inherit'} />
+          </IconButton>
+        </Tooltip>
         <Tooltip title={copied ? 'Copied' : 'Copy to clipboard'}>
           <IconButton size="small" onClick={handleCopy}>
             {copied ? <CheckIcon fontSize="small" color="success" /> : <ContentCopyIcon fontSize="small" />}
           </IconButton>
         </Tooltip>
       </DialogTitle>
-      <DialogContent dividers>
-        <Box
-          component="pre"
-          sx={{
-            m: 0,
-            p: 1.5,
-            fontFamily: '"Roboto Mono", monospace',
-            fontSize: '0.8rem',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-            bgcolor: 'background.default',
-            borderRadius: 1,
-            maxHeight: 480,
-            overflow: 'auto',
-          }}
-        >
-          {text}
-        </Box>
+      <DialogContent dividers sx={{ bgcolor: 'background.default' }}>
+        {showRaw ? (
+          <Box
+            component="pre"
+            sx={{
+              m: 0,
+              p: 1.5,
+              fontFamily: '"Roboto Mono", monospace',
+              fontSize: '0.8rem',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              bgcolor: 'background.paper',
+              borderRadius: 1,
+              border: '1px solid',
+              borderColor: 'divider',
+              maxHeight: 480,
+              overflow: 'auto',
+            }}
+          >
+            {text}
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              p: 2,
+              bgcolor: 'background.paper',
+              borderRadius: 1,
+              border: '1px solid',
+              borderColor: 'divider',
+              maxHeight: 520,
+              overflow: 'auto',
+            }}
+          >
+            <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+              {enhanced}
+            </ReactMarkdown>
+          </Box>
+        )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleCopy} startIcon={copied ? <CheckIcon /> : <ContentCopyIcon />}>
-          {copied ? 'Copied' : 'Copy'}
+        <Button onClick={handleCopy} startIcon={copied ? <CheckIcon /> : <ContentCopyIcon />} variant="contained">
+          {copied ? 'Copied' : 'Copy markdown'}
         </Button>
         <Button onClick={onClose}>Close</Button>
       </DialogActions>
