@@ -47,6 +47,17 @@ import CommitIcon from '@mui/icons-material/Commit';
 import { useRepoConfig } from '../../hooks/useRepoConfig';
 import { useSettings, DEFAULT_SECTION_ORDER } from '../../hooks/useSettings';
 import { useAuth } from '../../hooks/useAuth';
+import {
+  downloadScript,
+  pickMeetingsFile,
+  saveFileHandle,
+  loadFileHandle,
+  clearFileHandle,
+  ensureReadPermission,
+  readMeetingsFile,
+  isFileSystemAccessSupported,
+  type MeetingsFile,
+} from '../../utils/outlook';
 import { THEMES, THEME_NAMES } from '../../theme/themes';
 import { BACKGROUNDS, BG_CATEGORIES, THEME_DEFAULT_BACKGROUND } from '../../theme/backgrounds';
 import { useThemeMode } from '../../theme/ThemeProvider';
@@ -139,6 +150,7 @@ export function SettingsDialog({ open, onClose, onOpen }: SettingsDialogProps) {
         <Tab label="Visual" />
         <Tab label="Layout" />
         <Tab label="GitHub" />
+        <Tab label="Outlook" />
         <Tab label="Thresholds" />
       </Tabs>
       <DialogContent sx={{ pt: 2.5, minHeight: 420 }}>
@@ -399,8 +411,13 @@ export function SettingsDialog({ open, onClose, onOpen }: SettingsDialogProps) {
           </>
         )}
 
-        {/* === THRESHOLDS TAB === */}
+        {/* === OUTLOOK TAB === */}
         {tab === 3 && (
+          <OutlookSettings />
+        )}
+
+        {/* === THRESHOLDS TAB === */}
+        {tab === 4 && (
           <>
             <Typography variant="subtitle2" sx={{ mb: 2 }}>
               Stale Thresholds
@@ -1004,6 +1021,191 @@ function SectionOrderEditor() {
           );
         })}
       </List>
+    </>
+  );
+}
+
+function OutlookSettings() {
+  const { settings, updateSettings } = useSettings();
+  const [handleName, setHandleName] = useState<string | null>(null);
+  const [lastFile, setLastFile] = useState<MeetingsFile | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
+  const [scheduleCmdCopied, setScheduleCmdCopied] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const supported = isFileSystemAccessSupported();
+
+  const refreshStatus = useCallback(async () => {
+    setStatusError(null);
+    try {
+      const handle = await loadFileHandle();
+      if (!handle) { setHandleName(null); setLastFile(null); return; }
+      setHandleName(handle.name);
+      const ok = await ensureReadPermission(handle);
+      if (!ok) { setStatusError('Permission to read the file was denied.'); return; }
+      const data = await readMeetingsFile(handle);
+      setLastFile(data);
+    } catch (err) {
+      setStatusError(err instanceof Error ? err.message : String(err));
+    }
+  }, []);
+
+  useEffect(() => { void refreshStatus(); }, [refreshStatus]);
+
+  const handlePickFile = async () => {
+    setBusy(true);
+    setStatusError(null);
+    try {
+      const handle = await pickMeetingsFile();
+      if (!handle) return;
+      const ok = await ensureReadPermission(handle);
+      if (!ok) { setStatusError('Permission denied.'); return; }
+      await saveFileHandle(handle);
+      setHandleName(handle.name);
+      const data = await readMeetingsFile(handle);
+      setLastFile(data);
+      if (!settings.outlookEnabled) updateSettings({ outlookEnabled: true });
+    } catch (err) {
+      setStatusError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    await clearFileHandle();
+    setHandleName(null);
+    setLastFile(null);
+    updateSettings({ outlookEnabled: false });
+  };
+
+  const scheduleCmd = `schtasks /create /tn "DevDesh Outlook Sync" /tr "powershell -WindowStyle Hidden -ExecutionPolicy Bypass -File \\"%USERPROFILE%\\Documents\\devdesh-outlook.ps1\\"" /sc minute /mo 5 /f`;
+
+  const generatedAge = lastFile ? Math.round((Date.now() - Date.parse(lastFile.generatedAt)) / 60000) : null;
+
+  return (
+    <>
+      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+        Outlook Calendar Integration
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        Optional. Pulls today's meetings from your local Outlook desktop client and surfaces them in
+        "What should I do next?". Nothing leaves your machine — a small PowerShell script writes a
+        JSON file that this dashboard reads.
+      </Typography>
+
+      {!supported && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          This feature needs the File System Access API. Open the dashboard in Edge or Chrome to
+          enable it.
+        </Alert>
+      )}
+
+      {/* Status panel */}
+      <Box sx={{ p: 1.5, mb: 2.5, border: '1px solid', borderColor: 'divider', borderRadius: 1.5, bgcolor: 'action.hover' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+          {handleName && lastFile ? (
+            <CheckCircleIcon sx={{ fontSize: 18, color: 'success.main' }} />
+          ) : (
+            <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: 'text.disabled', ml: 0.5, mr: 0.5 }} />
+          )}
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            {handleName && lastFile ? 'Connected' : 'Not configured'}
+          </Typography>
+        </Box>
+        {handleName && (
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+            File: <code>{handleName}</code>
+          </Typography>
+        )}
+        {lastFile && (
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+            {lastFile.meetings.length} meeting{lastFile.meetings.length === 1 ? '' : 's'} · last
+            written {generatedAge !== null && generatedAge < 1 ? 'just now' : `${generatedAge}m ago`}
+          </Typography>
+        )}
+        {statusError && (
+          <Alert severity="error" sx={{ mt: 1 }}>{statusError}</Alert>
+        )}
+        {handleName && (
+          <Box sx={{ mt: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  size="small"
+                  checked={settings.outlookEnabled}
+                  onChange={() => updateSettings({ outlookEnabled: !settings.outlookEnabled })}
+                />
+              }
+              label="Show meetings in action list"
+              slotProps={{ typography: { variant: 'body2', fontSize: '0.85rem' } }}
+            />
+            <Box sx={{ flex: 1 }} />
+            <Button size="small" onClick={() => void refreshStatus()} disabled={busy}>Refresh</Button>
+            <Button size="small" color="error" onClick={() => void handleDisconnect()} disabled={busy}>
+              Disconnect
+            </Button>
+          </Box>
+        )}
+      </Box>
+
+      <Typography variant="subtitle2" sx={{ mb: 1 }}>Step 1 — Download the script</Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+        Save it somewhere stable, e.g. <code>%USERPROFILE%\Documents\devdesh-outlook.ps1</code>.
+      </Typography>
+      <Button variant="outlined" size="small" onClick={downloadScript} sx={{ mb: 2.5 }}>
+        Download devdesh-outlook.ps1
+      </Button>
+
+      <Typography variant="subtitle2" sx={{ mb: 1 }}>Step 2 — Run it once</Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+        Right-click the file → <em>Run with PowerShell</em>. You may see a one-time security prompt
+        (it's an unsigned local script). On first run Windows may ask permission to access Outlook —
+        allow it. The script writes <code>meetings.json</code> next to itself.
+      </Typography>
+      <Box sx={{ p: 1, mb: 2.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 1, fontFamily: '"Roboto Mono", monospace', fontSize: '0.75rem' }}>
+        powershell -ExecutionPolicy Bypass -File &quot;%USERPROFILE%\Documents\devdesh-outlook.ps1&quot;
+      </Box>
+
+      <Typography variant="subtitle2" sx={{ mb: 1 }}>Step 3 — Point the dashboard at meetings.json</Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+        Pick the file once and the browser will remember it across sessions.
+      </Typography>
+      <Button
+        variant="contained"
+        size="small"
+        onClick={() => void handlePickFile()}
+        disabled={!supported || busy}
+        sx={{ mb: 2.5 }}
+      >
+        {handleName ? 'Choose a different file...' : 'Choose meetings.json...'}
+      </Button>
+
+      <Typography variant="subtitle2" sx={{ mb: 1 }}>Step 4 — Keep it fresh (optional)</Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+        Schedule the script to re-run every few minutes so meetings stay current. This one-liner
+        creates a Task Scheduler job that runs every 5 minutes:
+      </Typography>
+      <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mb: 1 }}>
+        <Box sx={{ flex: 1, p: 1, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 1, fontFamily: '"Roboto Mono", monospace', fontSize: '0.7rem', wordBreak: 'break-all' }}>
+          {scheduleCmd}
+        </Box>
+        <Button
+          size="small"
+          startIcon={scheduleCmdCopied ? <CheckCircleIcon /> : undefined}
+          onClick={() => {
+            void navigator.clipboard.writeText(scheduleCmd);
+            setScheduleCmdCopied(true);
+            setTimeout(() => setScheduleCmdCopied(false), 2000);
+          }}
+          sx={{ mt: 0.25 }}
+        >
+          {scheduleCmdCopied ? 'Copied' : 'Copy'}
+        </Button>
+      </Box>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+        Run that in an elevated PowerShell. Adjust the path if you saved the script elsewhere.
+      </Typography>
     </>
   );
 }

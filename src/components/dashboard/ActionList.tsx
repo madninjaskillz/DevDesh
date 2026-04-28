@@ -18,6 +18,7 @@ import CommentIcon from '@mui/icons-material/Comment';
 import ReviewsIcon from '@mui/icons-material/Reviews';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
+import EventIcon from '@mui/icons-material/Event';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import SnoozeIcon from '@mui/icons-material/Snooze';
@@ -33,6 +34,7 @@ const ICON_MAP: Record<ActionType, React.ReactNode> = {
   stale_issue: <ScheduleIcon sx={{ color: colors.orange[5] }} />,
   stale_pr: <ScheduleIcon sx={{ color: colors.orange[5] }} />,
   missing_link: <LinkOffIcon sx={{ color: colors.gray[5] }} />,
+  meeting: <EventIcon sx={{ color: colors.blue[5] }} />,
 };
 
 const SEVERITY_BORDER: Record<ActionSeverity, string> = {
@@ -92,13 +94,14 @@ export function ActionList({ items, isLoading, snooze }: ActionListProps) {
   return (
     <Paper sx={{ p: 1 }}>
       <List dense disablePadding>
-        {visible.map((item) => (
+        {visible.map((item) => {
+          const linkProps = item.url
+            ? { component: 'a' as const, href: item.url, target: '_blank', rel: 'noopener' }
+            : {};
+          return (
           <ListItemButton
             key={item.id}
-            component="a"
-            href={item.url}
-            target="_blank"
-            rel="noopener"
+            {...linkProps}
             sx={{
               borderLeft: `4px solid ${SEVERITY_BORDER[item.severity]}`,
               mb: 0.5,
@@ -132,7 +135,8 @@ export function ActionList({ items, isLoading, snooze }: ActionListProps) {
               </Tooltip>
             )}
           </ListItemButton>
-        ))}
+          );
+        })}
       </List>
 
       <Menu

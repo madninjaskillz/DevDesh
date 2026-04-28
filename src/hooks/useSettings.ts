@@ -33,6 +33,7 @@ export interface AppSettings {
   goalMaxIssueAgeDays: number | null;
   goalMaxPRAgeDays: number | null;
   goalMaxCycleTimeDays: number | null;
+  outlookEnabled: boolean;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -54,6 +55,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   goalMaxIssueAgeDays: null,
   goalMaxPRAgeDays: null,
   goalMaxCycleTimeDays: null,
+  outlookEnabled: false,
 };
 
 interface SettingsContextValue {

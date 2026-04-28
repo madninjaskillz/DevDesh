@@ -8,7 +8,8 @@ export type ActionType =
   | 'review_requested'
   | 'stale_issue'
   | 'stale_pr'
-  | 'missing_link';
+  | 'missing_link'
+  | 'meeting';
 
 export type ActionSeverity = 'critical' | 'warning' | 'info';
 
@@ -144,4 +145,74 @@ export function computeActionItems(
 
   // Sort by priority, then by age desc within same priority
   return items.sort((a, b) => a.priority - b.priority || b.ageDays - a.ageDays);
+}
+
+export interface MeetingLike {
+  id: string;
+  subject: string;
+  start: string; // ISO
+  end: string;   // ISO
+  location?: string;
+  organizer?: string;
+  isAllDay?: boolean;
+  url?: string;
+}
+
+export function computeMeetingActions(meetings: MeetingLike[], now: Date = new Date()): ActionItem[] {
+  const items: ActionItem[] = [];
+  const nowMs = now.getTime();
+  const dayEnd = new Date(now); dayEnd.setHours(23, 59, 59, 999);
+
+  for (const m of meetings) {
+    const startMs = Date.parse(m.start);
+    const endMs = Date.parse(m.end);
+    if (Number.isNaN(startMs) || Number.isNaN(endMs)) continue;
+    if (m.isAllDay) continue;
+    if (endMs < nowMs) continue;
+    if (startMs > dayEnd.getTime()) continue;
+
+    const minsUntil = Math.round((startMs - nowMs) / 60000);
+    const inProgress = startMs <= nowMs && endMs > nowMs;
+    const startLabel = new Date(startMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    let priority: number;
+    let severity: ActionSeverity;
+    let title: string;
+
+    if (inProgress) {
+      priority = 0;
+      severity = 'critical';
+      title = `Now: ${m.subject}`;
+    } else if (minsUntil <= 15) {
+      priority = 0;
+      severity = 'critical';
+      title = `In ${minsUntil}m: ${m.subject}`;
+    } else if (minsUntil <= 60) {
+      priority = 0.5;
+      severity = 'warning';
+      title = `In ${minsUntil}m: ${m.subject}`;
+    } else {
+      priority = 1.5;
+      severity = 'info';
+      title = `${startLabel}: ${m.subject}`;
+    }
+
+    const descParts: string[] = [];
+    if (m.location) descParts.push(m.location);
+    if (m.organizer) descParts.push(`organized by ${m.organizer}`);
+    const description = descParts.length > 0 ? descParts.join(' — ') : `Meeting at ${startLabel}`;
+
+    items.push({
+      id: `meeting-${m.id}`,
+      type: 'meeting',
+      priority,
+      title,
+      description,
+      url: m.url ?? '',
+      ageDays: 0,
+      severity,
+    });
+  }
+
+  return items.sort((a, b) => a.priority - b.priority);
 }

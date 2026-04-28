@@ -38,7 +38,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import CommitIcon from '@mui/icons-material/Commit';
 import { GitHubApiError } from '../../api/github';
-import { computeActionItems } from '../../utils/actions';
+import { computeActionItems, computeMeetingActions } from '../../utils/actions';
+import { useOutlookMeetings } from '../../hooks/useOutlookMeetings';
 import { useNotifications } from '../../hooks/useNotifications';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useThemeMode, useTextCase } from '../../theme/ThemeProvider';
@@ -148,14 +149,21 @@ export function DashboardPage() {
     });
   }, [prs, issues, isLoading]);
 
+  // Outlook meetings (no-op when not configured)
+  const outlook = useOutlookMeetings();
+
   // Action items
   const actionItems = useMemo(
-    () => computeActionItems(prsWithMissingLinks, issues, reviewRequests, {
-      staleIssueDays: settings.staleIssueDays,
-      staleCommentDays: settings.staleCommentDays,
-      staleReviewRequestDays: settings.staleReviewRequestDays,
-    }),
-    [prsWithMissingLinks, issues, reviewRequests, settings],
+    () => {
+      const base = computeActionItems(prsWithMissingLinks, issues, reviewRequests, {
+        staleIssueDays: settings.staleIssueDays,
+        staleCommentDays: settings.staleCommentDays,
+        staleReviewRequestDays: settings.staleReviewRequestDays,
+      });
+      const meetings = computeMeetingActions(outlook.meetings);
+      return [...meetings, ...base].sort((a, b) => a.priority - b.priority || b.ageDays - a.ageDays);
+    },
+    [prsWithMissingLinks, issues, reviewRequests, settings, outlook.meetings],
   );
 
   // Label + board status filtering (exclude-based: all shown by default, uncheck to hide)
