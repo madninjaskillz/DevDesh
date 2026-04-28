@@ -1163,9 +1163,15 @@ function OutlookSettings() {
         (it's an unsigned local script). On first run Windows may ask permission to access Outlook —
         allow it. The script writes <code>meetings.json</code> next to itself.
       </Typography>
-      <Box sx={{ p: 1, mb: 2.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 1, fontFamily: '"Roboto Mono", monospace', fontSize: '0.75rem' }}>
+      <Box sx={{ p: 1, mb: 1, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 1, fontFamily: '"Roboto Mono", monospace', fontSize: '0.75rem' }}>
         powershell -ExecutionPolicy Bypass -File &quot;%USERPROFILE%\Documents\devdesh-outlook.ps1&quot;
       </Box>
+      <Alert severity="info" sx={{ mb: 2.5, fontSize: '0.8rem' }}>
+        <strong>Requires classic Outlook</strong>, not the &quot;new Outlook for Windows&quot; preview —
+        the new one has no COM API. If the script reports it can&apos;t connect to Outlook, toggle
+        <em>Try the new Outlook</em> off in Outlook&apos;s title bar. Also: don&apos;t run it
+        elevated unless Outlook is.
+      </Alert>
 
       <Typography variant="subtitle2" sx={{ mb: 1 }}>Step 3 — Point the dashboard at meetings.json</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>

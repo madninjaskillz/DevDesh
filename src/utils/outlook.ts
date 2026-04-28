@@ -123,14 +123,33 @@ export async function readMeetingsFile(handle: FileSystemFileHandle): Promise<Me
 // Uses Outlook COM automation; requires desktop Outlook and a signed-in profile.
 export const OUTLOOK_PS1 = `# DevDesh — Outlook calendar export
 # Writes the next 36 hours of meetings to meetings.json next to this script.
-# Requires desktop Outlook to be installed and signed in.
+#
+# Requires CLASSIC Outlook desktop (the new Outlook for Windows preview does
+# NOT expose the COM API used here). If you only have "new Outlook", toggle
+# the "Try the new Outlook" switch off in Outlook's title bar to use classic.
+#
+# Also: do not run this elevated unless Outlook is also running elevated —
+# COM objects can't cross privilege boundaries.
 
 $ErrorActionPreference = 'Stop'
 
 try {
     $outlook = New-Object -ComObject Outlook.Application
 } catch {
-    Write-Error "Could not connect to Outlook. Make sure Outlook desktop is installed and you have signed in at least once."
+    Write-Host ""
+    Write-Host "Could not connect to Outlook via COM." -ForegroundColor Red
+    Write-Host "Underlying error:" -ForegroundColor Yellow
+    Write-Host "  $($_.Exception.Message)"
+    Write-Host ""
+    Write-Host "Most common causes:" -ForegroundColor Yellow
+    Write-Host "  1. You are running the 'new Outlook' (preview). It has no COM API."
+    Write-Host "     Switch back to classic Outlook: in Outlook's title bar, toggle"
+    Write-Host "     'Try the new Outlook' OFF, or run 'olk.exe' for new and"
+    Write-Host "     'outlook.exe' for classic."
+    Write-Host "  2. PowerShell is elevated but Outlook isn't (or vice-versa)."
+    Write-Host "     Run this script in a non-elevated PowerShell."
+    Write-Host "  3. Classic Outlook isn't installed at all (M365 web only)."
+    Write-Host ""
     exit 1
 }
 
