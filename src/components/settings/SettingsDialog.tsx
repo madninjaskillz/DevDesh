@@ -1079,7 +1079,9 @@ function OutlookSettings() {
     updateSettings({ outlookEnabled: false });
   };
 
-  const scheduleCmd = `schtasks /create /tn "DevDesh Outlook Sync" /tr "powershell -WindowStyle Hidden -ExecutionPolicy Bypass -File \\"%USERPROFILE%\\Documents\\devdesh-outlook.ps1\\"" /sc minute /mo 5 /f`;
+  // --% is PowerShell's stop-parsing token — without it PS mangles the
+  // escaped quotes and schtasks sees broken args. In cmd.exe, drop --%.
+  const scheduleCmd = `schtasks --% /create /tn "DevDesh Outlook Sync" /tr "powershell -WindowStyle Hidden -ExecutionPolicy Bypass -File \\"%USERPROFILE%\\Documents\\devdesh-outlook.ps1\\"" /sc minute /mo 5 /f`;
 
   const generatedAge = lastFile ? Math.round((Date.now() - Date.parse(lastFile.generatedAt)) / 60000) : null;
 
@@ -1210,7 +1212,9 @@ function OutlookSettings() {
         </Button>
       </Box>
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-        Run that in an elevated PowerShell. Adjust the path if you saved the script elsewhere.
+        Paste into PowerShell (no admin needed for per-user tasks). The <code>--%</code> token stops
+        PowerShell from mangling the escaped quotes; if you&apos;re using <code>cmd.exe</code>
+        instead, drop it. Adjust the path if you saved the script elsewhere.
       </Typography>
     </>
   );
