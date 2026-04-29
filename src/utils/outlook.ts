@@ -168,29 +168,48 @@ $fmt = 'MM/dd/yyyy HH:mm'
 $filter = "[Start] <= '" + $end.ToString($fmt) + "' AND [End] >= '" + $start.ToString($fmt) + "'"
 $filtered = $items.Restrict($filter)
 
+function Get-Prop {
+    param($obj, [string]$name, $default = $null)
+    try { return $obj.$name } catch { return $default }
+}
+
 $result = @()
+$skipped = @()
 foreach ($item in $filtered) {
+    # Per-property defensive access — Outlook throws on different properties for
+    # different item shapes (notably self-organized vs invited meetings), and we
+    # don't want one bad property to drop the whole appointment.
+    $entryId   = Get-Prop $item 'EntryID' ''
+    $subject   = Get-Prop $item 'Subject' '(no subject)'
+    $startVal  = Get-Prop $item 'Start' $null
+    $endVal    = Get-Prop $item 'End' $null
+    $location  = Get-Prop $item 'Location' ''
+    $organizer = Get-Prop $item 'Organizer' ''
+    $allDay    = [bool](Get-Prop $item 'AllDayEvent' $false)
+    $response  = 0
+    try { $response = [int]$item.ResponseStatus } catch {}
+    $body      = Get-Prop $item 'Body' ''
+    $bodySnippet = if ($body) { $body.Substring(0, [Math]::Min(500, $body.Length)) } else { '' }
+
+    if (-not $startVal -or -not $endVal) {
+        $skipped += "  - '$subject' (missing Start/End)"
+        continue
+    }
+
     try {
-        $bodySnippet = ''
-        if ($item.Body) {
-            $bodySnippet = $item.Body.Substring(0, [Math]::Min(500, $item.Body.Length))
-        }
-        # ResponseStatus: 0=None, 1=Organized, 2=Tentative, 3=Accepted, 4=Declined, 5=NotResponded
-        $response = 0
-        try { $response = [int]$item.ResponseStatus } catch {}
         $result += [PSCustomObject]@{
-            id             = $item.EntryID
-            subject        = $item.Subject
-            start          = $item.Start.ToString('o')
-            end            = $item.End.ToString('o')
-            location       = $item.Location
-            organizer      = $item.Organizer
-            isAllDay       = [bool]$item.AllDayEvent
+            id             = $entryId
+            subject        = $subject
+            start          = $startVal.ToString('o')
+            end            = $endVal.ToString('o')
+            location       = $location
+            organizer      = $organizer
+            isAllDay       = $allDay
             responseStatus = $response
             body           = $bodySnippet
         }
     } catch {
-        # Skip items we can't read (corrupted recurrences etc.)
+        $skipped += "  - '$subject' ($($_.Exception.Message))"
     }
 }
 
@@ -204,6 +223,11 @@ if (-not $outDir) { $outDir = (Get-Location).Path }
 $outFile = Join-Path $outDir 'meetings.json'
 $payload | ConvertTo-Json -Depth 4 | Set-Content -Path $outFile -Encoding UTF8
 
+Write-Host "Found $($filtered.Count) item(s) in window, kept $($result.Count), skipped $($skipped.Count)."
+if ($skipped.Count -gt 0) {
+    Write-Host "Skipped:"
+    $skipped | ForEach-Object { Write-Host $_ }
+}
 Write-Host "Wrote $($result.Count) meeting(s) to $outFile"
 `;
 
